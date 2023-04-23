@@ -187,8 +187,8 @@ void js_dereferenceLocalObject(PCEJVMTIAgent agent)
 
 void js_getClassFields(PCEJVMTIAgent agent) 
 {
-  //debug_log("java_getAllClassFields");
   jclass klass=(jclass)ps_readQword(agent->pipe);
+  jint error;
   
   if (klass==0)
   {
@@ -199,10 +199,14 @@ void js_getClassFields(PCEJVMTIAgent agent)
 	jint count;
   
 	jfieldID *fields=NULL;  
-  if (_jvmti->GetClassFields(agent->jvmti, klass, &count, &fields)==JVMTI_ERROR_NONE)
+  error=_jvmti->GetClassFields(agent->jvmti, klass, &count, &fields);
+  if (error==JVMTI_ERROR_NONE)
 	{
     PMemoryStream ms=ms_create(8+count*8*32);
     ms_writeDword(ms, count);
+    
+    //debug_log("GetClassFields success. Count=%d", count);
+    
         
 		int i;
 		for (i=0; i<count; i++)
@@ -286,6 +290,9 @@ void js_getClassFields(PCEJVMTIAgent agent)
 		}
 		_jvmti->Deallocate(agent->jvmti, (unsigned char *)fields);
     
+    if (ms->pos==0)
+      debug_log("Sending an empty fieldlist");
+
     ps_writeDword(agent->pipe, ms->pos);
     ps_write(agent->pipe, ms->buf, ms->pos);    
     
@@ -293,7 +300,15 @@ void js_getClassFields(PCEJVMTIAgent agent)
 
 	}
 	else
+  {
+    
+    if (error==JVMTI_ERROR_CLASS_NOT_PREPARED)    
+      debug_log("Class not prepared yet");    
+    else
+      debug_log("GetClassFields failed. Errorcode=%d",error);
+    
 		ps_writeDword(agent->pipe,0); //0 byte stream
+  }
 }
 
 
@@ -576,17 +591,23 @@ void js_findClassInstances(PCEJVMTIAgent agent)
 {
   unsigned char lookupmethod=ps_readByte(agent->pipe);
   jclass klass=(jclass)ps_readQword(agent->pipe);
-  char *sig=NULL,*gen=NULL;
+  char *sig=NULL;
+  char *gen=NULL;
   if ((*(agent->jvmti))->GetClassSignature(agent->jvmti, klass, &sig, &gen)==JVMTI_ERROR_NONE)
   {
     if (sig)
     {
       debug_log("finding instances of class %s", sig);
       _jvmti->Deallocate(agent->jvmti, (unsigned char *)sig);
+      
+      debug_log("Cleaned up sig");
     }
     
     if (gen)
-     _jvmti->Deallocate(agent->jvmti, (unsigned char *)sig);
+    {
+     _jvmti->Deallocate(agent->jvmti, (unsigned char *)gen);
+     debug_log("Cleaned up gen");
+    }
     
   }
   else
@@ -991,6 +1012,7 @@ Sets a bunch of values to the provided objects and fields
   }
 }
 
+
 void js_getFieldValues(PCEJVMTIAgent agent) 
 /*
 Retrieve a list of values for the given fieldid's and the object provided
@@ -1218,6 +1240,258 @@ Retrieve a list of values for the given fieldid's and the object provided
   ms_destroy(ms);
 }
 
+void js_invokeMethod(PCEJVMTIAgent agent) 
+{
+  typedef struct
+  {
+    char *str;
+    jobject javastr;  
+  } StringInfo, *PStringInfo;
+  
+  debug_log("js_invokeMethod");
+  jobject obj=(jobject)ps_readQword(agent->pipe);
+  jmethodID method=(jmethodID)ps_readQword(agent->pipe);
+  unsigned char returntype=(unsigned char)ps_readByte(agent->pipe);
+  unsigned char argumentcount=(unsigned char)ps_readByte(agent->pipe);
+  jint modifiers=0;
+  jclass methodclass=0;
+
+  if (_jvmti->GetMethodModifiers(agent->jvmti, method, &modifiers)==0)
+  {
+    if (modifiers & ACC_STATIC)
+    {      
+      debug_log("this is a static method");
+      if (_jvmti->GetMethodDeclaringClass(agent->jvmti, method, &methodclass))
+      {
+        debug_log("GetMethodDeclaringClass failed");
+        ps_writeQword(agent->pipe, 0);
+        return;        
+      }
+    }    
+  }
+  else
+  {
+    debug_log("GetMethodModifiers failed");
+    ps_writeQword(agent->pipe, 0);
+    return;
+  }
+  
+  
+  jvalue *parameters=malloc(sizeof(jvalue)*argumentcount);
+
+  PStringInfo stringinfo=malloc(sizeof(StringInfo)*argumentcount);
+  
+  if ((!parameters) || (!stringinfo))
+  {
+    debug_log("parameter or stringinfo alloc failed");
+    ps_writeQword(agent->pipe, 0);
+    return;
+  }
+  
+  
+  memset(parameters,0,sizeof(jvalue)*argumentcount);  
+  memset(stringinfo,0,sizeof(StringInfo)*argumentcount); 
+  
+  int i;
+  for (i=0; i<argumentcount; i++)
+  {
+    unsigned char t=ps_readByte(agent->pipe);
+
+    switch (t)
+    {
+      case 0: //void
+        break;
+        
+      case 1: //bool
+      case 2: //byte
+        ps_read(agent->pipe, &parameters[i],1);
+        break;
+        
+      case 3: //2 byte char
+      case 4: //word
+        ps_read(agent->pipe, &parameters[i],2);
+        break;      
+       
+      case 5: //dword 
+      case 7: //float
+        ps_read(agent->pipe, &parameters[i],4);
+        break;
+        
+      case 6: //qword
+      case 8: //double
+      case 9: //object (not string)
+      case 10: //array
+        ps_read(agent->pipe, &parameters[i],8);
+        break;  
+
+      case 11: //string
+      {
+        int strlen=ps_readWord(agent->pipe);
+        stringinfo[i].str=malloc(strlen)+1;
+        
+        ps_read(agent->pipe, stringinfo[i].str,strlen);
+        stringinfo[i].str[strlen]=0;
+        
+        stringinfo[i].javastr=_env->NewStringUTF(agent->env, stringinfo[i].str);        
+        parameters[i].l=stringinfo[i].javastr;
+        break;      
+      }
+    }
+  }
+  
+  debug_log("all parameters have been read out. Going to call the method with %d parameters", argumentcount);
+    
+  //call
+  jvalue result;
+  result.j=0;
+  
+  switch (returntype)
+  {
+    case 0: //void
+      if (methodclass)
+        _env->CallStaticVoidMethodA(agent->env, methodclass, method, parameters);        
+      else
+        _env->CallVoidMethodA(agent->env, obj, method, parameters);
+      break;  
+
+    case 1: //boolean  
+      if (methodclass)    
+        result.z=_env->CallStaticBooleanMethodA(agent->env, methodclass, method, parameters);        
+      else
+        result.z=_env->CallBooleanMethodA(agent->env, obj, method, parameters);
+      break;  
+
+    case 2: //byte
+      if (methodclass)
+        result.b=_env->CallStaticByteMethodA(agent->env, methodclass, method, parameters);
+      else
+        result.b=_env->CallByteMethodA(agent->env, obj, method, parameters);
+      break;
+      
+    case 3: //2 byte char
+      if (methodclass)
+        result.c=_env->CallStaticCharMethodA(agent->env, methodclass, method, parameters);
+      else        
+        result.c=_env->CallCharMethodA(agent->env, obj, method, parameters);
+      
+      break;    
+
+    case 4: //2 byte
+      if (methodclass)
+        result.s=_env->CallStaticShortMethodA(agent->env, methodclass, method, parameters);        
+      else
+        result.s=_env->CallShortMethodA(agent->env, obj, method, parameters);
+      break;  
+      
+    case 5: //4 byte
+      if (methodclass)
+        result.i=_env->CallStaticIntMethodA(agent->env, methodclass, method, parameters);
+      else 
+        result.i=_env->CallIntMethodA(agent->env, obj, method, parameters);
+      break;     
+
+    case 6: //8 byte
+      if (methodclass)
+        result.j=_env->CallStaticLongMethodA(agent->env, methodclass, method, parameters);
+      else
+        result.j=_env->CallLongMethodA(agent->env, obj, method, parameters);
+
+      break;      
+
+    case 7: //float
+      if (methodclass)
+        result.f=_env->CallStaticFloatMethodA(agent->env, methodclass, method, parameters);
+      else
+        result.f=_env->CallFloatMethodA(agent->env, obj, method, parameters);
+      break; 
+
+    case 8: //double
+      if (methodclass)
+        result.d=_env->CallStaticDoubleMethodA(agent->env, methodclass, method, parameters);
+      else
+        result.d=_env->CallDoubleMethodA(agent->env, obj, method, parameters);
+      break; 
+      
+    case 9: //object
+    case 10: //array object
+    case 11: //string
+      if (methodclass)    
+        result.l=_env->CallStaticObjectMethodA(agent->env, obj, method, parameters);        
+      else
+        result.l=_env->CallObjectMethodA(agent->env, obj, method, parameters);
+      
+      if (result.l)
+      {
+        //upgrade to global ref
+        jobject gr=_env->NewGlobalRef(agent->env, result.l);
+        
+        _env->DeleteLocalRef(agent->env, result.l);
+        result.l=gr;        
+      }
+      break; 
+  }
+  
+  _env->ExceptionClear(agent->env);
+  
+  if (returntype==11) //string
+  {
+    PMemoryStream ms=ms_create(256);
+    debug_log("string type");
+    if (result.l)
+    {
+      int sl;
+      debug_log("valid string");
+      ms_writeByte(ms, 1);  //valid
+      char *s=_env->GetStringUTFChars(agent->env, result.l, NULL);
+      
+      debug_log("string=%s",s);
+      
+      sl=strlen(s);
+      debug_log("sl=%d",sl);
+      ms_writeWord(ms, sl);      
+      ms_write(ms, s, sl);
+      
+      _env->ReleaseStringUTFChars(agent->env, result.l, s);
+      _env->DeleteLocalRef(agent->env, result.l);
+    }
+    else
+    {
+      debug_log("nil string");
+      ms_writeByte(agent->pipe, 0); //is nil      
+    }
+    
+    ps_writeMemStream(agent->pipe, ms);
+    ms_destroy(ms);
+  }
+  else  
+    ps_write(agent->pipe, &result,8);
+  
+  //cleanup all allocated strings
+  debug_log("after methodcall. Cleaning up");
+  for (i=0; i<argumentcount; i++)
+  {
+    if (stringinfo[i].javastr)
+    {
+      _env->DeleteLocalRef(agent->env, stringinfo[i].javastr);
+      stringinfo[i].javastr=0;
+    }
+    
+    if (stringinfo[i].str)   
+    {
+      free(stringinfo[i].str);
+      stringinfo[i].str=NULL;
+    }   
+  }    
+  
+  free(stringinfo);
+  free(parameters);
+  
+  if (methodclass)
+    _env->DeleteLocalRef(agent->env, methodclass);
+  
+  debug_log("invokeMethod end");
+}
+
 void js_collectGarbage(PCEJVMTIAgent agent) 
 {  
   jclass systemClass = (_env)->FindClass(agent->env, "java/lang/System");
@@ -1267,12 +1541,12 @@ void js_findFields(PCEJVMTIAgent agent)
   if (caseSensitive)
   {
     comp=(stringcomparefunction)strstr;
-    debug_log("case sensitive");
+    debug_log("case sensitive (comp=%p)",comp);
   }
   else
   {
     comp=(stringcomparefunction)strcasestr;
-    debug_log("case insensitive");
+    debug_log("case insensitive (comp=%p)",comp);
   }
   
 
@@ -1300,10 +1574,10 @@ void js_findFields(PCEJVMTIAgent agent)
     debug_log("scanning for name:%s and sig:%s",searchname, searchsig);
   else
   if (searchname)
-    debug_log("scanning for name:%s", searchname);
+    debug_log("scanning for name:%s and sig:*", searchname);
   else
   if (searchsig)
-    debug_log("scanning for sig:%s", searchsig);
+    debug_log("scanning for name:* and sig:%s", searchsig);
   else
   {
     debug_log("scanning for nothing");
@@ -1317,10 +1591,37 @@ void js_findFields(PCEJVMTIAgent agent)
 
   PMemoryStream ms=ms_create(16*1024);
   
+  debug_log("agent->classcount=%d",agent->classcount);
+  
   for (i=0; i<agent->classcount; i++)
   {   
+   // debug_log("%d",i);
+    if (agent->classlist[i]==NULL)
+    {
+     // debug_log("classlist[%d]==NULL",i);
+      continue;
+    }
+    
+    jint status;
+    
+    if (_jvmti->GetClassStatus(agent->jvmti, agent->classlist[i], &status)==JVMTI_ERROR_NONE)
+    {
+     // debug_log("%d=%d", i, status);
+      if (status!=7) 
+      {
+        //debug_log("skip");
+        continue;
+      }
+    }
+    else
+    {
+     // debug_log("%d GetClassStatus failed",i);
+      continue;
+    }
+   
     if (_jvmti->GetClassFields(agent->jvmti, agent->classlist[i], &count, &fields)==JVMTI_ERROR_NONE)
 	  {
+  
       int j;
       for (j=0; j<count; j++)
       {
@@ -1353,6 +1654,7 @@ void js_findFields(PCEJVMTIAgent agent)
           
           if (valid)
           {
+            debug_log("found a match");
             ms_writeQword(ms, (uint64_t)agent->classlist[i]);
             ms_writeQword(ms, (uint64_t)fields[j]);
           }
@@ -1447,6 +1749,30 @@ void js_findMethods(PCEJVMTIAgent agent)
   
   for (i=0; i<agent->classcount; i++)
   {   
+
+    if (agent->classlist[i]==NULL)
+    {
+     // debug_log("classlist[%d]==NULL",i);
+      continue;
+    }
+    
+    jint status;
+    
+    if (_jvmti->GetClassStatus(agent->jvmti, agent->classlist[i], &status)==JVMTI_ERROR_NONE)
+    {
+     // debug_log("%d=%d", i, status);
+      if (status!=7) 
+      {
+        //debug_log("skip");
+        continue;
+      }
+    }
+    else
+    {
+     // debug_log("%d GetClassStatus failed",i);
+      continue;
+    }
+    
     if (_jvmti->GetClassMethods(agent->jvmti, agent->classlist[i], &count, &methods)==JVMTI_ERROR_NONE)
 	  {
       int j;
@@ -1554,6 +1880,7 @@ void launchCEJVMTIServer(JNIEnv *env, jvmtiEnv *jvmti, void* soa)
     
     while (agent && (agent->pipe) && ps_isvalid(agent->pipe))
     {
+      debug_log("waiting for command");
       char command=ps_readByte(agent->pipe);
       
       if (ps_isvalid(agent->pipe))
@@ -1640,6 +1967,9 @@ void launchCEJVMTIServer(JNIEnv *env, jvmtiEnv *jvmti, void* soa)
             js_getObjectClassName(agent);
             break;
             
+          case JAVACMD_INVOKEMETHOD:
+            js_invokeMethod(agent);
+            break;            
             
           default: 
             debug_log("Invalid command. Terminating server");

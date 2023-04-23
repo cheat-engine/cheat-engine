@@ -22,6 +22,8 @@ ceserver: did a binary scan. froze at the end
 ceserver: did an aobscan (exec, ignore rest). froze at the end
 ceserver: when debugging, also use multibyte writes using the available apis
 
+processwindow: When going to the network window and connect, and then cancel because the server is down, then the proceslist has lost it's tabs
+
 autoassembler: add autocomplete for stuff like createthread, alloc, etc...
 autoassembler: Add a checkbox or something so it won't ask if you wish to keep certain symbols (always yes/always no?)
 
@@ -67,6 +69,10 @@ form editor: add an order change option (not just bring to front/send to back)
 form editor: deleting a column from a listview keeps it in the object inspector
 form editor: when loading a form, the save dialog still points to the old one. Change that to the newly loaded formname
 form editor: save objectinspector treeview height
+
+binary type hotkey: increase value by doesn't work
+
+ceshare list filter search has an error
 
 ---
 

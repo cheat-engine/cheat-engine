@@ -1,16 +1,16 @@
 object frmDebuggerAttachTimeout: TfrmDebuggerAttachTimeout
   Left = 546
-  Height = 272
+  Height = 258
   Top = 137
   Width = 402
   AutoSize = True
   BorderStyle = bsSingle
   Caption = 'Debugger attach timeout'
-  ClientHeight = 272
+  ClientHeight = 258
   ClientWidth = 402
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.0.6.0'
+  LCLVersion = '2.2.2.0'
   object Label1: TLabel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
@@ -39,7 +39,7 @@ object frmDebuggerAttachTimeout: TfrmDebuggerAttachTimeout
     Width = 87
     AutoSize = True
     BorderSpacing.Top = 10
-    BorderSpacing.Bottom = 5
+    BorderSpacing.Bottom = 16
     Cancel = True
     Caption = 'Cancel wait'
     Default = True
@@ -54,7 +54,7 @@ object frmDebuggerAttachTimeout: TfrmDebuggerAttachTimeout
     AnchorSideBottom.Side = asrBottom
     Left = 194
     Height = 15
-    Top = 257
+    Top = 243
     Width = 15
     Anchors = [akLeft, akBottom]
     Caption = '---'

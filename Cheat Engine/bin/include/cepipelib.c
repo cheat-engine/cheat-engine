@@ -193,7 +193,7 @@ ssize_t recvall (HANDLE s, void *buf, size_t size, int flags)
   ssize_t sizeleft=size;
   unsigned char *buffer=(unsigned char*)buf;  
   
-  debug_log("recvall: Reading %d bytes", size);
+ 
   
   while (sizeleft>0)
   {
@@ -203,13 +203,13 @@ ssize_t recvall (HANDLE s, void *buf, size_t size, int flags)
 
     if (ReadFile(s, &buffer[totalreceived], sizeleft, &br, NULL) == FALSE)
     {
-      debug_log("recvall: ReadFile returned FALSE.  br=%d", br);
+      //debug_log("recvall: ReadFile returned FALSE.  br=%d", br);
       if (br==0)
         return totalreceived;
     }
     else
     {
-      debug_log("successfully read %d bytes", br);
+     // debug_log("successfully read %d bytes", br);
     }
 
     totalreceived += br;

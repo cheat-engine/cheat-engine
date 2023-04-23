@@ -71,6 +71,128 @@ JAVA_TIMEOUT=5000 --5 seconds
 ACC_STATIC=8
 
 
+local trueboolstr={}
+trueboolstr[tostring(true)]=true
+trueboolstr['1']=true
+
+java_field_writers={} --function(stream,stringvalue) end : returns true if parsed properly
+java_field_writers[0]=function(s) return true end
+java_field_writers[1]=function(s,v) s.writeByte(trueboolstr[v] and 1 or 0) return true end --boolean
+java_field_writers[2]=function(s,v)  --byte
+  local vn=tonumber(v) 
+  if vn then 
+    s.writeByte(vn) 
+    return true 
+  end 
+end --byte
+java_field_writers[3]=function(s,v)  --2 byte (hex formatted)
+  local vn
+  if v:startsWith('0x') then
+    vn=tonumber(v)
+  else
+    vn=tonumber(v,16)
+  end
+  if vn then s.writeWord(vn) 
+    return true
+  end 
+end --boolean
+java_field_writers[4]=function(s,v)  --word
+  local vn=tonumber(v) 
+  if vn then 
+    s.writeWord(vn) 
+    return true 
+  end 
+end 
+java_field_writers[5]=function(s,v)  --dword
+  local vn=tonumber(v) 
+  if vn then 
+    s.writeDword(vn) 
+    return true 
+  end 
+end 
+java_field_writers[6]=function(s,v)  --qword
+  local vn=tonumber(v) 
+  if vn then 
+    s.writeQword(vn) 
+    return true 
+  end 
+end 
+java_field_writers[7]=function(s,v)  --float
+  local vn=tonumber(v) 
+  if vn then 
+    local bt=floatToByteTable(v)
+    s.write(bt)
+    return true 
+  end 
+end 
+java_field_writers[8]=function(s,v)  --double
+  local vn=tonumber(v) 
+  if vn then 
+    local bt=doubleToByteTable(v)
+    s.write(bt)
+    return true
+  end 
+end 
+java_field_writers[9]=java_field_writers[6] --object (jObject)
+java_field_writers[10]=java_field_writers[6]  --array (jObject)
+java_field_writers[11]=function(s,v) --string  (utf8 formatted)  
+  s.writeWord(#v)
+  s.writeString(v)
+  return true
+end
+
+
+
+java_field_readers={}
+java_field_readers[0]=function(ms) return {Value='<void>'} end --void (wtf)
+java_field_readers[1]=function(ms) return {Value=tostring(ms.readByte()~=0)} end --boolean
+java_field_readers[2]=function(ms) return {Value=string.format("%d",ms.readByte())} end --byte
+java_field_readers[3]=function(ms) return {Value=string.format("char: 0x%x",ms.readWord())} end --utf-16 char
+java_field_readers[4]=function(ms) return {Value=string.format("%d", ms.readWord())} end --short
+java_field_readers[5]=function(ms) return {Value=string.format("%d", ms.readDword())} end --int
+java_field_readers[6]=function(ms) return {Value=string.format("%d", ms.readQword())} end --long    
+java_field_readers[7]=function(ms) 
+  local r=ms.read(4);
+  local f=byteTableToFloat(r);
+  
+  return {Value=string.format("%.2f", f)} 
+end --float    
+java_field_readers[8]=function(ms)
+  local r=ms.read(8);
+  local f=byteTableToDouble(r);
+  
+  return {Value=string.format("%.2f", f)}
+end --double     
+java_field_readers[9]=function(ms)  
+  local o=ms.readQword()
+  if o==0 then
+    return {Value='nil'}
+  else
+    return {Value='<object>', Object=o}
+  end   
+end --object  
+
+java_field_readers[10]=function(ms)
+  local o=ms.readQword()
+  if o==0 then --just returns true if it's not nil
+    return {Value='nil'}
+  else
+    return {Value='<array>', Object=o}
+  end   
+end --array
+
+java_field_readers[11]=function(ms)
+  local isnil=ms.readByte()==0
+  
+  if isnil then
+    return {Value='nil'}
+  else
+    local sl=ms.readWord()
+    return {Value='"'..ms.readString(sl)..'"'}
+  end
+end--string
+
+
 
 function getFieldFromType(type, field, infloopprotection)
   if type==nil then return nil end
@@ -1383,104 +1505,131 @@ Java_TypeSigToIDConversion['D']=8 --double
 Java_TypeSigToIDConversion['L']=9 --object
 Java_TypeSigToIDConversion['[']=10 --array
  --11=string
+ 
+Java_TypeSigToHumanStringConversion={}
+Java_TypeSigToHumanStringConversion['V']='void'
+Java_TypeSigToHumanStringConversion['Z']='boolean'
+Java_TypeSigToHumanStringConversion['B']='byte'
+Java_TypeSigToHumanStringConversion['C']='char'
+Java_TypeSigToHumanStringConversion['S']='short integer'
+Java_TypeSigToHumanStringConversion['I']='integer'
+Java_TypeSigToHumanStringConversion['J']='long integer'
+Java_TypeSigToHumanStringConversion['F']='float'
+Java_TypeSigToHumanStringConversion['D']='double'
+Java_TypeSigToHumanStringConversion['[']='array'
+ 
 
-function java_invokeMethod_sendParameter(typeid, a, skiptypeid)
-  if (skiptypeid==nil) or (skiptypeid==true) then
-    javapipe.writeByte(typeid)
-  end
-
-  if typeid==1 then --boolean
-    if a==true then
-      javapipe.writeByte(1)
+function java_convertTypeStrToReadableString(typestr)
+  local c=string.sub(typestr,1,1)
+  
+  if c=='L' then
+    if typestr=='Ljava/lang/String' then
+      return 'string'
+    else
+      return 'object of type '..typestr:sub(2,-2)   
+    end;
+    
   else
-    javapipe.writeByte(0)
+    return Java_TypeSigToHumanStringConversion[c]
   end
-  elseif typeid==2 then
-    javapipe.writeByte(a)
-  elseif typeid==3 then --char
-    if tonumber(a)==nil then
-    javapipe.writeWord(string.byte(a,1))
-  else
-      javapipe.writeWord(a)
+end
+
+function java_invokeMethodEx(object, methodid, returntypestring, parameters)
+  --format of parameters array element:  --
+  --  type: the java type string
+  --  value: the value of the parameter in string format
+  
+  local result=nil
+  local returntype=Java_TypeSigToIDConversion[string.sub(returntypestring,1,1)]
+  
+  if (returntype==9) and (returntypestring=='Ljava/lang/String;') then
+    returntype=11 --string
   end
 
-  elseif typeid==4 then --short
-    javapipe.writeWord(a)
-  elseif typeid==5 then --int
-    javapipe.writeDword(a)
-  elseif typeid==6 then --long
-    javapipe.writeQword(a)
-  elseif typeid==7 then --float
-    javapipe.writeFloat(a)
-  elseif typeid==8 then --double
-    javapipe.writeDouble(a)
-  elseif typeid==9 then --object
-    javapipe.writeQword(a)
-  elseif typeid>10 then --array
+  if returntype>=100 then
+    return nil, translate('Array return types are not supported')
+  end  
+  
+  local ms=createMemoryStream()
+  ms.writeByte(JAVACMD_INVOKEMETHOD)
+  ms.writeQword(object)
+  ms.writeQword(methodid)
 
-    if typeid==13 then
-    --check if a is a string
-    if type(a)=='string' then
-      javapipe.writeDword(#a)
-    javapipe.writeString(a)
-    return
+  ms.writeByte(returntype)
+  ms.writeByte(argumentcount)
+ 
+  for i=1,#parameters do
+    local t=Java_TypeSigToIDConversion[parameters[i].type]
+    if (t==9) and (parameters[i].type=='Ljava/lang/String;') then
+      t=11 --string
     end
-    --else send it char by char
+    
+    ms.writeByte(t)
+
+  
+    local writer=java_field_writers[t]
+    if writer==nil then error('Invalid internal field type at index '..i) end
+    
+    if writer(ms,parameters[i].value)~=true then return nil,'Failed interpreting the string :'..parameters[i].value end
+  end 
+ 
+  --send the data
+  ms.Position=0
+  
+  javapipe.lock()
+  javapipe.writeFromStream(ms, ms.Size)
+  
+  ms.clear()  
+  if returntype~=11 then
+    javapipe.readIntoStream(ms,8)
+  else
+    local sz=javapipe.readDword()
+    javapipe.readIntoStream(ms, sz)    
   end
-
-    javapipe.writeDword(#a) --length of the array
-
-  --send the fields as the given type
-
-
-  local i
-  for i=1, #a do
-    java_invokeMethod_sendParameter(typeid-10, a[i], true)
-  end
-
-  end
-
+  javapipe.unlock()
+  
+  --return the result
+  
+  local r=java_field_readers[returntype]
+  ms.Position=0
+  local result
+  if r then
+    result=r(ms)  
+  end 
+  
+  ms.destroy()  
+  
+  return result
 end
 
 function java_invokeMethod(object, methodid, ...)
+--todo: get the info, parse it into a struct and hand it to java_invokeMethodEx
+  local parameters={}
+  
+  local arg=...
   local argumentcount=#arg
   local name, sig, gen=java_getMethodName(methodid)
 
   --parse sig to find out what to give as parameters and what to expect as result (I am assuming the caller KNOWS what he's doing...)
 
   --format of sig: (ABC)D  () part are the parameters, D is the return type
-  local result=nil
-
-  parsedsignature=java_parseSignature(sig)
-
-  --convert returntype to the id used by JAVACMD_INVOKEMETHOD
-
-  local returntype=Java_TypeSigToIDConversion[string.sub(parsedsignature.returntype,1,1)]
-  if returntype>=10 then
-    error(translate('Array return types are not supported'));
+  local parsedsignature=java_parseSignature(sig)
+  
+  for i=1,#parsedsignature.parameters do
+    parameters[i]={}
+    parameters[i].type=parsedsignature.parameters[i]
   end
-
-  if argumentcount~=#parsedsignature.parameters then
-    error(translate('Parameter count does not match'))
-  end
-
-
-
-  javapipe.lock()
-  javapipe.writeByte(JAVACMD_INVOKEMETHOD)
-  javapipe.writeQword(object)
-  javapipe.writeQword(methodid)
-
-  javapipe.writeByte(returntype)
-  javapipe.writeByte(argumentcount)
-
+  
+  return java_invokeMethodEx(object, methodid, parsedsignature.returntype, parameters)
+  
+  --[[
   local i
   for i=1, argumentcount do
     local typeid
     typeid=Java_TypeSigToIDConversion[string.sub(parsedsignature.parameters[i],1,1)]
-  if typeid==10 then
-    typeid=10+Java_TypeSigToIDConversion[string.sub(parsedsignature.parameters[i],2,2)]
-  end
+    if typeid==10 then
+      typeid=10+Java_TypeSigToIDConversion[string.sub(parsedsignature.parameters[i],2,2)]
+    end
 
     java_invokeMethod_sendParameter(typeid, arg[i])
 
@@ -1498,7 +1647,7 @@ function java_invokeMethod(object, methodid, ...)
     result=byteTableToDouble(qwordToByteTable(result))
   end
 
-  return result
+  return result--]]
 end
 
 function java_findMethod(class, name, sig)
@@ -1604,75 +1753,7 @@ function java_getFieldSignature(klass, fieldid)
   return result
 end
 
-local trueboolstr={}
-trueboolstr[tostring(true)]=true
-trueboolstr['1']=true
 
-java_writers={} --function(stream,stringvalue) end : returns true if parsed properly
-java_writers[0]=function(s) return true end
-java_writers[1]=function(s,v) s.writeByte(trueboolstr[v] and 1 or 0) return true end --boolean
-java_writers[2]=function(s,v)  --byte
-  local vn=tonumber(v) 
-  if vn then 
-    s.writeByte(vn) 
-    return true 
-  end 
-end --byte
-java_writers[3]=function(s,v)  --2 byte (hex formatted)
-  local vn
-  if v:startsWith('0x') then
-    vn=tonumber(v)
-  else
-    vn=tonumber(v,16)
-  end
-  if vn then s.writeWord(vn) 
-    return true
-  end 
-end --boolean
-java_writers[4]=function(s,v)  --word
-  local vn=tonumber(v) 
-  if vn then 
-    s.writeWord(vn) 
-    return true 
-  end 
-end 
-java_writers[5]=function(s,v)  --dword
-  local vn=tonumber(v) 
-  if vn then 
-    s.writeDword(vn) 
-    return true 
-  end 
-end 
-java_writers[6]=function(s,v)  --qword
-  local vn=tonumber(v) 
-  if vn then 
-    s.writeQword(vn) 
-    return true 
-  end 
-end 
-java_writers[7]=function(s,v)  --float
-  local vn=tonumber(v) 
-  if vn then 
-    local bt=floatToByteTable(v)
-    s.write(bt)
-    return true 
-  end 
-end 
-java_writers[8]=function(s,v)  --double
-  local vn=tonumber(v) 
-  if vn then 
-    local bt=doubleToByteTable(v)
-    s.write(bt)
-    return true
-  end 
-end 
-java_writers[9]=java_writers[6] --object (jObject)
-java_writers[10]=java_writers[6]  --array (jObject)
-java_writers[11]=function(s,v) --string  (utf8 formatted)  
-  s.writeWord(#v)
-  s.writeString(v)
-  return true
-end
  
 
 function java_setFieldValues(newValues)   
@@ -1711,19 +1792,18 @@ function java_setFieldValues(newValues)
     ms.writeByte(t)
     ms.writeByte(newValues[i].Field.static and 1 or 0)
     
-    local writer=java_writers[t]
+    local writer=java_field_writers[t]
     if writer==nil then error('Invalid internal field type at index '..i) end
     
     if writer(ms,newValues[i].Value)~=true then return nil,'Failed interpreting the string :'..newValues[i].Value end
-    
-    ms.Position=0
-    
-    javapipe.lock()
-    javapipe.writeFromStream(ms, ms.Size)
-    javapipe.unlock()
-    ms.clear()
-  
   end
+  
+  ms.Position=0
+  
+  javapipe.lock()
+  javapipe.writeFromStream(ms, ms.Size)
+  javapipe.unlock()
+  ms.clear()  
   
   
 end
@@ -1769,54 +1849,9 @@ function java_getFieldValuesFromObject(jobject, Fields)
   javapipe.unlock()
   ms.position=0
   
-  local readers={}
-  readers[0]=function() return {Value='<void>'} end --void (wtf)
-  readers[1]=function() return {Value=tostring(ms.readByte()~=0)} end --boolean
-  readers[2]=function() return {Value=string.format("%d",ms.readByte())} end --byte
-  readers[3]=function() return {Value=string.format("char: 0x%x",ms.readWord())} end --utf-16 char
-  readers[4]=function() return {Value=string.format("%d", ms.readWord())} end --short
-  readers[5]=function() return {Value=string.format("%d", ms.readDword())} end --int
-  readers[6]=function() return {Value=string.format("%d", ms.readQword())} end --long    
-  readers[7]=function() 
-    local r=ms.read(4);
-    local f=byteTableToFloat(r);
-    
-    return {Value=string.format("%.2f", f)} 
-  end --float    
-  readers[8]=function()
-    local r=ms.read(8);
-    local f=byteTableToDouble(r);
-    
-    return {Value=string.format("%.2f", f)}
-  end --double     
-  readers[9]=function()  
-    local o=ms.readQword()
-    if o==0 then
-      return {Value='nil'}
-    else
-      return {Value='<object>', Object=o}
-    end   
-  end --object  
+  local readers=java_field_readers
   
-  readers[10]=function()
-    local o=ms.readQword()
-    if o==0 then --just returns true if it's not nil
-      return {Value='nil'}
-    else
-      return {Value='<array>', Object=o}
-    end   
-  end --array
   
-  readers[11]=function()
-    local isnil=ms.readByte()==0
-    
-    if isnil then
-      return {Value='nil'}
-    else
-      local sl=ms.readWord()
-      return {Value='"'..ms.readString(sl)..'"'}
-    end
-  end--string
 
   
   for i=1,#Fields do
@@ -1824,7 +1859,7 @@ function java_getFieldValuesFromObject(jobject, Fields)
     local t=Fields[i].InternalType
     local r=readers[t]
     if r then
-      results[i]=r()
+      results[i]=r(ms)
     else
       results[i].Value='<WTF>' --unknown internal type
       results[i].Object=nil

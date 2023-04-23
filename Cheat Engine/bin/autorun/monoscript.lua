@@ -221,179 +221,7 @@ function mono_clearcache()
   monocache.processid=getOpenedProcessID()
 end
 
-function createMethodInvokedialog(name, parameters, okclickfunction, customAddress, address)
-  local mifinfo={}
-  mifinfo.mif=createForm(false)
-  mifinfo.mif.position='poScreenCenter'
-  mifinfo.mif.borderStyle='bsSizeable'
-  
-  mifinfo.mif.Caption=translate('Invoke ')..name
 
-  if customAddress then
-    mifinfo.lblInstanceAddress=createLabel(mifinfo.mif)
-    mifinfo.lblInstanceAddress.Caption=translate('Instance address')  
-    mifinfo.cbInstance=createComboBox(mifinfo.mif)
-  end
-  
-  mifinfo.gbParams=createGroupBox(mifinfo.mif)
-  mifinfo.gbParams.Caption=translate('Parameters')
-
-  mifinfo.gbParams.AutoSize=true
-
-  mifinfo.pnlButtons=createPanel(mifinfo.mif)
-  mifinfo.pnlButtons.ChildSizing.ControlsPerLine=2
-  mifinfo.pnlButtons.ChildSizing.Layout='cclLeftToRightThenTopToBottom'
-
-  mifinfo.pnlButtons.BevelOuter='bvNone'
-  mifinfo.pnlButtons.BorderSpacing.Top=5
-  mifinfo.pnlButtons.BorderSpacing.Bottom=5
-  mifinfo.pnlButtons.ChildSizing.HorizontalSpacing=8
-
-
-  mifinfo.btnOk=createButton(mifinfo.mif)
-  mifinfo.btnCancel=createButton(mifinfo.mif)
-
-  mifinfo.btnOk.Parent=mifinfo.pnlButtons
-  mifinfo.btnCancel.Parent=mifinfo.pnlButtons
-
-  mifinfo.pnlButtons.AutoSize=true
-
-  mifinfo.btnOk.caption=translate('OK')
-  mifinfo.btnCancel.caption=translate('Cancel')
-  mifinfo.btnCancel.Cancel=true
-
-
-  mifinfo.pnlButtons.AnchorSideBottom.Control=mifinfo.mif
-  mifinfo.pnlButtons.AnchorSideBottom.Side=asrBottom
-  mifinfo.pnlButtons.AnchorSideLeft.Control=mifinfo.mif
-  mifinfo.pnlButtons.AnchorSideLeft.Side=asrCenter
-  mifinfo.pnlButtons.Anchors='[akLeft, akBottom]'
- -- mifinfo.pnlButtons.Color=clRed
-
-
-  if customAddress then
-    mifinfo.lblInstanceAddress.AnchorSideTop.Control=mifinfo.mif
-    mifinfo.lblInstanceAddress.AnchorSideTop.Side=asrTop
-    mifinfo.lblInstanceAddress.AnchorSideTop.Left=mifinfo.mif
-    mifinfo.lblInstanceAddress.AnchorSideTop.Side=asrLeft
-    mifinfo.cbInstance.AnchorSideTop.Control=mifinfo.lblInstanceAddress
-    mifinfo.cbInstance.AnchorSideTop.Side=asrBottom
-    
-    mifinfo.cbInstance.AnchorSideLeft.Control=mifinfo.mif
-    mifinfo.cbInstance.AnchorSideLeft.Side=asrLeft
-    mifinfo.cbInstance.AnchorSideRight.Control=mifinfo.mif
-    mifinfo.cbInstance.AnchorSideRight.Side=asrRight
-    mifinfo.cbInstance.Anchors='[akLeft, akRight, akTop]'
-    mifinfo.cbInstance.BorderSpacing.Left=2*dpiscale
-    mifinfo.cbInstance.BorderSpacing.Right=2*dpiscale
-    
-    mifinfo.gbParams.AnchorSideTop.Control=mifinfo.cbInstance
-    mifinfo.gbParams.AnchorSideTop.Side=asrBottom    
-  else
-    mifinfo.gbParams.AnchorSideTop.Control=mifinfo.mif
-    mifinfo.gbParams.AnchorSideTop.Side=asrTop      
-  end
-
-  mifinfo.gbParams.AnchorSideLeft.Control=mifinfo.mif
-  mifinfo.gbParams.AnchorSideLeft.Side=asrLeft
-  mifinfo.gbParams.AnchorSideRight.Control=mifinfo.mif
-  mifinfo.gbParams.AnchorSideRight.Side=asrRight
-  mifinfo.gbParams.AnchorSideBottom.Control=mifinfo.pnlButtons
-  mifinfo.gbParams.AnchorSideBottom.Side=asrTop
-
-  mifinfo.gbParams.Anchors='[akLeft, akRight, akTop, akBottom]'
-
-  mifinfo.mif.AutoSize=true
-
-  mifinfo.parameters={}
-  local i
-  for i=1, #parameters do
-    local lblVarName=createLabel(mifinfo.mif)
-    local edtVarText=createEdit(mifinfo.mif)
-
-    lblVarName.Parent=mifinfo.gbParams
-    edtVarText.Parent=mifinfo.gbParams
-    
-    lblVarName.AnchorSideLeft.Control=mifinfo.gbParams
-    lblVarName.AnchorSideLeft.Side=asrLeft
-    lblVarName.BorderSpacing.Left=2*dpiscale
-       
-    lblVarName.AnchorSideTop.Control=edtVarText
-    lblVarName.AnchorSideTop.Side=asrCenter
-    
-    if i==1 then
-      edtVarText.AnchorSideTop.Control=mifinfo.gbParams
-      edtVarText.AnchorSideTop.Side=asrTop      
-      edtVarText.AnchorSideLeft.Control=mifinfo.gbParams
-      edtVarText.AnchorSideLeft.Side=asrLeft      
-      --borderspacing.Left will set the position      
-    else
-      edtVarText.AnchorSideTop.Control=mifinfo.parameters[i-1].edtVarText
-      edtVarText.AnchorSideTop.Side=asrBottom
-      edtVarText.AnchorSideLeft.Control=mifinfo.parameters[i-1].edtVarText
-      edtVarText.AnchorSideLeft.Side=asrLeft --same position as the top (which gets set later)
-    end
-    edtVarText.BorderSpacing.Top=2*dpiscale    
-    edtVarText.AnchorSideRight.Control=mifinfo.gbParams
-    edtVarText.AnchorSideRight.Side=asrRight
-    edtVarText.BorderSpacing.Right=2*dpiscale
-
-    edtVarText.Anchors='[akLeft, akRight, akTop]'
-
-    
-
-    lblVarName.Caption=parameters[i]:trim()
-
-    mifinfo.parameters[i]={}
-    mifinfo.parameters[i].lblVarName=lblVarName
-    mifinfo.parameters[i].edtVarText=edtVarText
-
-    lblVarName.BorderSpacing.CellAlignVertical='ccaCenter'
-  end
-
-  mifinfo.btnOk.OnClick=okclickfunction
-
-  mifinfo.btnCancel.OnClick=function(b) mifinfo.mif.close() end
-
-
-  mifinfo.mif.OnShow=function(s)
-    idf=s
-    if #mifinfo.parameters>0 then      
-      local labelwidth=0
-      local i
-      for i=1,#parameters do --get the min width needed
-        labelwidth=math.max(labelwidth, mifinfo.parameters[i].lblVarName.Width)
-      end
-      
-      mifinfo.parameters[1].edtVarText.BorderSpacing.Left=labelwidth+7*dpiscale
-    end
-  end
-
-  mifinfo.mif.onClose=function(f)
-    return caFree
-  end
-
-  mifinfo.mif.onDestroy=function(f)
-    --destroy all objects
-    mifinfo.btnOk.destroy()
-    mifinfo.btnOk=nil
-    
-    mifinfo.btnCancel.destroy()
-    mifinfo.btnCancel=nil
-
-    if mifinfo.cbInstance then
-      mifinfo.cbInstance.destroy()
-      mifinfo.cbInstance=nil
-    end
-    
-    mifinfo.gbParams.destroy()
-    mifinfo.gbParams=nil
-
-    mifinfo=nil
-  end  
-  
-  return mifinfo  
-end
 
 
 function monoTypeToVarType(monoType)
@@ -2981,10 +2809,12 @@ function mono_invoke_method_dialog(domain, method, address)
       end
     end
     
+    --[[
     _G.args=args
     _G.instance=instance
     _G.method=method
     _G.bla=123
+    --]]
     
     local r=mono_invoke_method(domain, method, instance, args)
     if r then

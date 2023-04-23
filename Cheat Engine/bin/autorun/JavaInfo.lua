@@ -170,6 +170,8 @@ function getClassFieldsAndMethods(Class)
     if Class.Fields then
       Class.Fields.Class=Class
       Class.StaticFields.Class=Class
+    else
+      Class.StaticFields=nil      
     end
   end
   
@@ -195,17 +197,24 @@ function getAllClassFieldsAndMethods(Class)
     end    
     
     for i=#ClassList,1,-1 do
-      for j=1,#ClassList[i].StaticFields do
-        table.insert(StaticFieldList, ClassList[i].StaticFields[j])
+      if ClassList[i].StaticFields then
+        for j=1,#ClassList[i].StaticFields do
+          table.insert(StaticFieldList, ClassList[i].StaticFields[j])
+        end
       end
       
-      for j=1,#ClassList[i].Fields do
-        table.insert(FieldList, ClassList[i].Fields[j])
+      if ClassList[i].Fields then
+        for j=1,#ClassList[i].Fields do
+          table.insert(FieldList, ClassList[i].Fields[j])
+        end
       end
       
-      for j=1,#ClassList[i].Methods do
-        table.insert(MethodList, ClassList[i].Methods[j])
-      end      
+      if ClassList[i].Methods then
+        for j=1,#ClassList[i].Methods do
+          table.insert(MethodList, ClassList[i].Methods[j])
+        end      
+      end
+
     end
     
     StaticFieldList.Class=Class
@@ -313,48 +322,49 @@ function buildChildNodes(frmJavaInfo, nodeinfo, staticfieldlist)
     
 
     local n=stv.getFirstChild(nodeinfo.node)  
-    for i=1,#Fields do
-      local currentnodeinfo
-      if n==nil then
-        n=stv.addChild(nodeinfo.node)
-        currentnodeinfo={}
-        currentnodeinfo.self=currentnodeinfo
-        currentnodeinfo.parent=nodeinfo
-        currentnodeinfo.node=n
-        currentnodeinfo.parentnode=nodeinfo.node
-        stv.setNodeDataAsInteger(n, createRef(currentnodeinfo))
-      else
-        currentnodeinfo=getNodeInfoFromNode(stv, n)
+    if Fields then
+      for i=1,#Fields do
+        local currentnodeinfo
+        if n==nil then
+          n=stv.addChild(nodeinfo.node)
+          currentnodeinfo={}
+          currentnodeinfo.self=currentnodeinfo
+          currentnodeinfo.parent=nodeinfo
+          currentnodeinfo.node=n
+          currentnodeinfo.parentnode=nodeinfo.node
+          stv.setNodeDataAsInteger(n, createRef(currentnodeinfo))
+        else
+          currentnodeinfo=getNodeInfoFromNode(stv, n)
+        end
+
+        currentnodeinfo.class=class
+        currentnodeinfo.field=Fields[i]
+
+        if currentnodeinfo.object then
+          table.insert(jDataSource.globalsToRelease,currentnodeinfo.object) --mark for deletion, it's going to get overwritten
+        end
+
+
+        if Values then
+          currentnodeinfo.valuestring=Values[i].Value
+          currentnodeinfo.object=Values[i].Object
+        else
+          currentnodeinfo.valuestring=''
+          currentnodeinfo.object=nil
+          
+        end
+
+
+        if currentnodeinfo.object and  (stv.NodeChildCount[n]>0) then  --this node was already extracted
+          buildChildNodes(frmJavaInfo, currentnodeinfo, staticfieldlist)
+        else
+          stv.HasChildren[currentnodeinfo.node]=false --deletes any nodes if they where present
+          stv.HasChildren[currentnodeinfo.node]=Fields[i].signature:startsWith('L') and (Fields[i].signature~='Ljava/lang/String;')
+        end
+
+        n=stv.getNextSibling(n)
       end
-
-      currentnodeinfo.class=class
-      currentnodeinfo.field=Fields[i]
-
-      if currentnodeinfo.object then
-        table.insert(jDataSource.globalsToRelease,currentnodeinfo.object) --mark for deletion, it's going to get overwritten
-      end
-
-
-      if Values then
-        currentnodeinfo.valuestring=Values[i].Value
-        currentnodeinfo.object=Values[i].Object
-      else
-        currentnodeinfo.valuestring=''
-        currentnodeinfo.object=nil
-        
-      end
-
-
-      if currentnodeinfo.object and  (stv.NodeChildCount[n]>0) then  --this node was already extracted
-        buildChildNodes(frmJavaInfo, currentnodeinfo, staticfieldlist)
-      else
-        stv.HasChildren[currentnodeinfo.node]=false --deletes any nodes if they where present
-        stv.HasChildren[currentnodeinfo.node]=Fields[i].signature:startsWith('L') and (Fields[i].signature~='Ljava/lang/String;')
-      end
-
-      n=stv.getNextSibling(n)
     end
-    
    
     if nodeinfo.object then
       nodeinfo.objectclass=sig
@@ -511,7 +521,9 @@ function lvClassesSelectionChange(frmJavaInfo, sender)
 
   frmJavaInfo.rootnode.object=nil
    
-
+  for i=0,frmJavaInfo.lvMethods.items.Count-1 do
+    destroyRef(frmJavaInfo.lvMethods.items[i].Data)
+  end
   frmJavaInfo.lvMethods.items.clear()
   
 
@@ -545,11 +557,14 @@ function lvClassesSelectionChange(frmJavaInfo, sender)
     end
     
     frmJavaInfo.lvMethods.beginUpdate()
-    frmJavaInfo.lvMethods.items.clear()
-    for i=1,#methodList do
-      local li=frmJavaInfo.lvMethods.items.add()
-      li.caption=methodList[i].name
-      li.subItems.add(methodList[i].signature);
+    
+    if methodList then
+      for i=1,#methodList do
+        local li=frmJavaInfo.lvMethods.items.add()
+        li.caption=methodList[i].name
+        li.subItems.add(methodList[i].signature);
+        li.data=createRef(methodList[i])
+      end
     end
     frmJavaInfo.lvMethods.endUpdate()
 
@@ -649,6 +664,8 @@ function btnLookupInstancesClick(frmJavaInfo, sender)
     t.freeOnTerminate(false)
     t.Name='JavaInstanceLookup'
     
+   -- frmJavaInfo.btnLookupInstances.Caption='Looking up instances'
+    
     
     
     --do stuff
@@ -724,6 +741,106 @@ function refreshFieldListValues(frmJavaInfo)
   buildChildNodes(frmJavaInfo, frmJavaInfo.rootnode) 
   frmJavaInfo.stFields.refresh()
 end
+
+function miInvokeMethodClick(frmJavaInfo, sender)
+  if frmJavaInfo.rootnode.object==nil then
+    messageDialog('Please first select a proper instance', mtError,mbOK)
+    return
+  end
+
+  if frmJavaInfo.lvMethods.Selected==nil then return end
+
+  local Method=getRef(frmJavaInfo.lvMethods.Selected.Data)
+  local name=frmJavaInfo.CurrentlySelectedClass.signature:sub(2,-2)..':'..Method.name
+  local params={}
+  --parse the java signature and split it into parameters:
+  local parsedsig=java_parseSignature(Method.signature)
+
+  if parsedsig.parameters then
+    for i=1,#parsedsig.parameters do
+      params[i]=java_convertTypeStrToReadableString(parsedsig.parameters[i])
+    end
+  end
+
+
+  --frmJavaInfo.currentlySelectedClasss
+
+  --title name:
+  --local name=
+  local resultpanel
+  local resultlb
+  local midinfo
+  local results={}  
+
+  midinfo=createMethodInvokeDialog(name, params, function(form, values)
+    
+
+    local parameters={}
+    for i=1,#parsedsig.parameters do
+      parameters[i]={}
+      parameters.value=values[i]
+      parameters.type=parsedsig.parameters[i]
+    end
+
+    if resultpanel==nil then
+      resultpanel=createForm()
+      --resultpanel.PopupMode='pmNone'
+      resultpanel.BorderStyle=bsSizeable
+
+      function setPos()
+        resultpanel.left=4+midinfo.mid.left+midinfo.mid.width
+        resultpanel.top=midinfo.mid.top
+        resultpanel.height=midinfo.mid.height
+      end
+
+      midinfo.mid.OnChangeBounds=function(s)
+        setPos()
+      end
+
+      setPos()
+
+      resultlb=createListBox(resultpanel) --todo: virtualstringtree
+      resultlb.Align='alClient'
+
+      resultpanel.OnClose=function()
+        resultpanel=nil
+        return caFree
+      end
+    end
+
+    local r=java_invokeMethodEx(frmJavaInfo.rootnode.object, Method.jmethodid, parsedsig.returntype, parameters)
+
+    if r then      
+      local i=resultlb.items.insert(0,r.Value)
+      resultlb.itemindex=0
+      if r.Object then
+        table.insert(results, r.Object)
+      end
+    end
+
+  end)
+
+  midinfo.mid.OnClose=function()
+    if resultpanel then
+      resultpanel.destroy()
+    end
+    
+    for i=1,#results do
+      if results[i] then
+        table.insert(jDataSource.globalsToRelease, results[i])
+      end
+    end
+    
+    results=nil
+    
+    return caFree
+  end
+
+  midinfo.mid.show()
+
+
+end
+
 
 function miJavaInfoClick(sender)
   
@@ -805,6 +922,8 @@ function miJavaInfoClick(sender)
   frmJavaInfo.gbInheritance.OnResize=InheritanceResize
   
   frmJavaInfo.cbShowInherited.OnChange=function(sender) lvClassesSelectionChange(frmJavaInfo, frmJavaInfo.lvClasses) end
+  
+  frmJavaInfo.miInvokeMethod.OnClick=function(sender) miInvokeMethodClick(frmJavaInfo, sender) end
   
   
   frmJavaInfo.miFindField.OnClick=function(sender) spawnJavaSearchDialog(frmJavaInfo, 0) end
