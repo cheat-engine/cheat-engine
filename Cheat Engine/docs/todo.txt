@@ -22,8 +22,6 @@ processwindow: When going to the network window and connect, and then cancel bec
 autoassembler: add autocomplete for stuff like createthread, alloc, etc...
 autoassembler: Add a checkbox or something so it won't ask if you wish to keep certain symbols (always yes/always no?)
 
-enum modules and symbols: add f3 support in search
-
 ceserver: try to demangle names (register both manged and demangled names)
 
 symhandler: if _errno can't be found, look for a __errno instead (android thing)
@@ -57,7 +55,6 @@ auto assembler: 6 byte jmp option where CE will do a scan for a 8 byte codecave
 auto assembler: 5 byte jmp option where CE will do a scan for a 14 byte codecave
 DPI: form designer: anchor editor has crappy size on first time show
 
-java info: add a "case sensitive" checkbox to the classlist filter
 java info: expand arrays (max 20 or so)
 
 form editor: add an order change option (not just bring to front/send to back)
