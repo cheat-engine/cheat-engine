@@ -674,10 +674,13 @@ begin
     result:='nil';
 end;
 
-procedure LoadLuaScriptsFromPath(path: string);
+procedure LoadLuaScriptsFromPath(path: string; var mainformwasset: boolean; var addresslistwasset: boolean);
 var
   DirInfo: TSearchRec;
   i,r: integer;
+  pc: pchar;
+
+
 begin
   ZeroMemory(@DirInfo,sizeof(TSearchRec));
   r := FindFirst(path+'*.lua', FaAnyfile, DirInfo);
@@ -738,12 +741,10 @@ end;
 procedure InitializeLuaScripts(noautorun: boolean=false);
 var f: string;
   i,r: integer;
+
   pc: pchar;
-
   mainformwasset: boolean=true;
-  addresslistwasset: boolean=true;
-
-
+  addresslistwasset: boolean=false;
 begin
   lua_getglobal(LuaVM,'MainForm');
   if lua_isnil(LuaVM,-1) then
@@ -809,8 +810,8 @@ begin
   //autorun folder
   if noautorun=false then
   begin
-    loadLuaScriptsFromPath(autorunpath);
-    LoadLuaScriptsFromPath(autorunpath+'custom'+PathDelim);
+    loadLuaScriptsFromPath(autorunpath, mainformwasset, addresslistwasset);
+    LoadLuaScriptsFromPath(autorunpath+'custom'+PathDelim, mainformwasset, addresslistwasset);
   end;
 
   if translationfilepath<>'' then

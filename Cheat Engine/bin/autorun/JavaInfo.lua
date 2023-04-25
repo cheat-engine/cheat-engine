@@ -611,12 +611,25 @@ function edtClassFilterChange(frmJavaInfo, sender)
     frmJavaInfo.filteredClassList=nil
     frmJavaInfo.lvClasses.Items.Count=#jDataSource.Classes
   else
+    local uppercase=frmJavaInfo.cbCaseSensitive.Checked
     local filter=sender.Text
+    if not uppercase then
+      filter=filter:upper()
+    end      
     local r={}
-    for i=1,#jDataSource.Classes do
-      if jDataSource.Classes[i].signature:find(filter,1,true) then
-        table.insert(r,jDataSource.Classes[i])        
-      end      
+    
+    if uppercase then
+      for i=1,#jDataSource.Classes do
+        if jDataSource.Classes[i].signature:find(filter,1,true) then
+          table.insert(r,jDataSource.Classes[i])        
+        end      
+      end
+    else
+      for i=1,#jDataSource.Classes do
+        if jDataSource.Classes[i].signature:upper():find(filter,1,true) then
+          table.insert(r,jDataSource.Classes[i])        
+        end      
+      end    
     end
     
     frmJavaInfo.filteredClassList=r    
@@ -900,6 +913,7 @@ function miJavaInfoClick(sender)
   
   frmJavaInfo.lvClasses.OnData=function(sender, listitem) lvClassesOnData(frmJavaInfo, sender, listitem) end
   frmJavaInfo.edtClassFilter.OnChange=function(sender) edtClassFilterChange(frmJavaInfo, sender) end
+  frmJavaInfo.cbCaseSensitive.OnChange=function(sender) edtClassFilterChange(frmJavaInfo, sender) end
 
   frmJavaInfo.lvClasses.OnSelectItem=function(sender, listitem, selected) lvClassesSelectionChange(frmJavaInfo, sender) end
   

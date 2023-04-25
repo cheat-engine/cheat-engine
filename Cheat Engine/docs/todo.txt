@@ -1,9 +1,4 @@
-branch mapper dpi issues
-
 ceserver debug: add option to exclude some threads from debugging
-
-if you select 4/8 bytes in hexview and press ctrl+space , the disassembler should change to the selected address
-if you select 4 bytes and press space then also go to that address
 
 fix jvmti on windows (I messed up the lua)
 
@@ -73,6 +68,8 @@ form editor: save objectinspector treeview height
 binary type hotkey: increase value by doesn't work
 
 ceshare list filter search has an error
+
+macos: luaserver
 
 ---
 

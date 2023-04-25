@@ -10,10 +10,10 @@ object frmBranchMapper: TfrmBranchMapper
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  LCLVersion = '1.6.4.0'
+  LCLVersion = '2.2.2.0'
   object Panel1: TPanel
     Left = 8
-    Height = 148
+    Height = 155
     Top = 4
     Width = 320
     Align = alClient
@@ -24,7 +24,7 @@ object frmBranchMapper: TfrmBranchMapper
     BorderSpacing.Bottom = 4
     BevelOuter = bvNone
     Caption = 'Panel1'
-    ClientHeight = 148
+    ClientHeight = 155
     ClientWidth = 320
     TabOrder = 0
     object Label1: TLabel
@@ -38,7 +38,7 @@ object frmBranchMapper: TfrmBranchMapper
     end
     object clbThreads: TCheckListBox
       Left = 0
-      Height = 133
+      Height = 140
       Top = 15
       Width = 320
       Align = alClient
@@ -48,12 +48,13 @@ object frmBranchMapper: TfrmBranchMapper
   end
   object Panel2: TPanel
     Left = 0
-    Height = 106
-    Top = 156
+    Height = 99
+    Top = 163
     Width = 336
     Align = alBottom
+    AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 106
+    ClientHeight = 99
     ClientWidth = 336
     TabOrder = 1
     object Button1: TButton
@@ -62,7 +63,8 @@ object frmBranchMapper: TfrmBranchMapper
       Left = 8
       Height = 25
       Top = 4
-      Width = 107
+      Width = 101
+      AutoSize = True
       BorderSpacing.Left = 8
       BorderSpacing.Top = 4
       Caption = 'Start mapping'
@@ -100,13 +102,13 @@ object frmBranchMapper: TfrmBranchMapper
   object Timer1: TTimer
     Interval = 100
     OnTimer = Timer1Timer
-    left = 160
-    top = 104
+    Left = 160
+    Top = 104
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = '.ceaddress'
     Filter = 'CE Address list|*.ceaddress'
-    left = 143
-    top = 167
+    Left = 143
+    Top = 167
   end
 end

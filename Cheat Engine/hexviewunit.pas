@@ -3054,18 +3054,27 @@ end;
 
 procedure THexView.Follow;
 var
-  gotoaddress: ptruint;
+  gotoaddress: qword;
   x: ptruint;
 {$IFNDEF STANDALONEHV}
   mb: TMemoryBrowser;
 {$ENDIF}
+  psize: integer;
 begin
   if canfollow then
   begin
     //go to this selected address
     gotoaddress:=0;
 
-    if ReadProcessMemory(processhandle, pointer(getSelectionStart), @gotoaddress, processhandler.pointersize,x) then
+    psize:=1+getSelectionStart-getSelectionStop;
+    if psize<4 then
+      psize:=processhandler.pointersize;
+
+    if psize>sizeof(gotoaddress) then
+      psize:=sizeof(gotoaddress);
+
+
+    if ReadProcessMemory(processhandle, pointer(getSelectionStart), @gotoaddress, psize,x) then
     begin
       //save the current address in the history
       {$IFNDEF STANDALONEHV}
