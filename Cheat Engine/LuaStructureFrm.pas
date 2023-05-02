@@ -130,9 +130,9 @@ begin
   frm:=luaclass_getClassObject(L);
   groupname:=Format(rsGroupD,[frm.groupCount+1]);
   parameters:=lua_gettop(L);
-  if parameters>=1 then
-    if not lua_isnil(L,-1) then
-      groupname:=lua_ToString(L, -1);
+  if (parameters>=1) and (not lua_isnil(L,1)) then
+    groupname:=lua_ToString(L, 1);
+
   lua_pop(L, parameters);
   group:=TStructGroup.create(frm,groupname);
   luaclass_newclass(L, group, structGroup_addMetaData);
@@ -210,7 +210,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters>=1 then
   begin
-    index:=lua_tointeger(L,-1);
+    index:=lua_tointeger(L,1);
     luaclass_newclass(L, frm.columns[index]);
     result:=1;
   end else lua_pop(L, parameters);
@@ -227,7 +227,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters>=1 then
   begin
-    index:=lua_tointeger(L,-1);
+    index:=lua_tointeger(L,1);
     luaclass_newclass(L, frm.group[index]);
     result:=1;
   end else lua_pop(L, parameters);
@@ -272,7 +272,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters>=1 then
   begin
-    index:=lua_tointeger(L,-1);
+    index:=lua_tointeger(L,1);
     luaclass_newclass(L, group.columns[index]);
     result:=1;
   end else lua_pop(L, parameters);

@@ -1,5 +1,7 @@
 ceserver debug: add option to exclude some threads from debugging
 
+dpi fix: dissect code looks weird
+
 fix jvmti on windows (I messed up the lua)
 
 .net info: getting the classlist takes long and it looks like nothing happens, and seems to wait till the symbol enum is done

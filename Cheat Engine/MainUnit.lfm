@@ -2687,6 +2687,10 @@ object MainForm: TMainForm
         Visible = False
         OnClick = EnableLCLClick
       end
+      object miTriggerAccessViolation: TMenuItem
+        Caption = 'Test access violation'
+        OnClick = miTriggerAccessViolationClick
+      end
       object N8: TMenuItem
         Caption = '-'
       end

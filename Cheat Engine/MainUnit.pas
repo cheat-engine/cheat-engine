@@ -314,6 +314,7 @@ type
     FromAddress: TEdit;
     andlabel: TLabel;
     lblcompareToSavedScan: TLabel;
+    miTriggerAccessViolation: TMenuItem;
     MenuItem16: TMenuItem;
     MenuItem17: TMenuItem;
     MenuItem18: TMenuItem;
@@ -592,6 +593,7 @@ type
     procedure CreateGroupClick(Sender: TObject);
     procedure gbScanOptionsChangeBounds(Sender: TObject);
     procedure Label3Click(Sender: TObject);
+    procedure miTriggerAccessViolationClick(Sender: TObject);
     procedure miTutorial64Click(Sender: TObject);
     procedure MenuItem15Click(Sender: TObject);
     procedure MenuItem16Click(Sender: TObject);
@@ -3607,6 +3609,15 @@ end;
 
 procedure TMainForm.Label3Click(Sender: TObject);
 begin
+
+end;
+
+procedure TMainForm.miTriggerAccessViolationClick(Sender: TObject);
+var p: pbyte;
+begin
+  p:=pbyte($ce);
+  if p^=$ce then
+    showmessage('Weeee! Fuck You!');
 
 end;
 
