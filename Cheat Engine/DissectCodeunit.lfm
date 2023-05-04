@@ -2,22 +2,23 @@ object frmDissectCode: TfrmDissectCode
   Left = 803
   Height = 439
   Top = 245
-  Width = 348
+  Width = 345
   AutoSize = True
   Caption = 'Dissect Code'
   ClientHeight = 419
-  ClientWidth = 348
+  ClientWidth = 345
   Menu = MainMenu1
   OnClose = FormClose
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.0.6.0'
+  LCLVersion = '2.2.2.0'
   object ProgressBar1: TProgressBar
     Left = 0
     Height = 21
     Top = 398
-    Width = 348
+    Width = 345
     Align = alBottom
     ParentShowHint = False
     ShowHint = True
@@ -27,11 +28,11 @@ object frmDissectCode: TfrmDissectCode
     Left = 0
     Height = 398
     Top = 0
-    Width = 214
+    Width = 211
     Align = alClient
     BevelOuter = bvNone
     ClientHeight = 398
-    ClientWidth = 214
+    ClientWidth = 211
     TabOrder = 0
     object lbModuleList: TListBox
       AnchorSideTop.Control = Panel2
@@ -41,7 +42,7 @@ object frmDissectCode: TfrmDissectCode
       Left = 0
       Height = 260
       Top = 49
-      Width = 214
+      Width = 211
       Anchors = [akTop, akLeft, akRight]
       ItemHeight = 0
       MultiSelect = True
@@ -112,7 +113,7 @@ object frmDissectCode: TfrmDissectCode
       Left = 0
       Height = 23
       Top = 326
-      Width = 214
+      Width = 211
       Anchors = [akTop, akLeft, akRight]
       TabOrder = 2
     end
@@ -135,13 +136,13 @@ object frmDissectCode: TfrmDissectCode
       Left = 0
       Height = 23
       Top = 366
-      Width = 214
+      Width = 211
       Anchors = [akTop, akLeft, akRight]
       TabOrder = 3
     end
   end
   object Panel3: TPanel
-    Left = 214
+    Left = 211
     Height = 398
     Top = 0
     Width = 134

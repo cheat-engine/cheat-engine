@@ -59,6 +59,7 @@ type
     lblMaxOffset: TLabel;
     procedure btnStartClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure MenuItem2Click(Sender: TObject);
     procedure MenuItem3Click(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
@@ -205,6 +206,14 @@ end;
 procedure TfrmDissectCode.FormCreate(Sender: TObject);
 begin
   btnstart.caption:=rsStart;
+
+  if LoadFormPosition(self) then
+    autosize:=false;
+end;
+
+procedure TfrmDissectCode.FormDestroy(Sender: TObject);
+begin
+  SaveFormPosition(self);
 end;
 
 procedure TfrmDissectCode.MenuItem2Click(Sender: TObject);
@@ -365,6 +374,17 @@ begin
     lbModuleList.ItemIndex:=0;
     lbModuleList.Selected[0]:=true;
   end;
+
+  if autosize then
+  begin
+    autosize:=false;
+    if panel1.clientwidth<label3.Width then
+      width:=width+(label3.Width-panel1.clientwidth);
+
+    if panel3.height<(edtCustomRangeStop.Top+edtCustomRangeStop.height+3) then
+      height:=height+(edtCustomRangeStop.Top+edtCustomRangeStop.height+3)-panel3.height;
+  end;
+
 end;
 
 procedure TfrmDissectCode.cbIncludesystemModulesClick(Sender: TObject);
