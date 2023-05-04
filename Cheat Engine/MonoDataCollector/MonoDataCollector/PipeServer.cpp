@@ -1837,7 +1837,7 @@ void CPipeServer::GetReflectionTypeOfClassType()
 
 	try
 	{
-		WriteQword((UINT64)mono_type_get_object(type)); //ReflectionType*
+		WriteQword((UINT64)mono_type_get_object(domain, type)); //ReflectionType*
 	}
 	catch (...)
 	{

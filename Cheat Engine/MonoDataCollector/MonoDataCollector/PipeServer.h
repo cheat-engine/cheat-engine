@@ -144,7 +144,7 @@ typedef int (__cdecl *MONO_FIELD_GET_OFFSET)(void *field);
 typedef char* (__cdecl *MONO_TYPE_GET_NAME)(void *type);
 typedef void* (__cdecl* MONO_TYPE_GET_CLASS)(void* type);
 typedef int (__cdecl *MONO_TYPE_GET_TYPE)(void *type);
-typedef void* (__cdecl *MONO_TYPE_GET_OBJECT)(void *type);
+typedef void* (__cdecl *MONO_TYPE_GET_OBJECT)(void *domain, void *type);
 typedef char* (__cdecl *MONO_TYPE_GET_NAME_FULL)(void *type, int format);
 typedef bool(__cdecl* MONO_TYPE_IS_STRUCT)(void* type);
 
