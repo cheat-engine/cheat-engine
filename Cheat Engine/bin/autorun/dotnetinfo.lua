@@ -232,7 +232,7 @@ local function getClassFields(Class)
       StaticFieldAddress=mono_class_getStaticFieldAddress(0,Class.Handle)
     end
          
-    local fields=mono_class_enumFields(Class.Handle, true)
+    local fields=mono_class_enumFields(Class.Handle, true, true)
     for i=1,#fields do
       local e={}
       e.Handle=fields[i].field
