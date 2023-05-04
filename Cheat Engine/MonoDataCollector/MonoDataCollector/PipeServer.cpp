@@ -1834,7 +1834,16 @@ void CPipeServer::GetTypeOfMonoType()
 void CPipeServer::GetReflectionTypeOfClassType()
 {
 	void* type = (void*)ReadQword(); //MonoType*
-	WriteQword((UINT64)mono_type_get_object(type)); //ReflectionType*
+
+	try
+	{
+		WriteQword((UINT64)mono_type_get_object(type)); //ReflectionType*
+	}
+	catch (...)
+	{
+		OutputDebugString("error at GetReflectionTypeOfClassType");
+		WriteQword(0);
+	}
 }
 
 

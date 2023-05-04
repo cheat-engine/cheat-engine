@@ -19,7 +19,7 @@ local dpiscale=getScreenDPI()/96
 
 --[[local]] monocache={}
 
-mono_timeout=3000 --change to 0 to never timeout (meaning: 0 will freeze your face off if it breaks on a breakpoint, just saying ...)
+mono_timeout=0 --change to 0 to never timeout (meaning: 0 will freeze your face off if it breaks on a breakpoint, just saying ...)
 
 MONO_DATACOLLECTORVERSION=20230409
 
@@ -555,12 +555,12 @@ function LaunchMonoDataCollector(internalReconnectDisconnectEachTime)
     
   
   monopipe.OnError=function(self)
-    --print("monopipe error")
+    print("monopipe error")
     monopipe.OnTimeout(self)
   end
 
   monopipe.OnTimeout=function(self)  
-    --print("monopipe disconnected")
+    print("monopipe disconnected")
     
     local oldmonopipe=monopipe
     monopipe=nil
@@ -1611,22 +1611,25 @@ function mono_class_getVTable(domain, klass)
   return result  
 end
 
-local function GetInstancesOfClass(kls)
-  local reskls = mono_findClass("UnityEngine","Resources")
-  local mthds = mono_class_enumMethods(reskls)
-  local fn
-  for k,v in pairs(mthds) do
-    if v.name == 'FindObjectsOfTypeAll' then
-      local prms = mono_method_get_parameters(v.method)
-      if #prms.parameters == 1 and prms.parameters[1].name=="type" then fn = v.method break end
+local function GetInstancesOfClass(kls) 
+  if getOperatingSystem()==0 then
+    local reskls = mono_findClass("UnityEngine","Resources")
+    local mthds = mono_class_enumMethods(reskls)
+    local fn
+    for k,v in pairs(mthds) do
+      if v.name == 'FindObjectsOfTypeAll' then
+        local prms = mono_method_get_parameters(v.method)
+        if #prms.parameters == 1 and prms.parameters[1].name=="type" then fn = v.method break end
+      end
     end
+    if not fn then return end
+    local sig = mono_method_getSignature(fn)
+    local klstype = mono_class_get_type(kls)
+    local reftype = mono_classtype_get_reflectiontype(klstype)
+    if not reftype or reftype==0 then return end
+    return mono_invoke_method(nil,fn,0,{{type=vtPointer,value=reftype}})
   end
-  if not fn then return end
-  local sig = mono_method_getSignature(fn)
-  local klstype = mono_class_get_type(kls)
-  local reftype = mono_classtype_get_reflectiontype(klstype)
-  if not reftype or reftype==0 then return end
-  return mono_invoke_method(nil,fn,0,{{type=vtPointer,value=reftype}})
+
 end
 
 
