@@ -30,6 +30,8 @@ type
 
   TDissectedStruct=class;
   TStructelement=class;
+  TfrmStructures2=class;
+
   TStructureDissectOverride=function(structure: TObject; address: ptruint): boolean of object;
   TStructureNameLookup=function(var address: ptruint; var name: string): boolean of object;
 
@@ -39,12 +41,15 @@ type
   private
     felement: TStructelement;
     isroot: boolean;
+    fStructureForm:  TfrmStructures2;
     procedure setElement(e: TStructelement);
     function getChildNodeStruct: TDissectedStruct;
+
   public
     property element: TStructelement read felement write setElement;
     property childnodestruct: TDissectedStruct read getChildNodeStruct;
-
+    property structureForm: TfrmStructures2 read fStructureForm;
+    constructor Create(AnOwner: TTreeNodes); override;
     destructor Destroy; override;
   end;
 
@@ -107,7 +112,6 @@ type
     procedure AutoCreateChildStruct(name: string; address: ptruint);
 
     procedure WriteToXMLNode(elementnodes: TDOMNode);
-
   published
     property Name: string read getName write setName; //stored as utf8
     property VarType: TVariableType read getVarType write setVarType;
@@ -229,7 +233,7 @@ type
 
   //TDissectedStructs=TFPGList<TDissectedStruct>;
 
-  TfrmStructures2=class;
+
   TStructColumn=class;
 
   TStructGroup=class //Will handle the group compares for each group
@@ -605,7 +609,7 @@ type
     procedure miSelectStructureClick(Sender: tobject);
     function getHorizontalScrollbarString: String; //returns a string out of spaces that fills up the length of all the columns combined
     procedure SetupFirstNodeLength;
-    procedure InitializeFirstNode;
+    function InitializeFirstNode: TStructureTreeNode;
     procedure RefreshStructureList;
     procedure TreeViewHScroll(sender: TObject; scrolledleft, maxscrolledleft: integer);
     procedure TreeViewVScroll(sender: TObject);
@@ -655,9 +659,8 @@ type
     procedure onStructListChange;
     procedure onAddedToStructList(sender: TDissectedStruct);
     procedure onRemovedFromStructList(sender: TDissectedStruct);
-    procedure onFullStructChange(sender: TDissectedStruct);   //called when a structure is changed (sort/add/remove entry)
+//    procedure onFullStructChange(sender: TDissectedStruct);   //called when a structure is changed (sort/add/remove entry)
     procedure onStructOptionsChange(sender: TDissectedStruct);
-    procedure onElementChange(struct:TDissectedStruct; element: TStructelement); //called when an element of a structure is changed
     procedure onStructureDelete(sender: TDissectedStruct);
 
     procedure FixPositions;
@@ -1000,6 +1003,23 @@ function TStructureTreeNode.getChildNodeStruct: TDissectedStruct;
 begin
   if felement=nil then exit(nil);
   exit(felement.ChildStruct);
+end;
+
+constructor TStructureTreeNode.Create(AnOwner: TTreeNodes);
+var
+  tv: TCustomTreeview;
+  p: twincontrol;
+begin
+  inherited create(AnOwner);
+  tv:=AnOwner.Owner;
+
+  p:=tv.parent;
+  while (p<>nil) and (not (p is TfrmStructures2)) do
+  begin
+    p:=p.Parent;
+  end;
+
+  fStructureForm:=TfrmStructures2(p);
 end;
 
 destructor TStructureTreeNode.Destroy;
@@ -1612,15 +1632,49 @@ end;
 
 
 procedure TDissectedStruct.DoFullStructChangeNotification;
-var i: integer;
+var
+  i,j: integer;
+  n: TStructureTreeNode;
+  e: TStructelement;
 begin
+  //tell all nodes that have this structure as childstruct that it has been changed
+
+
   if MainThreadID<>GetCurrentThreadId then
     raise EStructureException.create(rsStructureAccessOutsideMainThread);
 
   if isUpdating=false then
   begin
-    for i:=0 to frmStructures2.Count-1 do
+
+    i:=0;
+    while i<elementReferences.count do  //get all elements that reference this structure
+    begin
+      e:=TStructelement(elementReferences[i]);
+
+      j:=0;
+      while j<e.NodeReferences.count do   //for each visual node that has a reference to this structure: (parent node)
+      begin
+        n:=TStructureTreenode(e.NodeReferences[j]);
+        n.structureForm.clearSavedValues;
+
+        n.structureForm.tvStructureView.BeginUpdate;
+        if (n.Expanded or (n.level=0)) then  //node is of the updated type and currently has children , or it's the root node
+          n.structureForm.FillTreeNodeWithStructData(n)
+        else
+        begin
+          n.DeleteChildren;
+          n.HasChildren:=true;
+        end;
+
+        n.structureForm.tvStructureView.EndUpdate;
+        inc(j);
+      end;
+      inc(i);
+    end;
+
+    {for i:=0 to frmStructures2.Count-1 do
       TfrmStructures2(frmStructures2[i]).onFullStructChange(self);
+      }
   end
   else
     fullstructupdate:=true;
@@ -1629,22 +1683,18 @@ end;
 
 
 procedure TDissectedStruct.DoElementChangeNotification(element: TStructelement);
-var i: integer;
+var
+  i: integer;
+  n: TStructureTreeNode;
 begin
-  if self=nil then
-  asm
-  nop
-  end;
-
-  if MainThreadID<>GetCurrentThreadId then
-    raise EStructureException.create(rsStructureAccessOutsideMainThread);
-
-  mainform.editedsincelastsave:=true;
-
   if isUpdating=false then
   begin
-    for i:=0 to frmStructures2.Count-1 do
-      TfrmStructures2(frmStructures2[i]).onElementChange(self, element);
+    for i:=0 to element.NodeReferences.count-1 do
+    begin
+      n:=TStructureTreenode(element.NodeReferences[i]);
+
+      n.structureForm.setupNodeWithElement(n, element);
+    end;
   end
   else
   begin
@@ -1672,7 +1722,7 @@ begin
 end;
 
 procedure TDissectedStruct.endUpdate;
-var i: integer;
+var i,j: integer;
 begin
   if fUpdateCounter>0 then
     dec(fUpdateCounter);
@@ -2415,7 +2465,7 @@ begin
     freeandnil(reg);
   end;
 
-  elementReferences:=tlist.create;
+
 end;
 
 constructor TDissectedStruct.createFromOutdatedXMLNode(structure: TDOMNode);
@@ -2441,7 +2491,7 @@ begin
   if MainThreadID<>GetCurrentThreadId then
     raise EStructureException.create(rsStructureAccessOutsideMainThread);
 
-
+  elementReferences:=tlist.create;
   currentoffset:=0;
 
   self.name:='';
@@ -2605,6 +2655,7 @@ begin
   if MainThreadID<>GetCurrentThreadId then
     raise EStructureException.create(rsStructureAccessOutsideMainThread);
 
+  elementReferences:=tlist.create;
 
   self.name:='';
   structelementlist:=tlist.Create;
@@ -2660,6 +2711,8 @@ constructor TDissectedStruct.create(name: string);
 begin
   if MainThreadID<>GetCurrentThreadId then
     raise EStructureException.create(rsStructureAccessOutsideMainThread);
+
+  elementReferences:=tlist.create;
 
   self.name:=name;
   structelementlist:=tlist.Create;
@@ -4399,12 +4452,13 @@ begin
     tvStructureView.Items[0].Text:=getHorizontalScrollbarString;
 end;
 
-procedure TfrmStructures2.InitializeFirstNode;
+function TfrmStructures2.InitializeFirstNode: TStructureTreeNode;
 //Clear the screen and setup the first node
 var
   tn: TStructureTreenode;
   se: TStructelement;
 begin
+  result:=nil;
   tvStructureView.Items.Clear;
   if mainStruct<>nil then
   begin
@@ -4416,6 +4470,8 @@ begin
     tn.Expand(false);
 
     SetupFirstNodeLength;
+
+    result:=tn;
   end;
 end;
 
@@ -4474,6 +4530,8 @@ begin
     UpdateCurrentStructOptions;
 end;
 
+
+   {
 procedure TfrmStructures2.onFullStructChange(sender: TDissectedStruct);
 var currentNode: TStructureTreenode;
     nextnode: TStructureTreenode;
@@ -4531,42 +4589,7 @@ begin
 
   //and also the structure list in case it's one I didn't know of
   RefreshStructureList;
-end;
-
-procedure TfrmStructures2.onElementChange(struct:TDissectedStruct; element: TStructelement);
-var i: integer;
-    n: TStructureTreenode;
-
-    elementIndex: integer;
-begin
-  //find the treenodes that belong to this specific element and change them accordingly
-  i:=0;
-  n:=TStructureTreenode(tvStructureView.Items.GetFirstNode);
-  while n<>nil do
-  begin
-    if n.childnodestruct=struct then
-    begin
-      if n.expanded then
-      begin
-        elementIndex:=element.index;
-        if (elementIndex>=0) and (elementIndex<n.Count) then
-          setupNodeWithElement(TStructureTreenode(n[element.index]), element)
-        else
-        begin
-          tvStructureView.OnCollapsing:=nil;
-          tvStructureView.OnCollapsed:=nil;
-
-          n.DeleteChildren;
-
-          tvStructureView.OnCollapsing:=tvStructureViewCollapsing;
-          tvStructureView.OnCollapsed:=tvStructureViewCollapsed;
-        end;
-      end;
-    end;
-    n:=TStructureTreenode(n.GetNext);
-  end;
-end;
-
+end;  }
 
 function TfrmStructures2.DefineNewStructureDialog(recommendedSize: integer=4096): TDissectedStruct;
 var
@@ -5192,7 +5215,7 @@ begin
           begin
             mainstruct:=s;
 
-            onFullStructChange(mainstruct);
+            //onFullStructChange(mainstruct);
             RefreshStructureList;
             UpdateCurrentStructOptions;
           end;
@@ -5716,6 +5739,7 @@ end;
 
 procedure TfrmStructures2.miDeleteElementClick(Sender: TObject);
 var elementlist: Tlist;
+  n: TStructureTreeNode;
   e: TStructelement;
 
   struct: TDissectedStruct;
@@ -5736,12 +5760,15 @@ begin
   try
     for i:=0 to tvStructureView.SelectionCount-1 do
     begin
+      n:=TStructureTreenode(tvStructureView.Selections[i]);
+
       if originalindex=-1 then
-        originalindex:=tvStructureView.Selections[i].AbsoluteIndex;
+        originalindex:=n.AbsoluteIndex;
 
-      originalindex:=min(tvStructureView.Selections[i].AbsoluteIndex, originalindex);
+      originalindex:=min(n.AbsoluteIndex, originalindex);
 
-      e:=getStructElementFromNode(TStructureTreenode(tvStructureView.Selections[i]));
+
+      e:=n.element;
       if (e<>nil) and ((struct=nil) or (e.parent=struct))  then //the element can be null if it's the origin
       begin
         if struct=nil then
@@ -5751,13 +5778,16 @@ begin
       end;
     end;
 
+
+
     //now delete the entries in the list (if there are any)
     if struct<>nil then
     begin
       struct.beginUpdate;
       try
-        for i:=0 to elementlist.count-1 do
-          struct.removeElement(TStructelement(elementlist[i]));
+        for i:=elementlist.count-1 downto 0 do
+          struct.removeElement(TStructelement(elementlist[elementlist.count-1]));
+
 
       finally
         struct.endUpdate;
@@ -7071,11 +7101,11 @@ begin
   clearSavedValues;
 
   fmainStruct:=struct;
-
-  if struct=nil then
-    tvStructureView.Items.Clear;
+  InitializeFirstNode;
 
   miCommands.Enabled:=struct<>nil;
+
+
 end;
 
 function TfrmStructures2.getColumn(i: integer): TStructColumn;

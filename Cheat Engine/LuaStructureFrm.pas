@@ -86,7 +86,7 @@ begin
         if CompareText(struct.Name,structname) = 0 then
         begin
           form.mainStruct:=struct;
-          form.onFullStructChange(struct);
+          //form.onFullStructChange(struct);
           break;
         end;
       end;
@@ -195,7 +195,7 @@ var
   frm: TFrmStructures2;
 begin
   frm:=luaclass_getClassObject(L);
-  frm.onFullStructChange(nil);
+  frm.mainStruct:=frm.mainStruct;
   result:=0;
 end;
 
