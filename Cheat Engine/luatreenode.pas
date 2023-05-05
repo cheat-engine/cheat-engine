@@ -99,6 +99,17 @@ begin
   result:=1;
 end;
 
+function treenode_setIndex(L: PLua_State): integer; cdecl;
+var
+  treenode: Ttreenode;
+begin
+  treenode:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    treenode.Index:=lua_tointeger(L,1);
+
+  result:=1;
+end;
+
 function treenode_getLevel(L: PLua_State): integer; cdecl;
 var
   treenode: Ttreenode;
