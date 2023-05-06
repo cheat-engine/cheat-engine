@@ -1837,7 +1837,7 @@ void CPipeServer::GetReflectionTypeOfClassType()
 
 	try
 	{
-		WriteQword((UINT64)mono_type_get_object(domain, type)); //ReflectionType*
+		WriteQword((UINT64)mono_type_get_object(il2cpp ? type : domain, type)); //ReflectionType* ; only 1 prm in il2cpp and 2 in mono
 	}
 	catch (...)
 	{
