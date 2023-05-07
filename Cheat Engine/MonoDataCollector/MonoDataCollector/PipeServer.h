@@ -145,6 +145,9 @@ typedef char* (__cdecl *MONO_TYPE_GET_NAME)(void *type);
 typedef void* (__cdecl* MONO_TYPE_GET_CLASS)(void* type);
 typedef int (__cdecl *MONO_TYPE_GET_TYPE)(void *type);
 typedef void* (__cdecl *MONO_TYPE_GET_OBJECT)(void *domain, void *type);
+typedef void* (__cdecl *IL2CPP_TYPE_GET_OBJECT)(void *type);
+
+
 typedef char* (__cdecl *MONO_TYPE_GET_NAME_FULL)(void *type, int format);
 typedef bool(__cdecl* MONO_TYPE_IS_STRUCT)(void* type);
 
@@ -317,6 +320,7 @@ private:
 	MONO_TYPE_GET_NAME mono_type_get_name;
 	MONO_TYPE_GET_TYPE mono_type_get_type;
 	MONO_TYPE_GET_OBJECT mono_type_get_object; //return a ReflectionType* object
+	IL2CPP_TYPE_GET_OBJECT il2cpp_type_get_object;
 	MONO_TYPE_IS_STRUCT mono_type_is_struct;
 	MONO_TYPE_GET_CLASS mono_type_get_class;													  
 	MONO_TYPE_GET_NAME_FULL mono_type_get_name_full;

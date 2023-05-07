@@ -504,7 +504,7 @@ void CPipeServer::InitMono()
 
 				mono_type_get_name = (MONO_TYPE_GET_NAME)GetProcAddress(hMono, "il2cpp_type_get_name");
 				mono_type_get_type = (MONO_TYPE_GET_TYPE)GetProcAddress(hMono, "il2cpp_type_get_type");
-				mono_type_get_object = (MONO_TYPE_GET_OBJECT)GetProcAddress(hMono, "il2cpp_type_get_object");
+				il2cpp_type_get_object = (IL2CPP_TYPE_GET_OBJECT)GetProcAddress(hMono, "il2cpp_type_get_object");
 				mono_type_get_name_full = (MONO_TYPE_GET_NAME_FULL)GetProcAddress(hMono, "il2cpp_type_get_name_full");
 
 				mono_method_get_name = (MONO_METHOD_GET_NAME)GetProcAddress(hMono, "il2cpp_method_get_name");
@@ -1837,7 +1837,10 @@ void CPipeServer::GetReflectionTypeOfClassType()
 
 	try
 	{
-		WriteQword((UINT64)mono_type_get_object(domain, type)); //ReflectionType*
+		if (il2cpp)
+			WriteQword((UINT64)il2cpp_type_get_object(type)); //ReflectionType*
+		else		
+			WriteQword((UINT64)mono_type_get_object(domain, type)); //ReflectionType*
 	}
 	catch (...)
 	{
