@@ -20,6 +20,7 @@
 #define _LARGEFILE64_SOURCE
 #endif
 
+
 #include <stdio.h>
 #include <pthread.h>
 
@@ -3299,13 +3300,30 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
         remote.iov_base=lpAddress;
         remote.iov_len=size;
 
+        int canreadnow=1;
+        pid_t pid;
 
-        bread=process_vm_readv(p->pid,&local,1,&remote,1,0);
-        if (bread==-1)
+        if (ATTACH_TO_ACCESS_MEMORY)
         {
-         // debug_log("process_vm_readv(%x, %d) failed: %s\n", lpAddress, size, strerror(errno));
-          bread=0;
+          canreadnow=0;
+          pid=ptrace_attach_andwait(p->pid);
+          if (pid>0)
+            canreadnow=1;
+
         }
+
+        if (canreadnow)
+        {
+          bread=process_vm_readv(p->pid,&local,1,&remote,1,0);
+          if (bread==-1)
+          {
+           // debug_log("process_vm_readv(%x, %d) failed: %s\n", lpAddress, size, strerror(errno));
+            bread=0;
+          }
+        }
+
+        if (ATTACH_TO_ACCESS_MEMORY)
+          safe_ptrace(PTRACE_DETACH, pid,0,0);
 
         return bread;
       }
@@ -3418,7 +3436,7 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
           if (ATTACH_TO_ACCESS_MEMORY)
           {
             int r=safe_ptrace(PTRACE_DETACH, pid,0,0);
-            debug_log("PTRACE_DETACH returned %d\n", r);
+            //debug_log("PTRACE_DETACH returned %d\n", r);
 
           }
 
@@ -4101,7 +4119,10 @@ HANDLE OpenProcess(DWORD pid)
     return result;
   }
   else
+  {
+    debug_log("Failure opening the process");
     return 0; //could not find the process
+  }
 
 }
 
@@ -4183,7 +4204,7 @@ BOOL Module32Next(HANDLE hSnapshot, PModuleListEntry moduleentry)
   }
   else
   {
-    //debug_log("Module32First/Next: GetHandleType(hSnapshot)=%d\n",GetHandleType(hSnapshot));
+    debug_log("Module32First/Next failed: Handle is not a htHTSModule handle: %d\n",GetHandleType(hSnapshot));
     return FALSE;
   }
 }
@@ -4337,7 +4358,7 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
     PModuleList ml=(PModuleList)malloc(sizeof(ModuleList));
 
     if (dwFlags & TH32CS_SNAPFIRSTMODULE)
-      debug_log("Creating module list for process %d\n", th32ProcessID);
+      debug_log("Creating 1-entry module list for process %d\n", th32ProcessID);
 
 
     ml->ReferenceCount=1;
@@ -4380,6 +4401,10 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
           if (strcmp(modulepath, "[heap]")==0)  //not static enough to mark as a 'module'
             continue;
 
+          if ((modulepath[0]=='/') && (modulepath[1]=='d') && (modulepath[2]=='e') && (modulepath[3]=='v') && (modulepath[4]=='/'))
+            continue; //no /dev/
+
+
         //  debug_log("Checking if %s is a module\n", modulepath);
 
           if (strcmp(modulepath, "[vdso]")!=0)  //temporary patch as to not rename vdso, because it is treated differently by the ce symbol loader
@@ -4397,13 +4422,20 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
 
 
           //check if it's readable
+
+          if (start==0x7f9f9144e000)
+          {
+            debug_log("break");
+          }
+
           i=ReadProcessMemory(phandle, (void *)start, elfident, 8); //only the first few bytes
           if (i==0)
           {
-            //printf("%s is unreadable(%llx)\n", modulepath, start);
-          //  debug_log("unreadable so no");
+            //debug_log("thread %d (%s): Failed to read the start of %s (address %llx)\n", getpid(), threadname, modulepath, start);
             continue; //unreadable
           }
+          //else
+          //  debug_log("thread %d (%s): Successfully read the start of %s (address %llx)\n", getpid(), threadname, modulepath, start);
 
           //check if this module is in the list. If so, mark it with a part tag
           int part=0;
@@ -4661,6 +4693,13 @@ void initAPI()
   {
     process_vm_readv=dlsym(libc,"process_vm_readv");
     process_vm_writev=dlsym(libc,"process_vm_writev");
+  }
+
+
+  if (!process_vm_readv)
+  {
+    process_vm_readv=dlsym(0, "process_vm_readv");
+    process_vm_writev=dlsym(0, "process_vm_writev");
   }
 
   debug_log("process_vm_readv=%p\n",process_vm_readv);
