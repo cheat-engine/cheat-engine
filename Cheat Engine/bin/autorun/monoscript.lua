@@ -19,7 +19,7 @@ local dpiscale=getScreenDPI()/96
 
 --[[local]] monocache={}
 
-mono_timeout=0 --change to 0 to never timeout (meaning: 0 will freeze your face off if it breaks on a breakpoint, just saying ...)
+mono_timeout=3000 --change to 0 to never timeout (meaning: 0 will freeze your face off if it breaks on a breakpoint, just saying ...)
 
 MONO_DATACOLLECTORVERSION=20230512
 
@@ -87,6 +87,7 @@ MONOCMD_GETTYPEOFMONOTYPE = 57
 MONOCMD_GETREFLECTIONTYPEOFCLASSTYPE = 58
 MONOCMD_GETREFLECTIONMETHODOFMONOMETHOD = 59
 MONOCMD_MONOOBJECTUNBOX = 60
+MONOCMD_MONOARRAYNEW = 61
 
 MONO_TYPE_END        = 0x00       -- End of List
 MONO_TYPE_VOID       = 0x01
@@ -3203,6 +3204,20 @@ function mono_array_element_size(arrayKlass)
   monopipe.unlock()
   return retv
 end
+
+function mono_array_new(klass,count)
+  count = count and count or 0
+  assert(klass and klass~=0,'Error: The Element class for array must be defined')
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_MONOARRAYNEW)
+  monopipe.writeQword(klass)
+  monopipe.writeDword(count)
+  local retv = monopipe.readQword()
+  monopipe.unlock()
+  return retv
+end
+
+
 function monoform_miDissectShowStruct(s, address)
   if s then
     --show it

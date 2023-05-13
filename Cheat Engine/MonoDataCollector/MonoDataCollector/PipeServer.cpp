@@ -543,7 +543,7 @@ void CPipeServer::InitMono()
 
 				mono_string_new = (MONO_STRING_NEW)GetProcAddress(hMono, "il2cpp_string_new");
 				mono_string_to_utf8 = (MONO_STRING_TO_UTF8)GetProcAddress(hMono, "il2cpp_string_to_utf8");
-				mono_array_new = (MONO_ARRAY_NEW)GetProcAddress(hMono, "il2cpp_array_new");
+				il2cpp_array_new = (IL2CPP_ARRAY_NEW)GetProcAddress(hMono, "il2cpp_array_new");
 				mono_array_element_size = (MONO_ARRAY_ELEMENT_SIZE)GetProcAddress(hMono, "il2cpp_array_element_size");
 				mono_value_box = (MONO_VALUE_BOX)GetProcAddress(hMono, "il2cpp_value_box");
 				mono_object_unbox = (MONO_OBJECT_UNBOX)GetProcAddress(hMono, "il2cpp_object_unbox");
@@ -2657,6 +2657,18 @@ void CPipeServer::GetArrayElementSize()
 		WriteDword(0);
 }
 
+void CPipeServer::NewCSArray()
+{
+	void* klass = (void*)ReadQword();
+	int count = ReadDword();
+	if (il2cpp && il2cpp_array_new)
+		WriteQword((UINT64)il2cpp_array_new(klass, count));
+	else if (mono_array_new)
+		WriteQword((UINT64)mono_array_new(domain, klass, count));
+	else
+		WriteQword(0);
+}
+
 void CPipeServer::IsIL2CPP()
 {
 	WriteByte(il2cpp);
@@ -3046,6 +3058,10 @@ void CPipeServer::Start(void)
 
 				case MONOCMD_ARRAYELEMENTSIZE:
 					GetArrayElementSize();
+					break;
+
+				case MONOCMD_MONOARRAYNEW:
+					NewCSArray();
 					break;
 
 				}

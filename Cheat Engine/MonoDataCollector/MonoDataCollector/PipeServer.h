@@ -76,6 +76,7 @@
 #define MONOCMD_GETREFLECTIONTYPEOFCLASSTYPE 58
 #define MONOCMD_GETREFLECTIONMETHODOFMONOMETHOD 59
 #define MONOCMD_MONOOBJECTUNBOX 60
+#define MONOCMD_MONOARRAYNEW 61
 
 
 typedef struct {} MonoType;
@@ -205,6 +206,7 @@ typedef void* (__cdecl *MONO_IMAGE_LOADED)(void *aname);
 typedef void* (__cdecl *MONO_STRING_NEW)(void *domain, const char *text);
 typedef char* (__cdecl *MONO_STRING_TO_UTF8)(void*);
 typedef void* (__cdecl *MONO_ARRAY_NEW)(void *domain, void *eclass, uintptr_t n);
+typedef void* (__cdecl *IL2CPP_ARRAY_NEW)(void *eclass, uintptr_t n);
 typedef int (__cdecl *MONO_ARRAY_ELEMENT_SIZE)(void * klass);
 typedef void* (__cdecl *MONO_OBJECT_TO_STRING)(void *object, void **exc);
 typedef void* (__cdecl *MONO_OBJECT_NEW)(void *domain, void *klass);
@@ -369,6 +371,7 @@ private:
 	MONO_STRING_NEW mono_string_new;
 	MONO_STRING_TO_UTF8 mono_string_to_utf8;
 	MONO_ARRAY_NEW mono_array_new;
+	IL2CPP_ARRAY_NEW il2cpp_array_new;
 	MONO_ARRAY_ELEMENT_SIZE mono_array_element_size;
 	MONO_OBJECT_TO_STRING mono_object_to_string;
 	MONO_OBJECT_NEW mono_object_new;
@@ -477,6 +480,7 @@ private:
 	void IsValueTypeClass();
 	void IsSubClassOf();
 	void GetArrayElementSize();
+	void NewCSArray();
 	void IsIL2CPP();
 	void FillOptionalFunctionList(); //mainly for unixbased systems
 	void GetStaticFieldValue();
