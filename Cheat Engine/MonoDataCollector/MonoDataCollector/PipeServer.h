@@ -7,7 +7,7 @@
 
 
                                 //yyyymmdd
-#define MONO_DATACOLLECTORVERSION 20230409 
+#define MONO_DATACOLLECTORVERSION 20230512 
 
 #define MONO_TYPE_NAME_FORMAT_IL  0
 #define MONO_TYPE_NAME_FORMAT_REFLECTION  1
@@ -73,7 +73,9 @@
 #define MONOCMD_GETCLASSTYPE 55
 #define MONOCMD_GETCLASSOFTYPE 56
 #define MONOCMD_GETTYPEOFMONOTYPE 57
-#define MONOCMD_GETREFLECTIONTYPEOFCLASSTYPE 58					 
+#define MONOCMD_GETREFLECTIONTYPEOFCLASSTYPE 58
+#define MONOCMD_GETREFLECTIONMETHODOFMONOMETHOD 59
+#define MONOCMD_MONOOBJECTUNBOX 60
 
 
 typedef struct {} MonoType;
@@ -146,6 +148,8 @@ typedef void* (__cdecl* MONO_TYPE_GET_CLASS)(void* type);
 typedef int (__cdecl *MONO_TYPE_GET_TYPE)(void *type);
 typedef void* (__cdecl *MONO_TYPE_GET_OBJECT)(void *domain, void *type);
 typedef void* (__cdecl *IL2CPP_TYPE_GET_OBJECT)(void *type);
+typedef void* (__cdecl *MONO_METHOD_GET_OBJECT)(void *domain, void *method, void* klass);
+typedef void* (__cdecl *IL2CPP_METHOD_GET_OBJECT)(void* method, void* klass);
 
 
 typedef char* (__cdecl *MONO_TYPE_GET_NAME_FULL)(void *type, int format);
@@ -321,6 +325,8 @@ private:
 	MONO_TYPE_GET_TYPE mono_type_get_type;
 	MONO_TYPE_GET_OBJECT mono_type_get_object; //return a ReflectionType* object
 	IL2CPP_TYPE_GET_OBJECT il2cpp_type_get_object;
+	MONO_METHOD_GET_OBJECT mono_method_get_object;
+	IL2CPP_METHOD_GET_OBJECT il2cpp_method_get_object;
 	MONO_TYPE_IS_STRUCT mono_type_is_struct;
 	MONO_TYPE_GET_CLASS mono_type_get_class;													  
 	MONO_TYPE_GET_NAME_FULL mono_type_get_name_full;
@@ -453,6 +459,8 @@ private:
 	void GetClassOfType();
 	void GetTypeOfMonoType();
 	void GetReflectionTypeOfClassType();
+	void GetReflectionMethodOfMethod();
+	void UnBoxMonoObject();
 	void GetVTableFromClass();
 	void GetStaticFieldAddressFromClass();
 	void GetTypeClass();

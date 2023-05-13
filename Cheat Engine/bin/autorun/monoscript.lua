@@ -21,7 +21,7 @@ local dpiscale=getScreenDPI()/96
 
 mono_timeout=0 --change to 0 to never timeout (meaning: 0 will freeze your face off if it breaks on a breakpoint, just saying ...)
 
-MONO_DATACOLLECTORVERSION=20230409
+MONO_DATACOLLECTORVERSION=20230512
 
 MONOCMD_INITMONO=0
 MONOCMD_OBJECT_GETCLASS=1
@@ -85,6 +85,8 @@ MONOCMD_GETCLASSTYPE = 55
 MONOCMD_GETCLASSOFTYPE = 56
 MONOCMD_GETTYPEOFMONOTYPE = 57
 MONOCMD_GETREFLECTIONTYPEOFCLASSTYPE = 58
+MONOCMD_GETREFLECTIONMETHODOFMONOMETHOD = 59
+MONOCMD_MONOOBJECTUNBOX = 60
 
 MONO_TYPE_END        = 0x00       -- End of List
 MONO_TYPE_VOID       = 0x01
@@ -146,6 +148,7 @@ monoTypeToVartypeLookup[MONO_TYPE_FNPTR]=vtPointer
 monoTypeToVartypeLookup[MONO_TYPE_GENERICINST]=vtPointer
 monoTypeToVartypeLookup[MONO_TYPE_ARRAY]=vtPointer
 monoTypeToVartypeLookup[MONO_TYPE_SZARRAY]=vtPointer
+monoTypeToVartypeLookup[MONO_TYPE_VALUETYPE]=vtPointer --needed for structs when returned by invoking a method( even though they are not qwords)
 
 monoTypeToCStringLookup={}
 monoTypeToCStringLookup[MONO_TYPE_END]='void'
@@ -1566,6 +1569,28 @@ function mono_classtype_get_reflectiontype(monotype)
   return retv
 end
 
+function mono_method_get_reflectiontype(method,klass)
+  assert(method,'Error: "method" was nil. It is supposed to be a MonoMethod*')
+  assert(klass,'Error: "klass" was nil. It is supposed to be a MonoClass*')
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_GETREFLECTIONMETHODOFMONOMETHOD)
+  monopipe.writeQword(method)
+  monopipe.writeQword(klass)
+  local retv = monopipe.readQword()
+  monopipe.unlock()
+  return retv
+end
+
+function mono_object_unbox(monoobject)
+  assert(monoobject,'Error: "monoobject" was nil. It is supposed to be a MonoObject*')
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_MONOOBJECTUNBOX)
+  monopipe.writeQword(monoobject)
+  local retv = monopipe.readQword()
+  monopipe.unlock()
+  return retv
+end
+
 function mono_class_getArrayElementClass(klass)
   --if debug_canBreak() then return nil end
 
@@ -2740,6 +2765,7 @@ end
 
 function mono_readObject()
   local vtype = monopipe.readByte()
+  --print(vtype)
   if vtype == MONO_TYPE_VOID then
     return monopipe.readQword()
   elseif vtype == MONO_TYPE_STRING then
@@ -3010,7 +3036,7 @@ function mono_invoke_method(domain, method, object, args)
   end
   
   local result=mono_readObject()
-  
+  --print(type(result),result)
   if monopipe then
     monopipe.unlock()
     return result      

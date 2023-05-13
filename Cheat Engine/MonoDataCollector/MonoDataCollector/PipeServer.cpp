@@ -505,6 +505,7 @@ void CPipeServer::InitMono()
 				mono_type_get_name = (MONO_TYPE_GET_NAME)GetProcAddress(hMono, "il2cpp_type_get_name");
 				mono_type_get_type = (MONO_TYPE_GET_TYPE)GetProcAddress(hMono, "il2cpp_type_get_type");
 				il2cpp_type_get_object = (IL2CPP_TYPE_GET_OBJECT)GetProcAddress(hMono, "il2cpp_type_get_object");
+				il2cpp_method_get_object = (IL2CPP_METHOD_GET_OBJECT)GetProcAddress(hMono, "il2cpp_method_get_object");
 				mono_type_get_name_full = (MONO_TYPE_GET_NAME_FULL)GetProcAddress(hMono, "il2cpp_type_get_name_full");
 
 				mono_method_get_name = (MONO_METHOD_GET_NAME)GetProcAddress(hMono, "il2cpp_method_get_name");
@@ -663,6 +664,7 @@ void CPipeServer::InitMono()
 				mono_type_get_name = (MONO_TYPE_GET_NAME)GetProcAddress(hMono, "mono_type_get_name");
 				mono_type_get_type = (MONO_TYPE_GET_TYPE)GetProcAddress(hMono, "mono_type_get_type");
 				mono_type_get_object = (MONO_TYPE_GET_OBJECT)GetProcAddress(hMono, "mono_type_get_object");
+				mono_method_get_object = (MONO_METHOD_GET_OBJECT)GetProcAddress(hMono, "mono_method_get_object");
 				mono_type_get_name_full = (MONO_TYPE_GET_NAME_FULL)GetProcAddress(hMono, "mono_type_get_name_full");
 
 				mono_method_get_name = (MONO_METHOD_GET_NAME)GetProcAddress(hMono, "mono_method_get_name");
@@ -1849,6 +1851,35 @@ void CPipeServer::GetReflectionTypeOfClassType()
 	}
 }
 
+void CPipeServer::GetReflectionMethodOfMethod()
+{
+	//returns MonoReflectionMethod* equavalent of MonoMethodInfo (C#)
+	void* method = (void*)ReadQword(); //MonoMethod*
+	void* klass = (void*)ReadQword(); //MonoClass*
+
+	try
+	{
+		if (il2cpp && il2cpp_method_get_object)
+			WriteQword((UINT64)il2cpp_method_get_object(method, klass));
+		else if (mono_method_get_object)
+			WriteQword((UINT64)mono_method_get_object(domain, method, klass));
+		else
+			WriteQword(0);
+	}
+	catch (...)
+	{
+		OutputDebugString("error at GetReflectionMethodOfMethod");
+		WriteQword(0);
+	}
+}
+
+void CPipeServer::UnBoxMonoObject()
+{
+	void* object = (void*)ReadQword();
+	WriteQword(object ? (UINT64)mono_object_unbox(object) : 0);
+	OutputDebugString("Unbox Object Called");
+}
+
 
 void CPipeServer::GetVTableFromClass(void)
 {
@@ -2988,7 +3019,14 @@ void CPipeServer::Start(void)
 				case MONOCMD_GETREFLECTIONTYPEOFCLASSTYPE:
 					GetReflectionTypeOfClassType();
 					break;
+					
+				case MONOCMD_GETREFLECTIONMETHODOFMONOMETHOD:
+					GetReflectionMethodOfMethod();
+					break;
 
+				case MONOCMD_MONOOBJECTUNBOX:
+					UnBoxMonoObject();
+					break;
 
 				case MONOCMD_FREE:
 					FreeObject();
