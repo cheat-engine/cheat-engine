@@ -48,7 +48,26 @@ begin
       lua_pop(L,1);
       for j:=i-1 to maxsize-1 do //zero out the rest
         p[j]:=0;
+      exit;
+    end;
+     p[i-1]:=lua_tointeger(L, -1);
+    lua_pop(L,1);
+  end;
+end;
 
+procedure readBytesFromTableOffset(L: PLua_State; tableindex: integer; p: PByteArray; maxsize: integer; startoffset: integer);
+var i,j,x: integer;
+begin
+  for i:=1 to maxsize do
+  begin
+    lua_pushinteger(L, i+startoffset);
+    lua_gettable(L, tableindex);
+
+    if lua_isnil(L,-1) then
+    begin
+      lua_pop(L,1);
+      for j:=i-1 to maxsize-1 do //zero out the rest
+        p[j]:=0;
       exit;
     end;
 
@@ -171,11 +190,20 @@ end;
 function byteTableToWord(L: PLua_state): integer; cdecl;
 var
   v: word;
+  startoffset: integer;
+  startoffsetworked: boolean;
 begin
   result:=0;
+  startoffset:=0;
   if lua_gettop(L)>=1 then
   begin
-    readBytesFromTable(L, 1, @v, sizeof(v));
+    if (lua_gettop(L)>=3) then
+    begin
+      startoffset := lua_tointegerx(L, 3, @startoffsetworked);
+      if not startoffsetworked then
+        startoffset := 0;
+    end;
+    readBytesFromTableOffset(L, 1, @v, sizeof(v),startoffset);
     if (lua_gettop(L)>=2) and lua_toboolean(L,2) then
       lua_pushinteger(L,smallint(v))
     else
@@ -186,27 +214,45 @@ end;
 
 function byteTableToDWord(L: PLua_state): integer; cdecl;
 var v: dword;
+  startoffset: integer;
+  startoffsetworked: boolean;
 begin
   result:=0;
+  startoffset:=0;
   if lua_gettop(L)>=1 then
   begin
-    readBytesFromTable(L, 1, @v, sizeof(v));
+    if (lua_gettop(L)>=3) then
+    begin
+      startoffset := lua_tointegerx(L, 3, @startoffsetworked);
+      if not startoffsetworked then
+        startoffset := 0;
+    end;
+    readBytesFromTableOffset(L, 1, @v, sizeof(v),startoffset);
+
     if (lua_gettop(L)>=2) and lua_toboolean(L,2) then
       lua_pushinteger(L,integer(v))
     else
       lua_pushinteger(L,v);
-
     result:=1;
   end;
 end;
 
 function byteTableToQWord(L: PLua_state): integer; cdecl;
 var v: qword;
+  startoffset: integer;
+  startoffsetworked: boolean;
 begin
   result:=0;
-  if lua_gettop(L)=1 then
+  startoffset:=0;
+  if lua_gettop(L)>=1 then
   begin
-    readBytesFromTable(L, 1, @v, sizeof(v));
+    if (lua_gettop(L)>=2) then
+    begin
+      startoffset := lua_tointegerx(L, 2, @startoffsetworked);
+      if not startoffsetworked then
+        startoffset := 0;
+    end;
+    readBytesFromTableOffset(L, 1, @v, sizeof(v),startoffset); ;
     lua_pushinteger(L,v);
     result:=1;
   end;
@@ -214,25 +260,41 @@ end;
 
 function byteTableToFloat(L: PLua_state): integer; cdecl;
 var v: single;
+  startoffset: integer;
+  startoffsetworked: boolean;
 begin
   result:=0;
-  if lua_gettop(L)=1 then
+  startoffset:=0;
+  if lua_gettop(L)>=1 then
   begin
-    readBytesFromTable(L, 1, @v, sizeof(v));
+    if (lua_gettop(L)>=2) then
+    begin
+      startoffset := lua_tointegerx(L, 2, @startoffsetworked);
+      if not startoffsetworked then
+        startoffset := 0;
+    end;
+    readBytesFromTableOffset(L, 1, @v, sizeof(v), startoffset);
     lua_pushnumber(L,v);
     result:=1;
   end;
 end;
 
-
-
 function byteTableToDouble(L: PLua_state): integer; cdecl;
 var v: Double;
+  startoffset: integer;
+  startoffsetworked: boolean;
 begin
   result:=0;
-  if lua_gettop(L)=1 then
+  startoffset:=0;
+  if lua_gettop(L)>=1 then
   begin
-    readBytesFromTable(L, 1, @v, sizeof(v));
+    if (lua_gettop(L)>=2) then
+    begin
+      startoffset := lua_tointegerx(L, 2, @startoffsetworked);
+      if not startoffsetworked then
+        startoffset := 0;
+    end;
+    readBytesFromTableOffset(L, 1, @v, sizeof(v), startoffset);
     lua_pushnumber(L,v);
     result:=1;
   end;
@@ -244,16 +306,24 @@ var
   ex: array [0..9] of byte;
   v: double;
   e: extended;
+  startoffset: integer;
+  startoffsetworked: boolean;
 begin
   result:=0;
-  if lua_gettop(L)=1 then
+  startoffset:=0;
+  if lua_gettop(L)>=1 then
   begin
-
+    if (lua_gettop(L)>=2) then
+    begin
+      startoffset := lua_tointegerx(L, 2, @startoffsetworked);
+      if not startoffsetworked then
+        startoffset := 0;
+    end;
 {$ifdef cpux86_64}
-    readBytesFromTable(L, 1, @ex[0], 10);
+    readBytesFromTableOffset(L, 1, @ex[0], 10, startoffset);
     extendedtodouble(@ex[0],v);
 {$else}
-    readBytesFromTable(L, 1, @e, sizeof(e));
+    readBytesFromTableOffset(L, 1, @e, sizeof(e), startoffset);
     v:=e;
 {$endif}
     lua_pushnumber(L,v);
@@ -264,14 +334,26 @@ end;
 function byteTableToString(L: PLua_state): integer; cdecl;
 var s: pchar;
   len: integer;
+  startoffset: integer;
+  startoffsetworked: boolean;
 begin
   result:=0;
-  if lua_gettop(L)=1 then
+  startoffset:=0;
+  if lua_gettop(L)>=1 then
   begin
+    if (lua_gettop(L)>=2) then
+    begin
+      startoffset := lua_tointegerx(L, 2, @startoffsetworked);
+      if not startoffsetworked then
+        startoffset := 0;
+    end;
     len:=lua_objlen(L, 1);
+    if startoffset > 0 then
+      len := len - startoffset;
+
     getmem(s, len);
 
-    readBytesFromTable(L, 1, @s[0], len);
+    readBytesFromTableOffset(L, 1, @s[0], len, startoffset);
     lua_pushlstring(L, s,len);
     result:=1;
   end;
@@ -283,16 +365,28 @@ var s: pwidechar;
 
   ansis: string;
   len: integer;
+  startoffset: integer;
+  startoffsetworked: boolean;
 begin
   result:=0;
-  if lua_gettop(L)=1 then
+  startoffset:=0;
+  if lua_gettop(L)>=1 then
   begin
+    if (lua_gettop(L)>=2) then
+    begin
+      startoffset := lua_tointegerx(L, 2, @startoffsetworked);
+      if not startoffsetworked then
+        startoffset := 0;
+    end;
+
     len:=lua_objlen(L, 1);
+    if startoffset > 0 then
+      len := len - startoffset;
     getmem(s, len+2);
 
     s2:=pointer(s);
 
-    readBytesFromTable(L, 1, @s[0], len);
+    readBytesFromTableOffset(L, 1, @s[0], len, startoffset);
     s2[len]:=#0;
     s2[len+1]:=#0;
 

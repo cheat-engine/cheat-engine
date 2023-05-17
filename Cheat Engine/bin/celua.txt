@@ -105,14 +105,16 @@ extendedToByteTable(number): {}      - Converts an extended to a bytetable
 stringToByteTable(string): {}        - Converts a string to a bytetable
 wideStringToByteTable(string): {}    - Converts a string to a widestring and converts that to a bytetable
 
-byteTableToWord(table, OPTIONAL signed:boolean): number       - Converts a bytetable to a word
-byteTableToDword(table, OPTIONAL signed:boolean): number      - Converts a bytetable to a dword
-byteTableToQword(table): number      - Converts a bytetable to a qword
-byteTableToFloat(table): number      - Converts a bytetable to a float
-byteTableToDouble(table): number     - Converts a bytetable to a double
-byteTableToExtended(table): number   - Converts a bytetable to an extended and converts that to a double
-byteTableToString(table): string     - Converts a bytetable to a string
-byteTableToWideString(table): string - Converts a bytetable to a widestring and converts that to a string
+note: tableOffset is 0 based offset to start reading the bytes from the byteTable
+
+byteTableToWord(table, OPTIONAL signed:boolean, OPTIONAL tableOffset:integer): number       - Converts a bytetable to a word
+byteTableToDword(table, OPTIONAL signed:boolean, OPTIONAL tableOffset:integer): number      - Converts a bytetable to a dword
+byteTableToQword(table, OPTIONAL tableOffset:integer): number      - Converts a bytetable to a qword
+byteTableToFloat(table, OPTIONAL tableOffset:integer): number      - Converts a bytetable to a float
+byteTableToDouble(table, OPTIONAL tableOffset:integer): number     - Converts a bytetable to a double
+byteTableToExtended(table, OPTIONAL tableOffset:integer): number   - Converts a bytetable to an extended and converts that to a double
+byteTableToString(table, OPTIONAL tableOffset:integer): string     - Converts a bytetable to a string
+byteTableToWideString(table, OPTIONAL tableOffset:integer): string - Converts a bytetable to a widestring and converts that to a string
 
 bOr(int1, int2)   : Binary Or
 bXor(int1, int2)  : Binary Xor
