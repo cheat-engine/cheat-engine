@@ -1,7 +1,5 @@
 ceserver debug: add option to exclude some threads from debugging
 
-dpi fix: dissect code looks weird
-
 fix jvmti on windows (I messed up the lua)
 
 .net info: getting the classlist takes long and it looks like nothing happens, and seems to wait till the symbol enum is done
@@ -69,6 +67,11 @@ binary type hotkey: increase value by doesn't work
 ceshare list filter search has an error
 
 macos: luaserver
+
+vehdebug: ccode version
+
+table lua script: ctrl+space completion
+executeCodeLocalEx fails when no parameters are given
 
 ---
 

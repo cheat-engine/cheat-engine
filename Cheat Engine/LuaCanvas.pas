@@ -175,9 +175,20 @@ var
   canvas: TCanvas;
   x1,y1: integer;
   x2,y2: integer;
+  r: trect;
 begin
   result:=0;
   canvas:=luaclass_getClassObject(L);
+  if lua_gettop(L)=1 then
+  begin
+    //could be a rect
+    if lua_istable(L,1) then
+    begin
+      r:=lua_toRect(L,1);
+      canvas.FillRect(r);
+    end;
+  end
+  else
   if lua_gettop(L)>=4 then
   begin
     x1:=lua_tointeger(L,1);
@@ -195,9 +206,23 @@ var
   x1,y1: integer;
   x2,y2: integer;
   rx,ry: integer;
+  r: trect;
 begin
   result:=0;
   canvas:=luaclass_getClassObject(L);
+
+  if lua_gettop(L)=3 then
+  begin
+    if lua_istable(L,1) then
+    begin
+      r:=lua_toRect(L,1);
+      rx:=lua_tointeger(L,2);
+      ry:=lua_tointeger(L,3);
+
+      canvas.RoundRect(r,rx,ry);
+    end;
+  end
+  else
   if lua_gettop(L)>=6 then
   begin
     x1:=lua_tointeger(L,1);
