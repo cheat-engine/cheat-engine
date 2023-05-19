@@ -2039,6 +2039,7 @@ int main(int argc, char *argv[])
   initCESERVERPATH();
   debug_log("CESERVERPATH=%s\n", CESERVERPATH);
 
+
   fflush(stdout);
   debug_log("MEMORY_SEARCH_OPTION=%d\n", MEMORY_SEARCH_OPTION);
   fflush(stdout);
@@ -2053,6 +2054,8 @@ int main(int argc, char *argv[])
     debug_log("process_vm_readv==NULL, so MEMORY_SEARCH_OPTION can not be 2. Setting it to 0\n");
     MEMORY_SEARCH_OPTION=0; //fallback to 0
   }
+
+
 
   debug_log("MEMORY_SEARCH_OPTION=%d\n", MEMORY_SEARCH_OPTION);
 
