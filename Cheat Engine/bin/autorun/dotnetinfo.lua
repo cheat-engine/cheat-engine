@@ -1776,6 +1776,7 @@ end
 
 
 local function FieldValueUpdaterTimer(frmDotNetInfo, sender)
+  
   local i
   local address=getAddressSafe(frmDotNetInfo.comboFieldBaseAddress.Text)
   local Class=frmDotNetInfo.CurrentlyDisplayedClass
@@ -1868,87 +1869,23 @@ end
 
 local function btnLookupInstancesClick(frmDotNetInfo, sender)
   if debugInstanceLookup then print("btnLookupInstancesClick") end
+  
+  if frmDotNetInfo.InstanceScanner then
+    frmDotNetInfo.InstanceScanner.terminate()
+    frmDotNetInfo.InstanceScanner.destroy()
+    frmDotNetInfo.InstanceScanner=nil
+  end
 
   local Class=frmDotNetInfo.CurrentlyDisplayedClass
   if Class==nil then return end
   
-  local scannerThread
-  local f,l,pb,btnCancel
-  local f=createForm(false)
-  local results={}
-  f.Caption="Scanning..."
-  f.BorderIcons='[]'
 
   
- 
   
-  l=createLabel(f)
-  l.Caption="Please wait while scanning for the list of instances"
-
-
-  
-  local pb=createProgressBar(f)
-  pb.BorderSpacing.Left=DPIMultiplier*1
-  pb.BorderSpacing.Right=DPIMultiplier*1
-  
-  if Class.Image.Domain.Control~=CONTROL_MONO then --unknown time
-    pb.Visible=false  
-  end
-
-
-  btnCancel=createButton(f)
-  btnCancel.Caption=translate("Cancel")
-  btnCancel.AutoSize=true
-
-
-
-
-  btnCancel.BorderSpacing.Top=DPIMultiplier*10
-  btnCancel.BorderSpacing.Bottom=DPIMultiplier*10
-
-  l.AnchorSideTop.Control=f
-  l.AnchorSideTop.Side=asrTop
-  l.AnchorSideLeft.Control=f
-  l.AnchorSideLeft.Side=asrLeft
-  l.AnchorSideRight.Control=f
-  l.AnchorSideRight.Side=asrRight
-  l.Anchors='[akLeft, akRight, akTop]'
-
-  pb.AnchorSideTop.Control=l
-  pb.AnchorSideTop.Side=asrBottom
-  pb.AnchorSideLeft.Control=f
-  pb.AnchorSideLeft.Side=asrLeft
-  pb.AnchorSideRight.Control=f
-  pb.AnchorSideRight.Side=asrRight
-  pb.Anchors='[akLeft, akRight, akTop]'
-
-
-  btnCancel.AnchorSideTop.Control=pb
-  btnCancel.AnchorSideTop.Side=asrBottom
-  btnCancel.AnchorSideLeft.Control=f
-  btnCancel.AnchorSideLeft.Side=asrCenter
-  btnCancel.OnClick=function(s) f.close() end
-
-  f.OnClose=function(sender)
-    if debugInstanceLookup then print("LookupInstances: f.OnClose") end
-    
-    if scannerThread then --scannerThread is free on terminate, but before it does that it syncs and sets this var to nil
-      if debugInstanceLookup then print("Thread still alive. Terminating thread") end    
-      scannerThread.terminate()
-    else
-      if debugInstanceLookup then print("thread was finished. No need to terminate") end  
-    end
-    f=nil --don't access f after this. it has been destroyed (caFree)
-    return caFree      
-  end
-
-
-  f.AutoSize=true
-  f.Position=poScreenCenter
   
   --create the thread that will do the scan
   --it's possible the thread finishes before showmodal is called, but thanks to synchronize that won't happen
-  scannerThread=createThread(function(t)
+  frmDotNetInfo.scannerThread=createThread(function(t)
     if debugInstanceLookup then print("scannerThread start") end
     t.Name='Instance Scanner'
     
@@ -1962,15 +1899,11 @@ local function btnLookupInstancesClick(frmDotNetInfo, sender)
     
     if debugInstanceLookup then print("scan finished") end
 
-    scannerThread=nil
+    if t.Terminated then return end  
+
+
     synchronize(function() 
-      if debugInstanceLookup then print("sending modalresult to f") end    
-      if not t.Terminated then 
-        f.ModalResult=mrOK 
-      else
-        if debugInstanceLookup then print("scan was terminated") end    
-        return
-      end       
+      if t.Terminated then return end       
     
       if debugInstanceLookup then print("scanFinishedProperly") end
       local i
@@ -1982,6 +1915,7 @@ local function btnLookupInstancesClick(frmDotNetInfo, sender)
       if #results then
         frmDotNetInfo.comboFieldBaseAddress.ItemIndex=0      
         frmDotNetInfo.comboFieldBaseAddress.OnChange(frmDotNetInfo.comboFieldBaseAddress)       
+        frmDotNetInfo.comboFieldBaseAddress.DroppedDown=true
       end  
     end)
   end)

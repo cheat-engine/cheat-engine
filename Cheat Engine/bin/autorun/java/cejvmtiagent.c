@@ -8,6 +8,8 @@
 #include <jni.h>
 #include <jvmti.h>  //get it yourself
 
+#include <jvarscan.c>
+
 typedef size_t UINT_PTR;
 
 int getpid();
@@ -106,6 +108,9 @@ typedef struct
   void* javavm;
 } _soa, *psoa;
 
+
+
+
 typedef struct 
 {
   JNIEnv *env;
@@ -119,7 +124,11 @@ typedef struct
 #endif  
   jlong nextSearchTag; 
   
+  PScanData currentScan;
+  
 } CEJVMTIAgent, *PCEJVMTIAgent;
+
+
 
 
 void cleanupClassList(PCEJVMTIAgent agent)
@@ -184,6 +193,35 @@ void js_dereferenceLocalObject(PCEJVMTIAgent agent)
   object=(jobject)ps_readQword(agent->pipe);
 	(*(agent->env))->DeleteLocalRef(agent->env,object);
 }
+
+
+void js_startscan(PCEJVMTIAgent agent)
+{
+  ScanData sd;
+  uint64_t resultcount;
+  
+  ps_read(agent->pipe, &sd, sizeof(sd));
+  
+  resultcount=jvarscan_StartScan(agent->jvmti, sd);
+  
+  ps_writeQword(agent->pipe, resultcount);
+  
+}
+
+void js_refinescanresults(PCEJVMTIAgent agent)
+{
+  ScanData sd;
+  uint64_t resultcount;
+  jvalue value;
+  
+  ps_read(agent->pipe, &sd, sizeof(sd));
+  
+  jvarscan_refineScanResults(agent->jvmti, agent->env, sd);//
+  
+  ps_writeQword(agent->pipe, resultcount);
+}
+
+
 
 void js_getClassFields(PCEJVMTIAgent agent) 
 {
@@ -1969,7 +2007,11 @@ void launchCEJVMTIServer(JNIEnv *env, jvmtiEnv *jvmti, void* soa)
             
           case JAVACMD_INVOKEMETHOD:
             js_invokeMethod(agent);
-            break;            
+            break;   
+
+          case JAVACMD_STARTSCAN:
+            js_startscan(agent);
+            break;
             
           default: 
             debug_log("Invalid command. Terminating server");

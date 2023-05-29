@@ -1971,12 +1971,12 @@ function java_search_start(value, boolean)
     javapipe.writeByte(1) --unknown initial value scan
   else
     javapipe.writeByte(0) --value scan
-  javapipe.writeDouble(value)
-  if (boolean~=nil) and (boolean==true) then
-    javapipe.writeByte(1)
-  else
-    javapipe.writeByte(0)
-  end
+    javapipe.writeDouble(value)
+    if (boolean~=nil) and (boolean==true) then
+      javapipe.writeByte(1)
+    else
+      javapipe.writeByte(0)
+    end
   end
 
 

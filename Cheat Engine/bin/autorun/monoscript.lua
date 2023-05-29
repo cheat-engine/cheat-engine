@@ -1612,6 +1612,8 @@ function mono_class_getVTable(domain, klass)
 end
 
 local function GetInstancesOfClass(kls) 
+  if kls==nil then return end
+  
   if getOperatingSystem()==0 then
     local reskls = mono_findClass("UnityEngine","Resources")
     local mthds = mono_class_enumMethods(reskls)
@@ -1636,18 +1638,19 @@ end
 --todo for the instance scanner: Get the fields and check that pointers are either nil or point to a valid address
 function mono_class_findInstancesOfClassListOnly(domain, klass, progressBar)
   local inst = GetInstancesOfClass(klass)
-   if inst and readPointer(inst) and readPointer(inst)~=0 then
+  if inst and readPointer(inst) and readPointer(inst)~=0 then
      local countoff =  targetIs64Bit() and 0x18 or 0xC
-	 local elementsoff = targetIs64Bit() and 0x20 or 0x10
-	 local elesize = targetIs64Bit() and 8 or 4
-	 local arr = inst--readPointer(inst)
-	 local count =readInteger(arr+countoff)
-	 local result = {}
-	 for i=0,count-1 do
-		result[#result+1] = readPointer(inst+i*elesize+elementsoff)
-	 end
-	 return result
-   end
+	   local elementsoff = targetIs64Bit() and 0x20 or 0x10
+	   local elesize = targetIs64Bit() and 8 or 4
+	   local arr = inst--readPointer(inst)
+	   local count =readInteger(arr+countoff)
+	   local result = {}
+	   for i=0,count-1 do
+	  	result[#result+1] = readPointer(inst+i*elesize+elementsoff)
+	   end
+	   return result
+  end
+  
   if debugInstanceLookup then 
     if progressBar then
       printf("progressBar is set. progressBar.ClassName=%s", progressBar.ClassName)

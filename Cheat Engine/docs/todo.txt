@@ -67,11 +67,15 @@ binary type hotkey: increase value by doesn't work
 ceshare list filter search has an error
 
 macos: luaserver
+macos: pointerscan column click sorting
 
 vehdebug: ccode version
 
 table lua script: ctrl+space completion
 executeCodeLocalEx fails when no parameters are given
+
+dbvm: switch emu yuzu fails to load any game when dbvm is running
+
 
 ---
 

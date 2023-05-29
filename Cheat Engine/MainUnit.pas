@@ -10765,7 +10765,11 @@ begin
       if speedhack <> nil then
         FreeAndNil(speedhack);
 
-      ss:=GetKeyShiftState;
+      IF (GetKeyState(VK_MBUTTON) and $8000)=$8000 THEN
+      begin
+        outputdebugstring('bla');
+        raise exception.create('Using alternate method');
+      end;
 
 
       speedhack := TSpeedhack.Create;
