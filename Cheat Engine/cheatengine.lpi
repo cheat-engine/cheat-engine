@@ -27,12 +27,12 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="7"/>
       <MinorVersionNr Value="5"/>
-      <BuildNr Value="7546"/>
+      <BuildNr Value="7559"/>
       <Language Value="041C"/>
       <CharSet Value="04B0"/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.5"/>
     </VersionInfo>
-    <BuildModes Count="10">
+    <BuildModes Count="11">
       <Item1 Name="Release 32-Bit" Default="True"/>
       <Item2 Name="Release 64-Bit">
         <CompilerOptions>
@@ -396,7 +396,91 @@
           </Other>
         </CompilerOptions>
       </Item6>
-      <Item7 Name="debug-nomt">
+      <Item7 Name="Debug Optimized 64-Bit">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <PathDelim Value="\"/>
+          <Target>
+            <Filename Value="bin\cheatengine-$(TargetCPU)"/>
+          </Target>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir);$(LazarusDir)\ide\include\$(TargetOS);$(LazarusDir)\images;$(LazarusDir)\ideintf\images"/>
+            <OtherUnitFiles Value="VEHDebug;dbk32;lua;jvdesign;$(LazarusDir)\designer;$(LazarusDir)\ide;betterControls"/>
+            <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+          </SearchPaths>
+          <Parsing>
+            <Style Value="1"/>
+            <SyntaxOptions>
+              <SyntaxMode Value="Delphi"/>
+            </SyntaxOptions>
+          </Parsing>
+          <CodeGeneration>
+            <SmartLinkUnit Value="True"/>
+            <TargetCPU Value="x86_64"/>
+            <TargetOS Value="win64"/>
+            <Optimizations>
+              <OptimizationLevel Value="3"/>
+              <VariablesInRegisters Value="True"/>
+            </Optimizations>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <DebugInfoType Value="dsDwarf2Set"/>
+              <StripSymbols Value="True"/>
+              <UseExternalDbgSyms Value="True"/>
+            </Debugging>
+            <LinkSmart Value="True"/>
+            <Options>
+              <Win32>
+                <GraphicApplication Value="True"/>
+              </Win32>
+            </Options>
+          </Linking>
+          <Other>
+            <Verbosity>
+              <ShowNotes Value="False"/>
+              <ShowHints Value="False"/>
+            </Verbosity>
+            <WriteFPCLogo Value="False"/>
+            <CompilerMessages>
+              <IgnoredMessages idx6058="True" idx5066="True" idx5043="True" idx4105="True" idx4104="True" idx3177="True" idx3175="True" idx2005="True"/>
+            </CompilerMessages>
+            <CustomOptions Value="-WB00400000
+-dbenchmarkps
+-dcemain
+-dNDEBUG
+-dDBVMFORAMDISWORKING
+-dNESTEDSTRUCTURES
+-dTHREADNAMESUPPORT
+-donebytejumps
+-dNoODS
+-dDEBUGTHREADERRORS"/>
+            <OtherDefines Count="20">
+              <Define0 Value="NOTMULTITHREADED"/>
+              <Define1 Value="benchmarkps"/>
+              <Define2 Value="cemain"/>
+              <Define3 Value="NDEBUG"/>
+              <Define4 Value="D3DDebug"/>
+              <Define5 Value="NOVMX"/>
+              <Define6 Value="CUSTOMFLOAT"/>
+              <Define7 Value="XDEBUG"/>
+              <Define8 Value="memleaksearch"/>
+              <Define9 Value="checkassembleralphabet"/>
+              <Define10 Value="memorymapped"/>
+              <Define11 Value="privatebuild"/>
+              <Define12 Value="DBVMFORAMDISWORKING"/>
+              <Define13 Value="NESTEDSTRUCTURES"/>
+              <Define14 Value="THREADNAMESUPPORT"/>
+              <Define15 Value="LINUXTCCTEST"/>
+              <Define16 Value="asserthexviewisthreadsafe"/>
+              <Define17 Value="DEBUGPROTOCOL"/>
+              <Define18 Value="NEWCHANGEREGONX86"/>
+              <Define19 Value="overflowdebug"/>
+            </OtherDefines>
+          </Other>
+        </CompilerOptions>
+      </Item7>
+      <Item8 Name="debug-nomt">
         <CompilerOptions>
           <Version Value="11"/>
           <PathDelim Value="\"/>
@@ -439,7 +523,7 @@
             <ConfigFile>
               <StopAfterErrCount Value="1000"/>
             </ConfigFile>
-            <CustomOptions Value="-dNOTMULTITHREADED -dbenchmarkps -dcemain -WB00400000 -dNDEBUG -dD3DDebug -dNOVMX -dCUSTOMFLOAT -dXDEBUG -dNESTEDSTRUCTURES"/>
+            <CustomOptions Value="-dNOTMULTITHREADED -dbenchmarkps -dcemain -WB00400000 -dNDEBUG -dD3DDebug -dNOVMX -dCUSTOMFLOAT -dXDEBUG -dNESTEDSTRUCTURES -dDEBUGTHREADERRORS"/>
             <OtherDefines Count="13">
               <Define0 Value="NOTMULTITHREADED"/>
               <Define1 Value="benchmarkps"/>
@@ -457,8 +541,8 @@
             </OtherDefines>
           </Other>
         </CompilerOptions>
-      </Item7>
-      <Item8 Name="debug-nomt mac">
+      </Item8>
+      <Item9 Name="debug-nomt mac">
         <CompilerOptions>
           <Version Value="11"/>
           <PathDelim Value="\"/>
@@ -530,8 +614,8 @@
             </OtherDefines>
           </Other>
         </CompilerOptions>
-      </Item8>
-      <Item9 Name="debug-nomt 32-bit">
+      </Item9>
+      <Item10 Name="debug-nomt 32-bit">
         <CompilerOptions>
           <Version Value="11"/>
           <PathDelim Value="\"/>
@@ -586,7 +670,8 @@
 -dNOVMX
 -dCUSTOMFLOAT
 -dXDEBUG
--dNESTEDSTRUCTURES"/>
+-dNESTEDSTRUCTURES
+-dDEBUGTHREADERRORS"/>
             <OtherDefines Count="13">
               <Define0 Value="NOTMULTITHREADED"/>
               <Define1 Value="benchmarkps"/>
@@ -604,8 +689,8 @@
             </OtherDefines>
           </Other>
         </CompilerOptions>
-      </Item9>
-      <Item10 Name="debug-nomt 64-bit">
+      </Item10>
+      <Item11 Name="debug-nomt 64-bit">
         <CompilerOptions>
           <Version Value="11"/>
           <PathDelim Value="\"/>
@@ -663,8 +748,9 @@
 -dNESTEDSTRUCTURES
 -dTHREADNAMESUPPORT
 -dLINUXTCCTEST
--donebytejumps"/>
-            <OtherDefines Count="20">
+-donebytejumps
+-dDEBUGTHREADERRORS"/>
+            <OtherDefines Count="22">
               <Define0 Value="NOTMULTITHREADED"/>
               <Define1 Value="benchmarkps"/>
               <Define2 Value="cemain"/>
@@ -685,10 +771,12 @@
               <Define17 Value="DEBUGPROTOCOL"/>
               <Define18 Value="NEWCHANGEREGONX86"/>
               <Define19 Value="overflowdebug"/>
+              <Define20 Value="onebytejumps"/>
+              <Define21 Value="DEBUGTHREADERRORS"/>
             </OtherDefines>
           </Other>
         </CompilerOptions>
-      </Item10>
+      </Item11>
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>

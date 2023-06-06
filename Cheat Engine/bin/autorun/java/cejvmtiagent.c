@@ -200,6 +200,8 @@ void js_startscan(PCEJVMTIAgent agent)
   ScanData sd;
   uint64_t resultcount;
   
+  debug_log("js_startscan. Reading scandata object. (%d bytes)", sizeof(sd));
+  
   ps_read(agent->pipe, &sd, sizeof(sd));
   
   resultcount=jvarscan_StartScan(agent->jvmti, sd);
@@ -2011,6 +2013,13 @@ void launchCEJVMTIServer(JNIEnv *env, jvmtiEnv *jvmti, void* soa)
 
           case JAVACMD_STARTSCAN:
             js_startscan(agent);
+            break;
+            
+          case JAVACMD_REFINESCANRESULTS:
+            js_refinescanresults(agent);
+            break;  
+
+          case JAVACMD_GETSCANRESULTS:            
             break;
             
           default: 

@@ -17,16 +17,16 @@ void *memset(void *s, int c, size_t n);
 typedef struct
 {
 	//split seperately so it's faster (no double to int convertions during the scan)
-	int scantype;
-	int booleanScan; //include boolean fields when scanning
-	jboolean zValue;
-	jbyte bValue;
-	jchar cValue;
-	jshort sValue;
-	jint iValue;
-	jlong jValue;
-	jfloat fMinValue, fMaxValue;
-	jdouble dMinValue, dMaxValue;
+	int scantype;    //0
+	int booleanScan; //4, include boolean fields when scanning
+	jboolean zValue; //8
+	jbyte bValue;    //9
+	jchar cValue;    //10
+	jshort sValue;   //12
+	jint iValue;     //16
+	jlong jValue;    //24
+	jfloat fMinValue, fMaxValue; //32,36
+	jdouble dMinValue, dMaxValue; //40,48
 } ScanData, *PScanData;
 
 

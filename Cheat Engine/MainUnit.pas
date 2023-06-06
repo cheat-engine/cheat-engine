@@ -23,7 +23,8 @@ uses
   {$endif}
 
   {$ifdef windows}
-  jwaWindows, Windows, LCLIntf, LCLProc, Messages, SysUtils, Classes, Graphics,
+  jwaWindows, Windows, LCLIntf, LCLProc, Messages, SysUtils, Classes, SyncObjs,
+  SyncObjs2, Graphics,
   Controls, Forms, ComCtrls, StdCtrls, Menus, Buttons, shellapi,
   imagehlp, ExtCtrls, Dialogs, Clipbrd, CEDebugger, kerneldebugger, assemblerunit,
   hotkeyhandler, registry, Math, ImgList, commctrl, NewKernelHandler,
@@ -314,6 +315,7 @@ type
     FromAddress: TEdit;
     andlabel: TLabel;
     lblcompareToSavedScan: TLabel;
+    miTestAccessViolationThread: TMenuItem;
     miTriggerAccessViolation: TMenuItem;
     MenuItem16: TMenuItem;
     MenuItem17: TMenuItem;
@@ -593,6 +595,7 @@ type
     procedure CreateGroupClick(Sender: TObject);
     procedure gbScanOptionsChangeBounds(Sender: TObject);
     procedure Label3Click(Sender: TObject);
+    procedure miTestAccessViolationThreadClick(Sender: TObject);
     procedure miTriggerAccessViolationClick(Sender: TObject);
     procedure miTutorial64Click(Sender: TObject);
     procedure MenuItem15Click(Sender: TObject);
@@ -860,6 +863,12 @@ type
 
     InsideSetActivePreviousResult: boolean;
 
+    exceptionerrorcs: TCriticalSection;
+    currentexceptionerror: string;
+    showingException: boolean;
+
+    TraceExceptions: boolean;
+
     procedure updateNetworkOption(sender: TObject);
     procedure updateNetworkOptions;
 
@@ -877,7 +886,7 @@ type
     procedure MemScanStart(sender: TObject);
     procedure MemScanDone(sender: TObject);
     procedure PluginSync(var m: TMessage); message wm_pluginsync;
-    procedure ShowError(var message: TMessage); message wm_showerror;
+    procedure ShowError;
     procedure Edit;
     procedure paste(simplecopypaste: boolean);
     procedure CopySelectedRecords;
@@ -2161,27 +2170,9 @@ begin
   m.Result := ptruint(func(params));
 end;
 
-procedure TMainForm.ShowError(var message: TMessage);
-var
-  err: pchar;
-  errs: string;
+procedure TMainForm.ShowError;
 begin
-  err:=pchar(message.lParam);
-
-  if err<>nil then
-  begin
-    errs:=err;
-
-    if (errs='Access violation') and (miEnableLCLDebug.checked) then
-      errs:=errs+#13#10'Please send the cedebug.txt file to Dark Byte. Thanks';
-
-    if MainThreadID=GetCurrentThreadId then
-      MessageDlg(errs, mtError, [mbOK], 0);
-
-    freememandnil(err);
-  end
-  else
-    MessageDlg(rsUnspecifiedError, mtError, [mbOK], 0);
+  MessageDlg(currentexceptionerror, mterror,[mbok],0);
 end;
 
 //----------------------------------
@@ -2425,25 +2416,40 @@ begin
   end;
 end;
 
-
 procedure TMainForm.exceptionhandler(Sender: TObject; E: Exception);
-var err: pchar;
+var
+  s: string;
 begin
   //unhandled exeption. Also clean lua stack
+  s:=GetThreadName+': Unhandled exception: '+e.message;
 
-  getmem(err, length(e.Message)+1);
-  strcopy(err, pchar(e.message));
-  err[length(e.message)]:=#0;
-
-
-  if miEnableLCLDebug.checked then
+  if TraceExceptions then
   begin
     DebugLn('Exception '+e.Message);
     DumpExceptionBackTrace;
 
+    s:=s+#13#10'Please send the cedebug.txt file to Dark Byte. Thanks';
   end;
 
-  PostMessage(handle, wm_showerror, 0, ptruint(err));
+  if showingException then exit; //don't bother showing another one. Just read the log
+
+  if exceptionerrorcs.TryEnter then //it's not important if it's already showing another error
+  begin
+    if showingException=false then //should be the case, but check anyhow
+    begin
+      currentexceptionerror:=s;
+
+      showingException:=true;
+      if MainThreadID=GetCurrentThreadId then
+        showerror
+      else
+        tthread.Synchronize(nil, showerror);
+
+      showingException:=false;
+    end;
+
+    exceptionerrorcs.leave;
+  end;
 end;
 
 
@@ -3504,6 +3510,10 @@ begin
       llf.Finish;
   end;
 
+  TraceExceptions:=miEnableLCLDebug.checked;
+
+  miTriggerAccessViolation.visible:=TraceExceptions;
+  miTestAccessViolationThread.visible:=TraceExceptions;
 
 end;
 
@@ -3612,13 +3622,55 @@ begin
 
 end;
 
-procedure TMainForm.miTriggerAccessViolationClick(Sender: TObject);
+
+procedure triggerAV(AData : Pointer);
 var p: pbyte;
 begin
   p:=pbyte($ce);
-  if p^=$ce then
-    showmessage('Weeee! Fuck You!');
+  p^:=p^+$ce;
 
+  beep;
+
+end;
+
+type TTestThread=class(tthread)
+  procedure Execute; override;
+end;
+
+
+procedure TTestThread.Execute;
+begin
+  SetThreadDebugName(ThreadID,'Crashy thread');
+  triggerav(nil);
+
+end;
+
+procedure TMainForm.miTestAccessViolationThreadClick(Sender: TObject);
+var m: Tmethod;
+
+  t: TTestthread;
+begin
+  t:=ttestthread.Create(true);
+
+
+  //t.FreeOnTerminate:=true;
+  t.Start;
+  {
+  while t.Finished=false do
+    sleep(100);
+
+  if t.FatalException=nil then
+    showmessage('all ok')
+  else
+    showmessage('error');  }
+
+
+end;
+
+procedure TMainForm.miTriggerAccessViolationClick(Sender: TObject);
+begin
+  triggerAV(nil);
+  showmessage('Weeee! Fuck You!');
 end;
 
 
@@ -5784,6 +5836,7 @@ var
   createlog: boolean;
   s: string;
 begin
+  exceptionerrorcs:=TCriticalSection.Create;
   mtid:=MainThreadID;
 
   tthread.NameThreadForDebugging('Main GUI Thread', GetCurrentThreadId);

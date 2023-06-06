@@ -17252,9 +17252,9 @@ end;
 var
   tm: TThreadManager;
   oldReleaseThreadVars: procedure;
-
-
-
+  {$ifdef DEBUGTHREADERRORS}
+  oldEndThreadHandler: TEndThreadHandler;
+  {$endif}
 
 procedure ReleaseLuaThreadVars;
 var s: pstring;
@@ -17274,6 +17274,34 @@ begin
 end;
 
 
+{$ifdef DEBUGTHREADERRORS}
+
+procedure ThreadError(data: Exception);
+begin
+  MessageDlg('Error in thread '+GetThreadName+':'+data.Message, mtError,[mbok],0);
+end;
+
+Procedure EndThreadHandler(ExitCode : DWord);
+var m: tmethod;
+begin
+  if TThread.CurrentThread.FreeOnTerminate=false then
+  begin
+    if TThread.CurrentThread.FatalException<>nil then
+    begin
+      m.code:=@threadError;
+      m.data:=TThread.CurrentThread.FatalException;
+      tthread.Synchronize(nil, TThreadMethod(m));
+    end;
+  end;
+
+
+  if assigned(oldEndThreadHandler) then
+    oldEndThreadHandler(Exitcode);
+end;
+{$endif}
+
+
+
 initialization
   _LuaCS:=TCriticalSection.create;
   luarefcs:=TCriticalSection.create;
@@ -17283,6 +17311,11 @@ initialization
   GetThreadManager(tm);
   oldReleaseThreadVars:=tm.ReleaseThreadVars;
   tm.ReleaseThreadVars:=@ReleaseLuaThreadVars;
+
+  {$ifdef DEBUGTHREADERRORS}
+  oldEndThreadHandler:=tm.EndThread;
+  tm.EndThread:=@EndThreadHandler;
+  {$endif}
 
 
   SetThreadManager(tm);

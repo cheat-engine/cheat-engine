@@ -1961,31 +1961,107 @@ function java_setField(jObject, fieldid, signature, value)
 
 end
 
+local ST_UNKNOWN=0xffffffff
+local ST_EXACT=0
+local ST_INCREASED=1
+local ST_DECREASED=2
+local ST_CHANGED=3
+local ST_UNCHANGED=4
+
 function java_search_start(value, boolean)
   --tag all known objects and set a variable to let some functions know they can not function until the scan has finished (they can't set tags)
   local result=nil
-  javapipe.lock()
-  javapipe.writeByte(JAVACMD_STARTSCAN)
 
-  if value==nil then
-    javapipe.writeByte(1) --unknown initial value scan
-  else
-    javapipe.writeByte(0) --value scan
-    javapipe.writeDouble(value)
-    if (boolean~=nil) and (boolean==true) then
-      javapipe.writeByte(1)
+  
+  ms=createMemoryStream()
+  ms.writeByte(JAVACMD_STARTSCAN)
+  
+  if ms.Size~=1 then error('invalid structure size') end
+  
+  --setup a scandata block (look at jvarscan.c for the offsets) 
+  ms.writeDword(value and ST_EXACT or ST_UNKNOWN) --0-3: value==0 > 0xffffffff else 0 (SO_EXACT)
+  ms.writeDword(boolean and 1 or 0)    --4-7
+  
+  if ms.Size~=1+8 then error('invalid structure size 2') end
+  
+  ms.writeByte(value and value~=0 and 1 or 0) --zValue:8
+  ms.writeByte(value and value or 0) --bValue:9
+  ms.writeWord(value and value or 0) --cValue:10-11
+  ms.writeWord(value and value or 0) --sValue:12-13
+  ms.writeWord(0) --filler: 14-15
+  ms.writeDword(value and value or 0) --iValue:16-19
+  ms.writeDword(0) --filler: 20-23
+  ms.writeQword(value) --jValue: 24-31
+  
+  if ms.Size~=1+32 then error('invalid structure size 4') end
+  
+  
+  
+  local minvalue,maxvalue
+  
+  if value then
+    --parse the user input and figure out the accuracy requested
+    local vs=value:trim()
+    local v=tonumber(vs)
+    if v==nil then          
+      messageDialog(value..' can not be parsed by lua', mtError)
+      return
+    end 
+    local accuracy
+    local seperator=vs:find('%.')
+    if seperator==nil then
+      accuracy=0
     else
-      javapipe.writeByte(0)
+      accuracy=#s-seperator
     end
-  end
+    
+    if accuracy==0 then
+      rounding='0.9'
+    else
+      rounding='0.'
+      for i=1,accuracy do
+        rounding=rounding..'0'
+      end
+      rounding=rounding..'9'
+    end
 
+    minvalue=vs-rounding
+    maxvalue=vs+rounding        
+  end
+  ms.writeFloat(minvalue)
+  if ms.Size~=1+32+4 then error('invalid structure size 5.1') end
+    
+  ms.writeFloat(maxvalue)
+  if ms.Size~=1+32+4+4 then error('invalid structure size 5.2') end
+  
+  ms.writeDouble(minvalue)
+  if ms.Size~=1+32+4+4+8 then error('invalid structure size 5.3') end
+   
+  ms.writeDouble(maxvalue) 
+  if ms.Size~=1+32+4+4+8+8 then error('invalid structure size 5.4') end  
+
+  if ms.Size~=1+56 then error('invalid structure size 5') end
+  
+  
+  
+  ms.position=0
+  outputDebugString('Sending firstscan command and scandata. Size of packet:'..ms.Size)
+  
+  
+  javapipe.lock()
+  javapipe.writeFromStream(ms)  
+  javapipe.Timeout=0
+  
 
   result=javapipe.readQword() --Wait till done, get nr of results)
+  
+  javapipe.Timeout=JAVA_TIMEOUT
+  
 
   java_scanning=true
-
-
   javapipe.unlock()
+
+
 
   return result
 end
@@ -2430,104 +2506,6 @@ function miJavaActivateClick(sender)
 end
 
 
---[[
-function javaForm_treeviewExpanding(sender, node)
-  local allow=true
-
-  --outputDebugString("Expanding "..node.Text)
-
-  --print("javaForm_treeviewExpanding "..node.level)
-  if node.Level==0 then --root level (class expasion)
-    if node.Count==0 then  --not yet filled in
-      --expand the class this node describes
-      local jklass=node.Data
-      local methods=java_getClassMethods(jklass)
-      local fields=java_getClassFields(jklass)
-      local interfaces=java_getImplementedInterfaces(jklass)
-      local superclass=java_getSuperClass(jklass)
-
-      local i
-
-      if superclass~=0 then
-        node.add(translate('superclass=')..java_getClassSignature(superclass))
-        java_dereferenceLocalObject(superclass)
-      end
-
-
-
-      node.add(translate('---Implemented interfaces---'));
-      for i=1, #interfaces do
-        local name
-        if interfaces[i]>0 then
-          name=java_getClassSignature(interfaces[i])
-        else
-          name='???'
-        end
-
-        node.add(string.format("%x : %s", interfaces[i], name))
-      end
-
-      node.add(translate('---Fields---'));
-      for i=1, #fields do
-        node.add(string.format("%x: %s: %s (%s)", fields[i].jfieldid, fields[i].name, fields[i].signature,fields[i].generic))
-      end
-
-      node.add(translate('---Methods---'));
-
-      for i=1, #methods do
-        local n=node.add(string.format("%x: %s%s           %s", methods[i].jmethodid, methods[i].name, methods[i].signature, methods[i].generic))
-        n.data=methods[i].jmethodid  --ONLY methods have this field set at level 1. (!ONLY METHODS!)
-      end
-
-
-    --java_getClassFields(jklass);
-    end
-  end
-
-  return allow
-end
-
-function javaForm_searchClass(sender)
-  javaForm.findAll=false --classes only
-  javaForm.findDialog.Title=translate("Search for class...")
-  javaForm.findDialog.execute()
-end
-
-function javaForm_searchAll(sender)
-  javaForm.findAll=true --everything
-  javaForm.findDialog.Title=translate("Search for...")
-  javaForm.findDialog.execute()
-end
-
-function javaForm_doSearch(sender)
-  --search for javaForm.findDialog.FindText
-  local currentindex=1
-  local findall=javaForm.findAll
-  local searchstring=javaForm.findDialog.FindText
-
-  if javaForm.treeview.Selected ~= nil then
-    currentindex=javaForm.treeview.Selected.AbsoluteIndex+1 --start at the next one
-  end
-
-  while currentindex<javaForm.treeview.Items.Count do
-    local node=javaForm.treeview.Items[currentindex]
-
-    if (node.level==0) or findall then
-      --check if node.Text contains the searchstring
-     if string.find(node.Text,searchstring) ~= nil then
-        --found one
-        node.Selected=true
-        node.makeVisible()
-        return
-      end
-    end
-
-    if findall and node.HasChildren then
-      node.expand()
-    end
-    currentindex=currentindex+1
-  end
-end--]]
 
 function varscan_showResults(count)
   --print("showing results for "..count.." results");
@@ -2576,12 +2554,14 @@ function varscan_cleanupResults()
 end
 
 function varscan_firstScan(sender)
-  --print("first scan")
+  print("first scan")
   if (sender.Tag==0) then
     --first scan
 
     local count=java_search_start(java.varscan.ValueBox.Text)
-    varscan_showResults(count)
+    
+    printf("found %d results", count)
+    --varscan_showResults(count)
 
 
     sender.Caption=translate("New Scan")
@@ -2626,12 +2606,14 @@ function miJavaVariableScanClick(sender)
 
   local varscan=java.varscan
 
+  local dpim=getScreenDPI()/96
+
   if varscan==nil then
     --build a gui
     varscan={}
     varscan.form=createForm()
-    varscan.form.Width=400
-    varscan.form.Height=400
+    varscan.form.Width=400*dpim
+    varscan.form.Height=400*dpim
     varscan.form.Position=poScreenCenter
     varscan.form.Caption=translate("Java Variable Scanner")
     varscan.form.BorderStyle=bsSizeable
@@ -2652,15 +2634,19 @@ function miJavaVariableScanClick(sender)
     varscan.NextScan=createButton(varscan.controls)
     varscan.NextScan.Caption=translate("Next Scan")
 
-    local width=6+math.max(varscan.form.Canvas.getTextWidth(varscan.FirstScan.Caption), varscan.form.Canvas.getTextWidth(varscan.NextScan.Caption)) --guess which one will be bigger... (just in case someone translates this)
+    local width=6*dpim+math.max(varscan.form.Canvas.getTextWidth(varscan.FirstScan.Caption), varscan.form.Canvas.getTextWidth(varscan.NextScan.Caption)) --guess which one will be bigger... (just in case someone translates this)
+
+
 
     varscan.FirstScan.ClientWidth=width
     varscan.NextScan.ClientWidth=width
+    varscan.FirstScan.Height=varscan.form.Canvas.getTextHeight('XXX')+3*dpim
+    varscan.NextScan.Height=varscan.FirstScan.Height
 
     varscan.ValueBox=createEdit(varscan.controls)
 
-    varscan.ValueBox.Top=20
-    varscan.ValueBox.Left=20;
+    varscan.ValueBox.Top=20*dpim
+    varscan.ValueBox.Left=20*dpim;
 
     varscan.ValueText.AnchorSideLeft.Control=varscan.ValueBox
     varscan.ValueText.AnchorSideLeft.Side=asrLeft
@@ -2674,23 +2660,23 @@ function miJavaVariableScanClick(sender)
 
     varscan.FirstScan.AnchorSideTop.Control=varscan.ValueBox
     varscan.FirstScan.AnchorSideTop.Side=asrBottom
-    varscan.FirstScan.BorderSpacing.Top=5
+    varscan.FirstScan.BorderSpacing.Top=5*dpim
     varscan.FirstScan.Anchors="[akTop, akLeft]"
     varscan.FirstScan.OnClick=varscan_firstScan
 
     varscan.NextScan.AnchorSideLeft.Control=varscan.FirstScan
     varscan.NextScan.AnchorSideLeft.Side=asrRight
-    varscan.NextScan.BorderSpacing.Left=5
+    varscan.NextScan.BorderSpacing.Left=5*dpim
     varscan.NextScan.OnClick=varscan_nextScan
 
     varscan.NextScan.AnchorSideTop.Control=varscan.ValueBox
     varscan.NextScan.AnchorSideTop.Side=asrBottom
-    varscan.NextScan.BorderSpacing.Top=5
+    varscan.NextScan.BorderSpacing.Top=5*dpim
     varscan.NextScan.Anchors="[akTop, akLeft]"
     varscan.NextScan.Enabled=false
 
     varscan.ValueBox.Width=varscan.NextScan.Left+varscan.NextScan.Width-varscan.ValueBox.Left
-    varscan.controls.Width=varscan.ValueBox.Width+40
+    varscan.controls.Width=varscan.ValueBox.Width+40*dpim
 
     varscan.ResultPanel=createPanel(varscan.form)
     varscan.ResultPanel.Align=alClient
@@ -2704,14 +2690,20 @@ function miJavaVariableScanClick(sender)
 
     varscan.Results=createListBox(varscan.ResultPanel)
     varscan.Results.Align=alClient
-    varscan.Results.Width=200
+    varscan.Results.Width=200*dpim
 
     varscan.Results.PopupMenu=createPopupMenu(varscan.form)
+    
+    varscan.OnClose=function()
+      java.varscan=nil
+      return caFree
+    end
 
     local mi
     mi=createMenuItem(varscan.Results.PopupMenu)
     mi.Caption=translate("Find what accesses this value")
     mi.OnClick=miFindWhatAccessClick;
+    mi.Enabled=java.capabilities.can_generate_field_access_events
     varscan.Results.PopupMenu.Items.add(mi)
 
   end

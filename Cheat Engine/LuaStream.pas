@@ -197,6 +197,52 @@ begin
   result:=0;
 end;
 
+function stream_readFloat(L: PLua_State): integer; cdecl;
+var
+  stream: Tstream;
+  f: single;
+begin
+  stream:=luaclass_getClassObject(L);
+  stream.Read(f,sizeof(f));
+  lua_pushnumber(L,f);
+  result:=1;
+end;
+
+function stream_writeFloat(L: PLua_State): integer; cdecl;
+var
+  stream: Tstream;
+  f: single;
+begin
+  stream:=luaclass_getClassObject(L);
+  f:=lua_tonumber(L,1);
+  stream.Write(f, sizeof(f));
+  result:=0;
+end;
+
+function stream_readDouble(L: PLua_State): integer; cdecl;
+var
+  stream: Tstream;
+  d: double;
+begin
+  stream:=luaclass_getClassObject(L);
+  stream.Read(d,sizeof(d));
+  lua_pushnumber(L,d);
+  result:=1;
+end;
+
+function stream_writeDouble(L: PLua_State): integer; cdecl;
+var
+  stream: Tstream;
+  d: double;
+begin
+  stream:=luaclass_getClassObject(L);
+  d:=lua_tonumber(L,1);
+  stream.Write(d, sizeof(d));
+  result:=0;
+end;
+
+
+
 function stream_readString(L: PLua_State): integer; cdecl;
 var
   stream: Tstream;
@@ -324,6 +370,10 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'writeDword', stream_writeDword);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'readQword', stream_readQword);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'writeQword', stream_writeQword);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'readFloat', stream_readFloat);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'writeFloat', stream_writeFloat);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'readDouble', stream_readDouble);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'writeDouble', stream_writeDouble);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'readString', stream_readString);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'writeString', stream_writeString);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'readAnsiString', stream_readAnsiString);

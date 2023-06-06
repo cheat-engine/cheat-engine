@@ -607,20 +607,21 @@ function edtClassFilterChange(frmJavaInfo, sender)
   frmJavaInfo.lvClasses.ItemIndex=-1
   frmJavaInfo.dontSwitchClass=false
   
-  if sender.Text=='' then
+  if frmJavaInfo.edtClassFilter.Text=='' then
     frmJavaInfo.filteredClassList=nil
     frmJavaInfo.lvClasses.Items.Count=#jDataSource.Classes
   else
-    local uppercase=frmJavaInfo.cbCaseSensitive.Checked
-    local filter=sender.Text
-    if not uppercase then
+    local casesensitive=frmJavaInfo.cbCaseSensitive.Checked
+    local filter=frmJavaInfo.edtClassFilter.Text
+    if not casesensitive then
       filter=filter:upper()
     end      
     local r={}
     
-    if uppercase then
+    if casesensitive then
+      printf("case sensitive scan")
       for i=1,#jDataSource.Classes do
-        if jDataSource.Classes[i].signature:find(filter,1,true) then
+        if jDataSource.Classes[i].signature:find(filter,1,true) then          
           table.insert(r,jDataSource.Classes[i])        
         end      
       end

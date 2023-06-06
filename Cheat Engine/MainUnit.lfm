@@ -247,7 +247,7 @@ object MainForm: TMainForm
       AnchorSideLeft.Side = asrBottom
       AnchorSideBottom.Control = Foundlist3
       AnchorSideBottom.Side = asrBottom
-      Left = 242
+      Left = 185
       Height = 28
       Hint = 'Copy all selected items to the address list'
       Top = 369
@@ -1642,7 +1642,7 @@ object MainForm: TMainForm
       AnchorSideTop.Control = Label6
       AnchorSideTop.Side = asrBottom
       AnchorSideBottom.Control = btnMemoryView
-      Left = 1
+      Left = -56
       Height = 351
       Hint = 'This list shows all the found addresses that matched your last scan'
       Top = 46
@@ -2689,7 +2689,13 @@ object MainForm: TMainForm
       end
       object miTriggerAccessViolation: TMenuItem
         Caption = 'Test access violation'
+        Visible = False
         OnClick = miTriggerAccessViolationClick
+      end
+      object miTestAccessViolationThread: TMenuItem
+        Caption = 'Test access violation in thread'
+        Visible = False
+        OnClick = miTestAccessViolationThreadClick
       end
       object N8: TMenuItem
         Caption = '-'

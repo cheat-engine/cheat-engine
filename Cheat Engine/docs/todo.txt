@@ -76,6 +76,11 @@ executeCodeLocalEx fails when no parameters are given
 
 dbvm: switch emu yuzu fails to load any game when dbvm is running
 
+dpi: change address dialog: sizefield is too small
+
+signature: resize signature (new version sig?)
+
+add table specific settings. E.g: show errors when activating table
 
 ---
 
