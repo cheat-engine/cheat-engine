@@ -105,14 +105,14 @@ extendedToByteTable(number): {}      - Converts an extended to a bytetable
 stringToByteTable(string): {}        - Converts a string to a bytetable
 wideStringToByteTable(string): {}    - Converts a string to a widestring and converts that to a bytetable
 
-byteTableToWord(table, OPTIONAL signed:boolean): number       - Converts a bytetable to a word
-byteTableToDword(table, OPTIONAL signed:boolean): number      - Converts a bytetable to a dword
-byteTableToQword(table): number      - Converts a bytetable to a qword
-byteTableToFloat(table): number      - Converts a bytetable to a float
-byteTableToDouble(table): number     - Converts a bytetable to a double
-byteTableToExtended(table): number   - Converts a bytetable to an extended and converts that to a double
-byteTableToString(table): string     - Converts a bytetable to a string
-byteTableToWideString(table): string - Converts a bytetable to a widestring and converts that to a string
+byteTableToWord(table, OPTIONAL signed:boolean, OPTIONAL tableindex=1): number       - Converts a bytetable to a word
+byteTableToDword(table, OPTIONAL signed:boolean, OPTIONAL tableindex=1): number      - Converts a bytetable to a dword
+byteTableToQword(table, OPTIONAL tableindex=1): number      - Converts a bytetable to a qword
+byteTableToFloat(table, OPTIONAL tableindex=1): number      - Converts a bytetable to a float
+byteTableToDouble(table, OPTIONAL tableindex=1): number     - Converts a bytetable to a double
+byteTableToExtended(table, OPTIONAL tableindex=1): number   - Converts a bytetable to an extended and converts that to a double
+byteTableToString(table, OPTIONAL tableindex=1): string     - Converts a bytetable to a string
+byteTableToWideString(table, OPTIONAL tableindex=1): string - Converts a bytetable to a widestring and converts that to a string
 
 bOr(int1, int2)   : Binary Or
 bXor(int1, int2)  : Binary Xor
