@@ -77,6 +77,7 @@
 #define MONOCMD_GETREFLECTIONMETHODOFMONOMETHOD 59
 #define MONOCMD_MONOOBJECTUNBOX 60
 #define MONOCMD_MONOARRAYNEW 61
+#define MONOCMD_ENUMINTERFACESOFCLASS 62
 
 
 typedef struct {} MonoType;
@@ -125,6 +126,7 @@ typedef char* (__cdecl *MONO_CLASS_NAME_FROM_TOKEN)(void *image, UINT32 token);
 typedef void* (__cdecl *MONO_CLASS_GET_METHODS)(void *klass, void *iter);
 typedef void* (__cdecl *MONO_CLASS_GET_METHOD_FROM_NAME)(void *klass, char *methodname, int paramcount);
 typedef void* (__cdecl *MONO_CLASS_GET_FIELDS)(void *klass, void *iter);
+typedef void* (__cdecl *MONO_CLASS_GET_INTERFACES)(void *klass, void *iter);
 typedef void* (__cdecl *MONO_CLASS_GET_PARENT)(void *klass);
 typedef void* (__cdecl *MONO_CLASS_GET_IMAGE)(void *klass);
 typedef void* (__cdecl *MONO_CLASS_VTABLE)(void *domain, void *klass);
@@ -310,6 +312,7 @@ private:
 
 	MONO_CLASS_NUM_FIELDS mono_class_num_fields;
 	MONO_CLASS_GET_FIELDS mono_class_get_fields;
+	MONO_CLASS_GET_INTERFACES mono_class_get_interfaces;
 
 	MONO_CLASS_NUM_METHODS mono_class_num_methods;
 	MONO_CLASS_GET_METHODS mono_class_get_methods;
@@ -438,6 +441,7 @@ private:
 	void EnumClassesInImage();
 	void EnumClassesInImageEx();
 	void EnumFieldsInClass();
+	void EnumImplementedInterfacesOfClass();
 	void EnumMethodsInClass();
 	void CompileMethod();
 	void GetMethodHeader();

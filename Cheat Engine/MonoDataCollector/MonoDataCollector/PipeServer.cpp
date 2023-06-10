@@ -479,6 +479,7 @@ void CPipeServer::InitMono()
 				mono_class_get_methods = (MONO_CLASS_GET_METHODS)GetProcAddress(hMono, "il2cpp_class_get_methods");
 				mono_class_get_method_from_name = (MONO_CLASS_GET_METHOD_FROM_NAME)GetProcAddress(hMono, "il2cpp_class_get_method_from_name");
 				mono_class_get_fields = (MONO_CLASS_GET_FIELDS)GetProcAddress(hMono, "il2cpp_class_get_fields");
+				mono_class_get_interfaces = (MONO_CLASS_GET_INTERFACES)GetProcAddress(hMono, "il2cpp_class_get_interfaces");
 				mono_class_get_parent = (MONO_CLASS_GET_PARENT)GetProcAddress(hMono, "il2cpp_class_get_parent");
 				mono_class_get_image = (MONO_CLASS_GET_IMAGE)GetProcAddress(hMono, "il2cpp_class_get_image");
 
@@ -638,6 +639,7 @@ void CPipeServer::InitMono()
 				mono_class_get_methods = (MONO_CLASS_GET_METHODS)GetProcAddress(hMono, "mono_class_get_methods");
 				mono_class_get_method_from_name = (MONO_CLASS_GET_METHOD_FROM_NAME)GetProcAddress(hMono, "mono_class_get_method_from_name");
 				mono_class_get_fields = (MONO_CLASS_GET_FIELDS)GetProcAddress(hMono, "mono_class_get_fields");
+				mono_class_get_interfaces = (MONO_CLASS_GET_INTERFACES)GetProcAddress(hMono, "mono_class_get_interfaces");
 				mono_class_get_parent = (MONO_CLASS_GET_PARENT)GetProcAddress(hMono, "mono_class_get_parent");
 				mono_class_get_image = (MONO_CLASS_GET_IMAGE)GetProcAddress(hMono, "mono_class_get_image");
 				mono_class_is_generic = (MONO_CLASS_IS_GENERIC)GetProcAddress(hMono, "mono_class_is_generic"); 
@@ -1298,6 +1300,20 @@ void CPipeServer::EnumFieldsInClass()
 
 		}
 	} while (field);
+}
+
+void CPipeServer::EnumImplementedInterfacesOfClass()
+{
+	void* klass = (void*)ReadQword();
+	void* iter = NULL;
+	void* interfaces;
+
+	do
+	{
+		interfaces = mono_class_get_interfaces(klass, &iter);
+		WriteQword((UINT_PTR)interfaces);
+	} while (interfaces);
+	
 }
 
 
@@ -2871,6 +2887,10 @@ void CPipeServer::Start(void)
 
 				case MONOCMD_ENUMFIELDSINCLASS:
 					EnumFieldsInClass();
+					break;
+
+				case MONOCMD_ENUMINTERFACESOFCLASS:
+					EnumImplementedInterfacesOfClass();
 					break;
 
 				case MONOCMD_ENUMMETHODSINCLASS:
