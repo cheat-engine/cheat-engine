@@ -12,6 +12,9 @@ void *memset(void *s, int c, size_t n);
 #define ST_DECREASED 2
 #define ST_CHANGED 3
 #define ST_UNCHANGED 4
+
+jfieldID getFieldIDFromFieldIndex(jvmtiEnv *jvmti, JNIEnv *jni, jobject o, int index);
+
                 
 
 typedef struct
@@ -32,6 +35,7 @@ typedef struct
 
 typedef struct
 {	
+  jobject object;
 	jlong objectTag;
 	jint fieldindex;
 	jfieldID fieldID;
@@ -48,12 +52,46 @@ int ScanResultsPos=0;
 jlong initialtag;
 int tagcount=0;
 
+void scanresult_initentry(jvmtiEnv *jvmti, JNIEnv *jni, PScanResult scanresult)
+{
+  int count=0;
+	jobject *objects=NULL;       
+  
+  (*jvmti)->GetObjectsWithTags(jvmti, 1, &scanresult->objectTag, &count, &objects, NULL); 
+  if (count)
+  {   
+    if (count>0)
+      debug_log("scanresult_initentry: unexpected situation: GetObjectsWithTags returns more than 1 object");
+    
+    scanresult->object=(*jni)->NewGlobalRef(jni, objects[0]);
+        
+    int i;
+    for (i=0; i<count; i++)
+      (*jni)->DeleteLocalRef(jni, objects[i]);
+  }
+      
+  if (objects)
+    (*jvmti)->Deallocate(jvmti, (unsigned char *)objects);
+  
+  if (scanresult->fieldID==0)
+  {    
+    debug_log("calling getFieldIDFromFieldIndex");
+	  scanresult->fieldID=getFieldIDFromFieldIndex(jvmti, jni, scanresult->object, scanresult->fieldindex);			
+   
+    debug_log("scanresult->fieldID=%p",scanresult->fieldID) ;  
+  }
+  
+  
+}
+
 
 jint JNICALL StartScan_FieldIteration(jvmtiHeapReferenceKind kind, const jvmtiHeapReferenceInfo* info, jlong object_class_tag, jlong* object_tag_ptr, jvalue value, jvmtiPrimitiveType value_type, void *user_data)
 {
+ // debug_log("StartScan_FieldIteration");
 	
 	if (kind==JVMTI_HEAP_REFERENCE_FIELD)
 	{
+    //debug_log("JVMTI_HEAP_REFERENCE_FIELD");
 		BOOL add=TRUE;
 		PScanData sd=(PScanData)user_data;
 
@@ -96,35 +134,51 @@ jint JNICALL StartScan_FieldIteration(jvmtiHeapReferenceKind kind, const jvmtiHe
 					break;
 			}
 		}
-
+    
+ 
 		if (add)
 		{
+      debug_log("found match. Tagging and adding to list",add);
+      
 			ScanResult sr;
 			if (*object_tag_ptr<=initialtag) //check if it's 0 or part of a previous tagging operation
-				*object_tag_ptr=0xce000000+tagcount++;
+			{	
+        
+        *object_tag_ptr=0xce000000+tagcount++;
+        debug_log("This object was untagged. Tagged it with ID %x",*object_tag_ptr); 
+      }       
+       
 
+      sr.object=NULL;
 			sr.objectTag=*object_tag_ptr;
 			sr.fieldindex=info->field.index;
 			sr.type=value_type;
 			sr.lastvalue=value;
 			sr.fieldID=0;
-
 			sr.kind=kind;
       
+     
       if (ScanResultsPos>=ScanResultsSize)
       {
+        debug_log("reallocating list (ScanResultsPos=%d ScanResultsSize=%d", ScanResultsPos, ScanResultsSize);
         if (ScanResultsSize<80000) //near 4MB
           ScanResultsSize*=2;
         else
           ScanResultsSize+=80000;        
         
+        
+        
         ScanResults=(ScanResult*)realloc(ScanResults, sizeof(ScanResult)*ScanResultsSize);        
       }
-      
+
       ScanResults[ScanResultsPos]=sr;
       ScanResultsPos++;
 		}
 	}
+  else
+  {
+    //debug_log("other (%d)",kind);
+  }
 
 	return JVMTI_VISIT_OBJECTS;
 }
@@ -347,20 +401,28 @@ int jvarscan_refineScanResults(jvmtiEnv *jvmti, JNIEnv *jni, ScanData sd)
 	//go through the results and check if they are usable or invalid now
   for (i=0; i<ScanResultsPos; i++)
 	{
-    ScanResult sr=ScanResults[i];
+    ScanResult sr=ScanResults[i];   
 		BOOL valid=FALSE;
-		jint count=0;
-		jobject *objects;
+
+
+    
     
 		
 		//for unknown initial value, it might be more efficient to just start with getting all the objects and enumerating the fields and then get the value instead of this
-		(*jvmti)->GetObjectsWithTags(jvmti, 1, &sr.objectTag, &count, &objects, NULL); 
-		if (count)
-		{      
-			jobject o=objects[0];
+    if (ScanResults[i].object==NULL)
+      scanresult_initentry(jvmti, jni, &sr);
+    
+   
+    if (sr.object==NULL)
+    {
+ 
 
-			if (sr.fieldID==0)			
-				sr.fieldID=getFieldIDFromFieldIndex(jvmti, jni, o, sr.fieldindex);			
+    }
+
+		if (sr.object)
+		{      
+			jobject o=sr.object;
+
 
 		
 			if (sr.fieldID) //so not 0
@@ -586,20 +648,19 @@ int jvarscan_refineScanResults(jvmtiEnv *jvmti, JNIEnv *jni, ScanData sd)
 						break;
 					}
 
-				} //switch
-
-
-				
+				} //switch				
 			}
-
-			(*jni)->DeleteLocalRef(jni, o);
-
 		}
 
 		if (valid)
     {
       ScanResults[newScanResultsPos]=sr;
       newScanResultsPos++;
+    }
+    else
+    {
+      if (sr.object)
+        (*jni)->DeleteGlobalRef(jni, sr.object);  //no longer needed     
     }
 	}
   
@@ -613,20 +674,38 @@ int jvarscan_StartScan(jvmtiEnv *jvmti, ScanData sd)
 {
 	//iterate over all objects and fields, and for each primitive field create a record with objectid (tagged object), fieldid and original value
 
+
+  debug_log("jvarscan_StartScan");
 	jvmtiHeapCallbacks callbacks;
 
 	//ScanData
 	ScanResultsPos=0;
+  if ((ScanResultsSize==0) || (ScanResults==NULL))
+  {
+    ScanResultsSize=8192;
+    ScanResults=(ScanResult*)malloc(sizeof(ScanResult)*ScanResultsSize);
+  }
+  
+  
+  debug_log("initializaing callbacks");
 	
 
   memset(&callbacks, 0, sizeof(callbacks)); //ZeroMemory(&callbacks, sizeof(callbacks));
+
 
 	callbacks.primitive_field_callback=StartScan_FieldIteration;
 
 
 	initialtag=0xce000000+tagcount;
+  
+  debug_log("initialtag=%x", initialtag);
+  
+  debug_log("Calling IterateThroughHeap");
+	  
 	
 	(*jvmti)->IterateThroughHeap(jvmti, 0, NULL, &callbacks, &sd);
+  
+  debug_log("after IterateThroughHeap");
   
   return ScanResultsPos;
 }

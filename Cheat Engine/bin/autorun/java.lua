@@ -53,6 +53,7 @@ JAVACMD_FINDFIELDS=39
 JAVACMD_FINDMETHODS=40
 JAVAVMD_GETOBJECTCLASSNAME=41 --gets the name of the class instead of just a local ref
 JAVACMD_SETFIELDVALUES=42
+JAVACMD_GETOBJECTCLASSNAMES=43
 
 
 JAVACMD_TERMINATESERVER=255
@@ -1731,29 +1732,34 @@ function java_getFieldDeclaringClass(klass, fieldid)
   return result
 end
 
-function java_getFieldSignature(klass, fieldid)
+function java_getFieldSignature(fieldid)
   local result={}
+  
+  local ms=createMemoryStream()
+  ms.writeByte(JAVACMD_GETFIELDSIGNATURE)
+  ms.writeQword(fieldid)
+  ms.Position=0
+  
   javapipe.lock()
-  javapipe.writeByte(JAVACMD_GETFIELDSIGNATURE)
-  javapipe.writeQword(klass)
-  javapipe.writeQword(fieldid)
-
-  local length
-  length=javapipe.readWord()
-  result.name=javapipe.readString(length)
-
-  length=javapipe.readWord()
-  result.signature=javapipe.readString(length)
-
-  length=javapipe.readWord()
-  result.generic=javapipe.readString(length)
-
-
+  javapipe.writeFromStream(ms)
+  ms.clear()
+  local sz=javapipe.readDword()
   javapipe.unlock()
+  
+  
+  local length
+  length=ms.readWord()
+  result.name=ms.readString(length)
+
+  length=ms.readWord()
+  result.signature=ms.readString(length)
+
+  length=ms.readWord()
+  result.generic=ms.readString(length)
+  
+  ms.destroy()
   return result
 end
-
-
  
 
 function java_setFieldValues(newValues)   
@@ -1894,7 +1900,7 @@ function java_getField(jObject, fieldid, signature)
   if signature==nil then
     --I need to figure it out myself I guess...
   local klass=java_getObjectClass(jObject)
-  signature=java_getFieldSignature(klass, fieldid).signature
+  signature=java_getFieldSignature(fieldid).signature
 
   java_dereferenceLocalObject(klass)
   end
@@ -1933,7 +1939,7 @@ function java_setField(jObject, fieldid, signature, value)
   if signature==nil then
     --I need to figure it out myself I guess...
   local klass=java_getObjectClass(jObject)
-  signature=java_getFieldSignature(klass, fieldid).signature
+  signature=java_getFieldSignature(fieldid).signature
 
   java_dereferenceLocalObject(klass)
   end
@@ -2052,6 +2058,8 @@ function java_search_start(value, boolean)
   javapipe.writeFromStream(ms)  
   javapipe.Timeout=0
   
+  outputDebugString('Waiting for result')
+  
 
   result=javapipe.readQword() --Wait till done, get nr of results)
   
@@ -2099,12 +2107,12 @@ end
 
 function java_search_getResults(maxresults)
   --get the results
-  --note, the results are referencec to the object, so CLEAN UP when done with it (and don't get too many)
+  --note, the results are references to the object, so CLEAN UP when done with it (and don't get too many)
   local result={}
-
+  
   javapipe.lock()
   javapipe.writeByte(JAVACMD_GETSCANRESULTS)
-  if maxresults==0 then
+  if (maxresults==nil) or (maxresults==0) then
     maxresults=10
   end
 
@@ -2112,24 +2120,29 @@ function java_search_getResults(maxresults)
 
 
   --local i=1
-
-  while true do
-    --print(i)
-   -- i=i+1
-
-    local object=javapipe.readQword()
-    if (object==0) or (object==nil) then
-      --print("End of the list")
-      break
-    end --end of the list
-
+  local ms=createMemoryStream()
+  local sz=javapipe.readDword()
+  
+  printf("streamsize=%d", sz);
+  
+  javapipe.readIntoStream(ms,sz)  
+  
+  javapipe.unlock()
+  
+  
+  printf("successfully read stream");
+  
+  
+  ms.Position=0
+  local count=ms.readDword()
+  printf("count=%d (maxresults=%d)", count, maxresults)
+  for i=1,count do
     local r={}
-    r.object=object
-    r.fieldid=javapipe.readQword()
-
+    r.object=ms.readQword()
+    r.fieldid=ms.readQword()
+    r.fieldindex=ms.readDword()
     table.insert(result, r)
   end
-  javapipe.unlock()
 
   return result
 end
@@ -2379,6 +2392,42 @@ function java_getObjectClassName(jObject)
   return result
 end
 
+function java_getObjectClassNames(jObjectList)
+  if jObjectList==nil then return nil, 'list may not be nil' end
+  if type(jObjectList)~='table' then return nil,'the list must be a table' end
+ 
+  local results={}
+  
+  local ms=createMemoryStream()
+  ms.writeByte(JAVACMD_GETOBJECTCLASSNAMES)
+  ms.writeDword(#jObjectList)
+  for i=1,#jObjectList do
+    ms.writeQword(jObjectList[i])
+  end  
+  ms.Position=0
+  javapipe.lock()
+  javapipe.writeFromStream(ms)
+  ms.clear()
+
+  local sz=javapipe.readDword()
+  javapipe.readIntoStream(ms, sz)
+  javapipe.unlock()
+  
+  ms.Position=0
+  local count=ms.readDword()
+  if count~=#jObjectList then return nil,'Invalid list returned' end
+  
+  for i=1,count do
+    local strlen=ms.readWord()
+    results[i]=ms.readString(strlen)    
+  end
+  
+  ms.destroy()
+  
+  
+  return result
+end
+
 function java_getClassSignature(jClass)
   local length
   local result=''
@@ -2508,37 +2557,48 @@ end
 
 
 function varscan_showResults(count)
-  --print("showing results for "..count.." results");
-  java.varscan.currentresults=java_search_getResults(math.min(count, 100))
+  print("showing results for "..count.." results");
+  local r=java_search_getResults(math.min(count, 50))
+  
+  local newcount=#r
 
 
+  printf("setting count") 
 
-  if count>100 then
-    java.varscan.Count.Caption=string.format('%d of %d', #java.varscan.currentresults, count)
+  if newcount~=count then
+    java.varscan.Count.Caption=string.format('%d of %d', newcount, count)
   else
     java.varscan.Count.Caption=count
   end
-
-  count=#java.varscan.currentresults
-
+  
+  
+  
+  java.varscan.currentresults=r
+  
 
   local i
   for i=1,count do
     local object=java.varscan.currentresults[i].object
     local fieldid=java.varscan.currentresults[i].fieldid
 
-
-
-    local class=java_getObjectClass(object)
-    local classname=java_getClassSignature(class)
-
-    --local class2=java_getFieldDeclaringClass(class, fieldid)
-    local fieldname=java_getFieldSignature(class, fieldid)
-    java_dereferenceLocalObject(class)
-    --java_dereferenceLocalObject(class2)
-
-    java.varscan.Results.Items.Add('Obj('..classname..'.'..fieldname.name..')')
+    outputDebugString(string.format("Getting classname from object %x", object));
+    local classname=java_getObjectClassName(object)
+    local fieldname='fieldindex '..java.varscan.currentresults[i].fieldindex
+    
+    if fieldid then
+      fieldname=string.format("%x (%s)", fieldid, fieldname)
+    --[[
+      local fieldsig=java_getFieldSignature(object, fieldid)
+      if fieldsig.name then
+        fieldname=fieldsig.name.. '  ('..fieldname..')'
+      end
+      --]]
+    end   
+   
+    
+    java.varscan.Results.Items.Add('Obj('..classname..'::'..fieldname..')')
   end
+
 end
 
 function varscan_cleanupResults()
@@ -2561,13 +2621,15 @@ function varscan_firstScan(sender)
     local count=java_search_start(java.varscan.ValueBox.Text)
     
     printf("found %d results", count)
-    --varscan_showResults(count)
-
+    
+    varscan_showResults(count)
 
     sender.Caption=translate("New Scan")
     sender.Tag=1
-
-    java.varscan.NextScan.Enabled=#java.varscan.currentresults>0
+    
+    if java.varscan.currentresults then
+      java.varscan.NextScan.Enabled=count>0
+    end
   else
     --new scan
     varscan_cleanupResults()
@@ -2602,7 +2664,11 @@ function miFindWhatAccessClick(sender)
 end
 
 function miJavaVariableScanClick(sender)
-  javaInjectAgent()
+  local status,err=javaInjectAgent()
+  if not status then 
+    messageDialog(err, mtError, mbOK)
+    return
+  end
 
   local varscan=java.varscan
 
