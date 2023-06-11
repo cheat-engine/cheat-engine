@@ -8317,53 +8317,56 @@ begin
 
         if opcodes[j].W1 then
           REX_W:=true;
+      end;
 
-        if opcodes[j].hasvex then
+      if opcodes[j].hasvex then
+      begin
+        //setup a vex prefix. Check if a 2 byte or 3 byte prefix is needed
+        //3 byte is needed when mmmmmm(vexLeadingOpcode>1) or rex.X/B or W are used
+
+        //vexOpcodeExtension: oe_F2; vexLeadingOpcode: lo_0f
+
+        bigvex:=(opcodes[j].vexLeadingOpcode>lo_0f) or REX_B or REX_X or REX_W;
+
+        if bigvex=false then
         begin
-          //setup a vex prefix. Check if a 2 byte or 3 byte prefix is needed
-          //3 byte is needed when mmmmmm(vexLeadingOpcode>1) or rex.X/B or W are used
+          //2byte vex
+          setlength(bytes,length(bytes)+2);
+          for i:=length(bytes)-1 downto RexPrefixLocation+2 do
+            bytes[i]:=bytes[i-2];
 
-          //vexOpcodeExtension: oe_F2; vexLeadingOpcode: lo_0f
+          bytes[RexPrefixLocation]:=$c5; //2 byte VEX
+          PVex2Byte(@bytes[RexPrefixLocation+1])^.pp:=integer(opcodes[j].vexOpcodeExtension);
+          PVex2Byte(@bytes[RexPrefixLocation+1])^.L:=opcodes[j].vexl;
+          PVex2Byte(@bytes[RexPrefixLocation+1])^.vvvv:=VEXvvvv;
+          PVex2Byte(@bytes[RexPrefixLocation+1])^.R:=ifthen(REX_R,0,1);
+          if relativeAddressLocation<>-1 then inc(relativeAddressLocation,2);
+        end
+        else
+        begin
+          //3byte vex
+          setlength(bytes,length(bytes)+3);
+          for i:=length(bytes)-1 downto RexPrefixLocation+3 do
+            bytes[i]:=bytes[i-3];
 
-          bigvex:=(opcodes[j].vexLeadingOpcode>lo_0f) or REX_B or REX_X or REX_W;
+          bytes[RexPrefixLocation]:=$c4; //3 byte VEX
+          PVex3Byte(@bytes[RexPrefixLocation+1])^.mmmmm:=integer(opcodes[j].vexLeadingOpcode);
+          PVex3Byte(@bytes[RexPrefixLocation+1])^.B:=ifthen(REX_B,0,1);
+          PVex3Byte(@bytes[RexPrefixLocation+1])^.X:=ifthen(REX_X,0,1);
+          PVex3Byte(@bytes[RexPrefixLocation+1])^.R:=ifthen(REX_R,0,1);
+          PVex3Byte(@bytes[RexPrefixLocation+1])^.pp:=integer(opcodes[j].vexOpcodeExtension);
+          PVex3Byte(@bytes[RexPrefixLocation+1])^.L:=opcodes[j].vexl;
+          PVex3Byte(@bytes[RexPrefixLocation+1])^.vvvv:=VEXvvvv;
+          PVex3Byte(@bytes[RexPrefixLocation+1])^.W:=ifthen(REX_W,1,0); //not inverted
 
-          if bigvex=false then
-          begin
-            //2byte vex
-            setlength(bytes,length(bytes)+2);
-            for i:=length(bytes)-1 downto RexPrefixLocation+2 do
-              bytes[i]:=bytes[i-2];
-
-            bytes[RexPrefixLocation]:=$c5; //2 byte VEX
-            PVex2Byte(@bytes[RexPrefixLocation+1])^.pp:=integer(opcodes[j].vexOpcodeExtension);
-            PVex2Byte(@bytes[RexPrefixLocation+1])^.L:=opcodes[j].vexl;
-            PVex2Byte(@bytes[RexPrefixLocation+1])^.vvvv:=VEXvvvv;
-            PVex2Byte(@bytes[RexPrefixLocation+1])^.R:=ifthen(REX_R,0,1);
-            if relativeAddressLocation<>-1 then inc(relativeAddressLocation,2);
-          end
-          else
-          begin
-            //3byte vex
-            setlength(bytes,length(bytes)+3);
-            for i:=length(bytes)-1 downto RexPrefixLocation+3 do
-              bytes[i]:=bytes[i-3];
-
-            bytes[RexPrefixLocation]:=$c4; //3 byte VEX
-            PVex3Byte(@bytes[RexPrefixLocation+1])^.mmmmm:=integer(opcodes[j].vexLeadingOpcode);
-            PVex3Byte(@bytes[RexPrefixLocation+1])^.B:=ifthen(REX_B,0,1);
-            PVex3Byte(@bytes[RexPrefixLocation+1])^.X:=ifthen(REX_X,0,1);
-            PVex3Byte(@bytes[RexPrefixLocation+1])^.R:=ifthen(REX_R,0,1);
-            PVex3Byte(@bytes[RexPrefixLocation+1])^.pp:=integer(opcodes[j].vexOpcodeExtension);
-            PVex3Byte(@bytes[RexPrefixLocation+1])^.L:=opcodes[j].vexl;
-            PVex3Byte(@bytes[RexPrefixLocation+1])^.vvvv:=VEXvvvv;
-            PVex3Byte(@bytes[RexPrefixLocation+1])^.W:=ifthen(REX_W,1,0); //not inverted
-
-            if relativeAddressLocation<>-1 then inc(relativeAddressLocation,3);
-          end;
-
-          RexPrefix:=0;  //vex and rex can not co-exist
+          if relativeAddressLocation<>-1 then inc(relativeAddressLocation,3);
         end;
 
+        RexPrefix:=0;  //vex and rex can not co-exist
+      end;
+
+      if processhandler.is64bit then
+      begin
         if RexPrefix<>0 then
         begin
           if RexPrefixLocation=-1 then raise EAssemblerException.create(rsAssemblerError);
