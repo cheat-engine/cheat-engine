@@ -1373,6 +1373,17 @@ function mono_class_isEnum(klass)
  return retv==1
 end
 
+function mono_class_IsPrimitive(klass)
+  local tp = mono_class_get_type(klass)
+  local rtp = mono_classtype_get_reflectiontype(tp)
+  if not rtp then LaunchMonoDataCollector(); error('Reflection type not found') end
+  local kls = mono_object_getClass(rtp)
+  local mtd = mono_class_findMethod(kls,'get_IsPrimitive')
+  assert(mtd,'Error: method "Type.get_IsPrimitive" was nil')
+  local v = mono_invoke_method(nil,mtd,rtp,{})
+  return v==1
+end
+
 function mono_class_isValueType(klass)
  if not klass or klass==0 then return false end
  monopipe.lock()
@@ -4593,8 +4604,9 @@ function monoform_exportArrayStructInternal(acs, arraytype, elemtype, recursive,
         end
       local elementkls = mono_class_getArrayElementClass(arraytype)
       local elementmonotype = mono_type_get_type(mono_class_get_type(elementkls))
+      local isStruct = mono_class_isValueType(elementkls) and not(mono_class_IsPrimitive(elementkls)) and not(mono_class_isEnum(elementkls))
       --print(fu(elementkls),mono_class_getFullName(elementkls),fu(elementmonotype))
-      if elementmonotype~=MONO_TYPE_CLASS  then
+      if isStruct  then
          --print("yep, a struct")
          local subfield = mono_class_enumFields(elementkls)
          local suboffset = subfield[1].offset == 0x10 and 0x10 or 0
