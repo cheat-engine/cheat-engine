@@ -539,10 +539,20 @@ void js_getClassMethods(PCEJVMTIAgent agent)
 		ps_writeDword(agent->pipe,0); //0 byte stream
 }
 
-
 jint fillClassList(PCEJVMTIAgent agent) 
 {
 	return (*(agent->jvmti))->GetLoadedClasses(agent->jvmti, &agent->classcount, &agent->classlist);	
+}
+
+void js_getObjectClass(PCEJVMTIAgent agent) 
+{
+  jobject o=(jobject)ps_readQword(agent->pipe);
+  jclass oc=_env->GetObjectClass(agent->env, o);
+  
+  jclass goc=_env->NewGlobalRef(agent->env, oc);
+  _env->DeleteLocalRef(agent->env, oc);    
+  
+  ps_writeQword(agent->pipe, goc);  
 }
 
 void js_getObjectClassNames(PCEJVMTIAgent agent) 
@@ -2174,7 +2184,11 @@ void launchCEJVMTIServer(JNIEnv *env, jvmtiEnv *jvmti, void* soa)
             
           case JAVACMD_FINDMETHODS:
             js_findMethods(agent);
-            break;            
+            break;  
+
+          case JAVACMD_GETOBJECTCLASS:
+            js_getObjectClass(agent);
+            break;
             
           case JAVAVMD_GETOBJECTCLASSNAME:
             js_getObjectClassName(agent);

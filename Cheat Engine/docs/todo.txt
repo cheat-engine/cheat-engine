@@ -82,6 +82,8 @@ signature: resize signature (new version sig?)
 
 add table specific settings. E.g: show errors when activating table
 
+ceshare: seach gives errors
+
 ---
 
 dbvm: Change memory while on a breakpoint doesn't seem to apply it to the cloaked page

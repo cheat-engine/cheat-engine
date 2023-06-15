@@ -60,7 +60,7 @@ void scanresult_initentry(jvmtiEnv *jvmti, JNIEnv *jni, PScanResult scanresult)
   (*jvmti)->GetObjectsWithTags(jvmti, 1, &scanresult->objectTag, &count, &objects, NULL); 
   if (count)
   {   
-    if (count>0)
+    if (count>1)
       debug_log("scanresult_initentry: unexpected situation: GetObjectsWithTags returns more than 1 object");
     
     scanresult->object=(*jni)->NewGlobalRef(jni, objects[0]);
@@ -75,7 +75,7 @@ void scanresult_initentry(jvmtiEnv *jvmti, JNIEnv *jni, PScanResult scanresult)
   
   if (scanresult->fieldID==0)
   {    
-    debug_log("calling getFieldIDFromFieldIndex");
+    debug_log("scanresult_initentry: calling getFieldIDFromFieldIndex");
 	  scanresult->fieldID=getFieldIDFromFieldIndex(jvmti, jni, scanresult->object, scanresult->fieldindex);			
    
     debug_log("scanresult->fieldID=%p",scanresult->fieldID) ;  
@@ -184,6 +184,7 @@ jint JNICALL StartScan_FieldIteration(jvmtiHeapReferenceKind kind, const jvmtiHe
 }
 
 
+
 void GetAllClassesAndInterfacesFromClass(jvmtiEnv *jvmti, JNIEnv *jni, 
   jclass c,
   jclass **classes, 
@@ -262,8 +263,36 @@ void GetAllClassesAndInterfacesFromClass(jvmtiEnv *jvmti, JNIEnv *jni,
 }
 
 
-void GetAllFieldsFromClass(jvmtiEnv *jvmti, JNIEnv *jni, jclass c, jfieldID **allfields, int *allfieldspos, int *allfieldslen)
+void printClassName(jvmtiEnv *jvmti, jclass c)
 {
+  char *sig=NULL;
+  char *gen=NULL;
+  if ((*jvmti)->GetClassSignature(jvmti, c, &sig, &gen)==JVMTI_ERROR_NONE)
+  {
+    if (sig)
+    {
+      debug_log("Class %p is %s", c, sig);
+     
+      
+      (*jvmti)->Deallocate(jvmti, (unsigned char *)sig);              
+    }
+    
+    if (gen)
+      (*jvmti)->Deallocate(jvmti, (unsigned char *)gen);      
+
+  }
+  
+}
+
+void getAllFieldsFromClass(jvmtiEnv *jvmti, JNIEnv *jni, jclass c, jfieldID **allfields, int *allfieldspos, int *allfieldslen)
+{
+  debug_log("getAllFieldsFromClass %p",c);
+  printClassName(jvmti, c);
+  
+  
+  
+
+
   jclass *classes;
   int classeslen;
   int classespos;
@@ -275,31 +304,34 @@ void GetAllFieldsFromClass(jvmtiEnv *jvmti, JNIEnv *jni, jclass c, jfieldID **al
   classes=(jclass*)malloc(32*sizeof(jclass));
   classeslen=32;
   classespos=0;
-  
+   
   interfaces=(jclass*)malloc(16*sizeof(jclass));
   interfaceslen=16;
   interfacespos=0;
-  
-  
+   
 
 	GetAllClassesAndInterfacesFromClass(jvmti, jni, c, &classes, &classeslen, &classespos, &interfaces, &interfaceslen, &interfacespos);
-
-	
 
 	//now that we have a list of all the interfaces and classes, get their fields
 	
 	//first the interfaces
   int i;
 	
+  debug_log("classespos=%d interfacespos=%d", classespos, interfacespos);
+
 
 	for (i=interfacespos-1; i>=0; i--)
 	{
 		jint fcount;
 		jfieldID *fields=NULL;
+    debug_log("getting fields of intrfaceclass nr %d (%p)", i, interfaces[i]);    
+    printClassName(jvmti, interfaces[i]);
+    
 		if ((*jvmti)->GetClassFields(jvmti, interfaces[i], &fcount, &fields)==JVMTI_ERROR_NONE)
 		{
 			for (int j=0; j<fcount; j++)
       {
+        debug_log("%d: interfaces %d: field %d=%p", *allfieldspos, i, j, fields[j]); 
         (*allfields)[*allfieldspos]=fields[j];
         (*allfieldspos)++;
         if ((*allfieldspos)>=(*allfieldslen))
@@ -323,15 +355,56 @@ void GetAllFieldsFromClass(jvmtiEnv *jvmti, JNIEnv *jni, jclass c, jfieldID **al
 	}
 	
 
+    
+
 	//and then the classes (reversed)
-	for (int i=classespos-1; i>=0; i--)
+	for (i=classespos-1; i>=0; i--)
 	{
+    jclass c2;
 		jint fcount;
 		jfieldID *fields=NULL;
+    debug_log("getting fields of class nr %d (%p)", i, classes[i]);    
+    printClassName(jvmti, classes[i]);
+    
 		if ((*jvmti)->GetClassFields(jvmti, classes[i], &fcount, &fields)==JVMTI_ERROR_NONE)
 		{
+      if (fcount==0)
+      {
+        debug_log("class %d: This class has no fields", i);
+      }
+      
 			for (int j=0; j<fcount; j++)
       {
+        char *name=NULL, *sig=NULL, *gen=NULL;
+        jclass currentclass=classes[i];
+        jfieldID fid=fields[j];
+        debug_log("currentclass=%p fieldid=%p",currentclass, fid);        
+        if ((*jvmti)->GetFieldName(jvmti, currentclass, fid, &name, &sig, &gen)==JVMTI_ERROR_NONE)
+        {
+          if (name)
+          {
+            debug_log("%d:  fieldname=%s", i , name);
+            (*jvmti)->Deallocate(jvmti, (unsigned char *)name);        
+          }
+          
+          if (sig)
+          {
+            debug_log("%d:  fieldsig=%s", i, sig);
+            (*jvmti)->Deallocate(jvmti, (unsigned char *)sig);
+          }
+          
+          if (gen)
+          {
+            debug_log("%d:  fieldgen=%s", i, gen);
+            (*jvmti)->Deallocate(jvmti,(unsigned char *)gen);
+          }
+        }
+        else
+        {
+          debug_log("%d:  failed getting the fieldname",i );
+        }
+        
+        
         (*allfields)[*allfieldspos]=fields[j];
         (*allfieldspos)++;
         if ((*allfieldspos)>=(*allfieldslen))
@@ -350,6 +423,11 @@ void GetAllFieldsFromClass(jvmtiEnv *jvmti, JNIEnv *jni, jclass c, jfieldID **al
 			if (fields)
 				(*jvmti)->Deallocate(jvmti, (unsigned char*)fields);
 		}
+    else
+    {
+      debug_log("Failed getting the fields of class nr %d",i);
+    }
+   
 
 		if (i>0)
 			(*jni)->DeleteLocalRef(jni, classes[i]);	
@@ -369,9 +447,13 @@ jfieldID getFieldIDFromFieldIndex(jvmtiEnv *jvmti, JNIEnv *jni, jobject o, int i
   int fieldspos=0;
   int fieldslen=32;
   
+  debug_log("getFieldIDFromFieldIndex(...,...,%p,%d)", o, index);
+  
   fields=(jfieldID*)malloc(32*sizeof(jfieldID));
 
 	jclass currentclass=(*jni)->GetObjectClass(jni, o);
+  
+  debug_log("currentclass=%p",currentclass);
 
 	(*jvmti)->IsInterface(jvmti, currentclass, &isinterface);
 	if (isinterface)
@@ -380,15 +462,56 @@ jfieldID getFieldIDFromFieldIndex(jvmtiEnv *jvmti, JNIEnv *jni, jobject o, int i
 		return 0;
 	}
 
+  debug_log("getFieldIDFromFieldIndex: calling getAllFieldsFromClass (fieldspos=%d fieldslen=%d)", fieldspos, fieldslen);
+	getAllFieldsFromClass(jvmti, jni, currentclass, &fields, &fieldspos, &fieldslen);
 
-	GetAllFieldsFromClass(jvmti, jni, currentclass, &fields, &fieldspos, &fieldslen);
 
-	(*jni)->DeleteLocalRef(jni, currentclass);
+  debug_log("getFieldIDFromFieldIndex: after getAllFieldsFromClass. fieldspos=%d fieldslen=%d", fieldspos, fieldslen);
+  
 
 	if (fieldspos>(unsigned int)index)
+  {
+    jint err;
+    char *name=NULL, *sig=NULL, *gen=NULL;
+    jfieldID fid=fields[index];
+    
+    debug_log("currentclass=%p fieldid=%p",currentclass, fid);
+    err=(*jvmti)->GetFieldName(jvmti, currentclass, fid, &name, &sig, &gen);
+    
+    debug_log("err=%d",err);
+    if (err==JVMTI_ERROR_NONE)
+    {
+      if (name)
+      {
+        debug_log("fieldname=%s", name);
+        (*jvmti)->Deallocate(jvmti, (unsigned char *)name);        
+      }
+      
+      if (sig)
+      {
+        debug_log("fieldsig=%s", sig);
+        (*jvmti)->Deallocate(jvmti, (unsigned char *)sig);
+      }
+      
+      if (gen)
+      {
+        debug_log("fieldgen=%s", gen);
+        (*jvmti)->Deallocate(jvmti,(unsigned char *)gen);
+      }
+    }
+    else
+    {
+      debug_log("failed getting the fieldname");
+    }
+    
+    (*jni)->DeleteLocalRef(jni, currentclass);
 		return fields[index];
-	else
+  }	
+  else
+  {
+    (*jni)->DeleteLocalRef(jni, currentclass);   
 		return 0;
+  }
 }
 
 
