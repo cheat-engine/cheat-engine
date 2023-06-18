@@ -94,6 +94,7 @@ int _ZN3art9ArtMethod18HasAnyCompiledCodeEv(void* ArtMethod);
 #define JAVAVMD_GETOBJECTCLASSNAME 41
 #define JAVACMD_SETFIELDVALUES 42
 #define JAVACMD_GETOBJECTCLASSNAMES 43
+#define JAVACMD_GETFIELDSIGNATUREBYOBJECT 44
 
 
 
@@ -263,15 +264,64 @@ void js_getscanresults(PCEJVMTIAgent agent)
 
 void js_getFieldSignature(PCEJVMTIAgent agent) 
 {
-  debug_log("js_getFieldSignature");
-  /*
-  jfieldID fieldid=(jfieldID)ps_readQword(agent->pipe);
+  jclass c=(jclass)ps_readQword(agent->pipe);
+  jfieldID fid=(jfieldID)ps_readQword(agent->pipe);
   
-GetFieldDeclaringClass(jvmtiEnv* env,
-            jclass klass,
-            jfieldID field,
-            jclass* declaring_class_ptr)
-            
+  PMemoryStream ms=ms_create(512);
+  
+  jint error;
+  char *name=NULL, *sig=NULL, *gen=NULL;
+  int len;  
+
+  if (_jvmti->GetFieldName(agent->jvmti, c, fid, &name, &sig, &gen)==JVMTI_ERROR_NONE)
+  {
+    if (name)
+    {
+      len=(int)strlen(name);
+      ms_writeWord(ms, len);
+      ms_write(ms, name, len);		
+      _jvmti->Deallocate(agent->jvmti, (unsigned char *)name);
+    }
+    else
+      ms_writeWord(ms, 0);
+
+    if (sig)
+    {
+      len=(int)strlen(sig);
+      ms_writeWord(ms, len);
+      ms_write(ms, sig, len);				
+      _jvmti->Deallocate(agent->jvmti, (unsigned char *)sig);
+    }
+    else
+      ms_writeWord(ms, 0);
+
+    if (gen)
+    {
+      len=(int)strlen(gen);
+      ms_writeWord(ms, len);
+      ms_write(ms, gen, len);					
+      _jvmti->Deallocate(agent->jvmti,(unsigned char *)gen);
+    }
+    else
+      ms_writeWord(ms, 0);      
+    
+  }  
+  else
+  {
+    ms_writeWord(ms, 0);
+    ms_writeWord(ms, 0);
+    ms_writeWord(ms, 0);
+  }
+  
+  ps_writeMemStream(agent->pipe, ms);
+  ms_destroy(ms); 
+}
+
+void js_getFieldSignatureByObject(PCEJVMTIAgent agent) 
+{
+  debug_log("js_getFieldSignatureByObject");
+  jobject object=(jobject)ps_readQword(agent->pipe);
+  jfieldID fieldid=(jfieldID)ps_readQword(agent->pipe);
   
   debug_log("js_getFieldSignatureByObject");
 
@@ -292,7 +342,6 @@ GetFieldDeclaringClass(jvmtiEnv* env,
         len=(int)strlen(name);
         ms_writeWord(ms, len);
         ms_write(ms, name, len);		
-        //debug_log("fieldname: %s", name);
         _jvmti->Deallocate(agent->jvmti, (unsigned char *)name);
       }
       else
@@ -321,6 +370,7 @@ GetFieldDeclaringClass(jvmtiEnv* env,
     }  
     else
     {
+      debug_log("js_getFieldSignatureByObject: GetFieldName failed");
       ms_writeWord(ms, 0);
       ms_writeWord(ms, 0);
       ms_writeWord(ms, 0);
@@ -328,9 +378,16 @@ GetFieldDeclaringClass(jvmtiEnv* env,
     
     _env->DeleteLocalRef(agent->env, klass);  
   } 
+  else
+  {
+    debug_log("js_getFieldSignatureByObject: invalid object");
+    ms_writeWord(ms, 0);
+    ms_writeWord(ms, 0);
+    ms_writeWord(ms, 0);    
+  }
 
   ps_writeMemStream(agent->pipe, ms);
-  ms_destroy(ms);  */
+  ms_destroy(ms); 
 }
 
 
@@ -2217,6 +2274,10 @@ void launchCEJVMTIServer(JNIEnv *env, jvmtiEnv *jvmti, void* soa)
             
           case JAVACMD_GETFIELDSIGNATURE:
             js_getFieldSignature(agent);
+            break;
+            
+          case JAVACMD_GETFIELDSIGNATUREBYOBJECT:
+            js_getFieldSignatureByObject(agent);
             break;
             
           default: 

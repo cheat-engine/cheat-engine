@@ -130,7 +130,12 @@ var
   stream: Tstream;
 begin
   stream:=luaclass_getClassObject(L);
-  lua_pushinteger(L,stream.ReadByte);
+  try
+    lua_pushinteger(L,stream.ReadByte);
+  except
+    lua_pushstring(L,'stream error');
+    lua_error(L);
+  end;
   result:=1;
 end;
 
@@ -139,7 +144,11 @@ var
   stream: Tstream;
 begin
   stream:=luaclass_getClassObject(L);
-  stream.WriteByte(lua_tointeger(L,1));
+  try
+    stream.WriteByte(lua_tointeger(L,1));
+
+  finally
+  end;
   result:=0;
 end;
 
@@ -148,7 +157,12 @@ var
   stream: Tstream;
 begin
   stream:=luaclass_getClassObject(L);
-  lua_pushinteger(L,stream.ReadWord);
+  try
+    lua_pushinteger(L,stream.ReadWord);
+  except
+    lua_pushstring(L,'stream error');
+    lua_error(L);
+  end;
   result:=1;
 end;
 
@@ -166,7 +180,12 @@ var
   stream: Tstream;
 begin
   stream:=luaclass_getClassObject(L);
-  lua_pushinteger(L,stream.ReadDword);
+  try
+    lua_pushinteger(L,stream.ReadDword);
+  except
+    lua_pushstring(L,'stream error');
+    lua_error(L);
+  end;
   result:=1;
 end;
 
@@ -184,7 +203,12 @@ var
   stream: Tstream;
 begin
   stream:=luaclass_getClassObject(L);
-  lua_pushinteger(L,stream.ReadQword);
+  try
+    lua_pushinteger(L,stream.ReadQword);
+  except
+    lua_pushstring(L,'stream error');
+    lua_error(L);
+  end;
   result:=1;
 end;
 
@@ -203,7 +227,13 @@ var
   f: single;
 begin
   stream:=luaclass_getClassObject(L);
-  stream.Read(f,sizeof(f));
+  try
+    stream.Read(f,sizeof(f));
+  except
+    lua_pushstring(L,'stream error');
+    lua_error(L);
+  end;
+
   lua_pushnumber(L,f);
   result:=1;
 end;
@@ -225,7 +255,13 @@ var
   d: double;
 begin
   stream:=luaclass_getClassObject(L);
-  stream.Read(d,sizeof(d));
+  try
+    stream.Read(d,sizeof(d));
+  except
+    lua_pushstring(L,'stream error');
+    lua_error(L);
+  end;
+
   lua_pushnumber(L,d);
   result:=1;
 end;

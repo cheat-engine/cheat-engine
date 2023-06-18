@@ -56,6 +56,8 @@ JAVACMD_SETFIELDVALUES=42
 JAVACMD_GETOBJECTCLASSNAMES=43
 
 
+JAVACMD_GETFIELDSIGNATUREBYOBJECT=44
+
 JAVACMD_TERMINATESERVER=255
 
 
@@ -1732,11 +1734,46 @@ function java_getFieldDeclaringClass(klass, fieldid)
   return result
 end
 
-function java_getFieldSignature(fieldid)
+function java_getFieldSignatureByObject(object, fieldid)
+--slightly faster as 2 pipecalls can be skipped if you don't have the class (get class, release class)
+  local result={}
+  
+  local ms=createMemoryStream()
+  ms.writeByte(JAVACMD_GETFIELDSIGNATUREBYOBJECT)
+  ms.writeQword(object) 
+  ms.writeQword(fieldid)
+  ms.Position=0
+  
+  javapipe.lock()
+  javapipe.writeFromStream(ms)
+  ms.clear()
+  local sz=javapipe.readDword()
+  javapipe.readIntoStream(ms, sz)
+  javapipe.unlock()
+  
+  ms.position=0
+  
+  
+  local length
+  length=ms.readWord()
+  result.name=ms.readString(length)
+
+  length=ms.readWord()
+  result.signature=ms.readString(length)
+
+  length=ms.readWord()
+  result.generic=ms.readString(length)
+  
+  ms.destroy()
+  return result
+end
+
+function java_getFieldSignature(class, fieldid)
   local result={}
   
   local ms=createMemoryStream()
   ms.writeByte(JAVACMD_GETFIELDSIGNATURE)
+  ms.writeQword(class) 
   ms.writeQword(fieldid)
   ms.Position=0
   
@@ -1898,11 +1935,7 @@ end
 function java_getField(jObject, fieldid, signature)
 
   if signature==nil then
-    --I need to figure it out myself I guess...
-  local klass=java_getObjectClass(jObject)
-  signature=java_getFieldSignature(fieldid).signature
-
-  java_dereferenceLocalObject(klass)
+    signature=java_getFieldSignatureByObject(jObject, fieldid).signature
   end
 
   --parse the signature
@@ -1938,10 +1971,7 @@ end
 function java_setField(jObject, fieldid, signature, value)
   if signature==nil then
     --I need to figure it out myself I guess...
-  local klass=java_getObjectClass(jObject)
-  signature=java_getFieldSignature(fieldid).signature
-
-  java_dereferenceLocalObject(klass)
+    signature=java_getFieldSignatureByObject(jObject, fieldid).signature
   end
 
   local vartype=Java_TypeSigToIDConversion[string.sub(signature,1,1)]
@@ -2585,16 +2615,12 @@ function varscan_showResults(count)
     local classname=java_getObjectClassName(object)
     local fieldname='fieldindex '..java.varscan.currentresults[i].fieldindex
     
-    if fieldid then
-      fieldname=string.format("%x (%s)", fieldid, fieldname)
-    --[[
-      local fieldsig=java_getFieldSignature(object, fieldid)
+    if fieldid then          
+      local fieldsig=java_getFieldSignatureByObject(object, fieldid)
       if fieldsig.name then
         fieldname=fieldsig.name.. '  ('..fieldname..')'
       end
-      --]]
     end   
-   
     
     java.varscan.Results.Items.Add('Obj('..classname..'::'..fieldname..')')
   end
@@ -2693,12 +2719,22 @@ function miJavaVariableScanClick(sender)
 
     varscan.ValueText=createLabel(varscan.controls)
     varscan.ValueText.Caption=translate("Value")
+    
+    varscan.ScanType=createComboBox(varscan.controls)
+    varscan.ScanType.Items.add('Exact Value')
+    varscan.ScanType.Items.add('Increased Value')
+    varscan.ScanType.Items.add('Decreased Value')
+    varscan.ScanType.Items.add('Changed Value')
+    varscan.ScanType.Items.add('Unchanged Value')
+  --  varscan.ScanType.visible=false
 
     varscan.FirstScan=createButton(varscan.controls)
     varscan.FirstScan.Caption=translate("First Scan")
+    varscan.FirstScan.AutoSize=true
 
     varscan.NextScan=createButton(varscan.controls)
     varscan.NextScan.Caption=translate("Next Scan")
+    varscan.NextScan.AutoSize=true
 
     local width=6*dpim+math.max(varscan.form.Canvas.getTextWidth(varscan.FirstScan.Caption), varscan.form.Canvas.getTextWidth(varscan.NextScan.Caption)) --guess which one will be bigger... (just in case someone translates this)
 
@@ -2719,7 +2755,14 @@ function miJavaVariableScanClick(sender)
     varscan.ValueText.AnchorSideBottom.Control=varscan.ValueBox
     varscan.ValueText.AnchorSideBottom.Side=asrTop
     varscan.ValueText.Anchors="[akLeft, akBottom]"
-
+    
+    varscan.ScanType.AnchorSideLeft.Control=varscan.ValueBox   
+    varscan.ScanType.AnchorSideLeft.Side=asrLeft
+    varscan.ScanType.AnchorSideRight.Control=varscan.ValueBox   
+    varscan.ScanType.AnchorSideRight.Side=asrRight    
+    varscan.ScanType.AnchorSideTop.Control=varscan.ValueBox
+    varscan.ScanType.AnchorSideTop.Side=asrBottom  
+    varscan.ScanType.Anchors="[akTop, akLeft, akRight]"
 
     varscan.FirstScan.AnchorSideLeft.Control=varscan.ValueBox
     varscan.FirstScan.AnchorSideLeft.Side=asrLeft
