@@ -19,7 +19,7 @@ jfieldID getFieldIDFromFieldIndex(jvmtiEnv *jvmti, JNIEnv *jni, jobject o, int i
 
 typedef struct
 {
-	//split seperately so it's faster (no double to int convertions during the scan)
+	//split seperately so it's faster (no double to int conversions during the scan)
 	int scantype;    //0
 	int booleanScan; //4, include boolean fields when scanning
 	jboolean zValue; //8
@@ -527,20 +527,12 @@ int jvarscan_refineScanResults(jvmtiEnv *jvmti, JNIEnv *jni, ScanData sd)
     ScanResult sr=ScanResults[i];   
 		BOOL valid=FALSE;
 
-
-    
-    
 		
 		//for unknown initial value, it might be more efficient to just start with getting all the objects and enumerating the fields and then get the value instead of this
     if (ScanResults[i].object==NULL)
       scanresult_initentry(jvmti, jni, &sr);
     
-   
-    if (sr.object==NULL)
-    {
- 
-
-    }
+    debug_log("rescan result %d", i);
 
 		if (sr.object)
 		{      
@@ -551,12 +543,14 @@ int jvarscan_refineScanResults(jvmtiEnv *jvmti, JNIEnv *jni, ScanData sd)
 			if (sr.fieldID) //so not 0
 			{
 				//check the current value
+        debug_log("%d fieldID=%p", i, sr.fieldID);
 
 				switch (sr.type)
 				{					
 					case JVMTI_PRIMITIVE_TYPE_BOOLEAN:
 					{						
 						jboolean newvalue=(*jni)->GetBooleanField(jni, o, sr.fieldID);
+            debug_log("%d is type BOOLEAN", i);
 						switch(scantype)
 						{
 							case ST_EXACT:
@@ -576,6 +570,7 @@ int jvarscan_refineScanResults(jvmtiEnv *jvmti, JNIEnv *jni, ScanData sd)
 
 					case JVMTI_PRIMITIVE_TYPE_BYTE:
 					{
+            debug_log("%d is type BYTE", i);
 						jbyte newvalue=(*jni)->GetByteField(jni, o, sr.fieldID);
 						switch(scantype)
 						{
@@ -604,6 +599,7 @@ int jvarscan_refineScanResults(jvmtiEnv *jvmti, JNIEnv *jni, ScanData sd)
 
 					case JVMTI_PRIMITIVE_TYPE_CHAR:
 					{
+            debug_log("%d is type CHAR", i);
 						jchar newvalue=(*jni)->GetShortField(jni, o, sr.fieldID);
 						switch(scantype)
 						{
@@ -632,6 +628,7 @@ int jvarscan_refineScanResults(jvmtiEnv *jvmti, JNIEnv *jni, ScanData sd)
 
 					case JVMTI_PRIMITIVE_TYPE_SHORT:
 					{
+            debug_log("%d is type SHORT", i);
 						jshort newvalue=(*jni)->GetShortField(jni, o, sr.fieldID);
 						switch(scantype)
 						{
@@ -660,7 +657,11 @@ int jvarscan_refineScanResults(jvmtiEnv *jvmti, JNIEnv *jni, ScanData sd)
 
 					case JVMTI_PRIMITIVE_TYPE_INT:
 					{
+            debug_log("%d is type INT", i);
 						jint newvalue=(*jni)->GetIntField(jni, o, sr.fieldID);
+            
+            debug_log("(int)newvalue=%d", newvalue);
+            
 						switch(scantype)
 						{
 							case ST_EXACT:
@@ -688,6 +689,7 @@ int jvarscan_refineScanResults(jvmtiEnv *jvmti, JNIEnv *jni, ScanData sd)
 
 					case JVMTI_PRIMITIVE_TYPE_LONG:
 					{
+            debug_log("%d is type LONG", i);
 						jlong newvalue=(*jni)->GetLongField(jni, o, sr.fieldID);
 						switch(scantype)
 						{
@@ -717,6 +719,7 @@ int jvarscan_refineScanResults(jvmtiEnv *jvmti, JNIEnv *jni, ScanData sd)
 					case JVMTI_PRIMITIVE_TYPE_FLOAT:
 					{
 
+            debug_log("%d is type FLOAT", i);
 						jfloat newvalue=(*jni)->GetFloatField(jni, o, sr.fieldID);
 						switch(scantype)
 						{
@@ -745,6 +748,7 @@ int jvarscan_refineScanResults(jvmtiEnv *jvmti, JNIEnv *jni, ScanData sd)
 
 					case JVMTI_PRIMITIVE_TYPE_DOUBLE:
 					{
+            debug_log("%d is type DOUBLE", i);
 						jdouble newvalue=(*jni)->GetDoubleField(jni, o, sr.fieldID);
 						switch(scantype)
 						{
@@ -777,11 +781,13 @@ int jvarscan_refineScanResults(jvmtiEnv *jvmti, JNIEnv *jni, ScanData sd)
 
 		if (valid)
     {
+      debug_log("%d matched", i);
       ScanResults[newScanResultsPos]=sr;
       newScanResultsPos++;
     }
     else
     {
+      debug_log("%d did not match", i);
       if (sr.object)
         (*jni)->DeleteGlobalRef(jni, sr.object);  //no longer needed     
     }
@@ -793,7 +799,7 @@ int jvarscan_refineScanResults(jvmtiEnv *jvmti, JNIEnv *jni, ScanData sd)
 }
 
 
-int jvarscan_StartScan(jvmtiEnv *jvmti, ScanData sd)
+int jvarscan_StartScan(jvmtiEnv *jvmti, JNIEnv *jni, ScanData sd)
 {
 	//iterate over all objects and fields, and for each primitive field create a record with objectid (tagged object), fieldid and original value
 
@@ -802,6 +808,20 @@ int jvarscan_StartScan(jvmtiEnv *jvmti, ScanData sd)
 	jvmtiHeapCallbacks callbacks;
 
 	//ScanData
+  if (ScanResultsPos)
+  {
+    int i;
+    debug_log("Cleaning up old scanresults");
+    for (i=0; i<ScanResultsPos; i++)
+    {
+      if (ScanResults[i].object)
+      {
+        (*jni)->DeleteGlobalRef(jni, ScanResults[i].object);
+        ScanResults[i].object=NULL;
+      }
+    }
+  }
+  
 	ScanResultsPos=0;
   if ((ScanResultsSize==0) || (ScanResults==NULL))
   {

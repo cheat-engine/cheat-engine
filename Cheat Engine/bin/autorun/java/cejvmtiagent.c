@@ -207,7 +207,7 @@ void js_startscan(PCEJVMTIAgent agent)
   ps_read(agent->pipe, &sd, sizeof(sd));
   
   debug_log("received scandata. Doing a scan");  
-  resultcount=jvarscan_StartScan(agent->jvmti, sd);
+  resultcount=jvarscan_StartScan(agent->jvmti, agent->env, sd);
   
   debug_log("jvarscan_StartScan returned %d", resultcount);
   
@@ -221,9 +221,25 @@ void js_refinescanresults(PCEJVMTIAgent agent)
   uint64_t resultcount;
   jvalue value;
   
+  debug_log("js_refinescanresults");
+  
   ps_read(agent->pipe, &sd, sizeof(sd));
   
-  jvarscan_refineScanResults(agent->jvmti, agent->env, sd);//
+  debug_log("scandata received:");
+  debug_log("scantype=%d", sd.scantype);
+  debug_log("booleanScan=%d", sd.booleanScan);
+  debug_log("zValue=%d", sd.zValue);
+  debug_log("bValue=%d", sd.bValue);
+  debug_log("cValue=%d", sd.cValue);
+  debug_log("sValue=%d", sd.sValue);
+  debug_log("iValue=%d", sd.iValue);
+  debug_log("jValue=%p", sd.jValue);
+  debug_log("fMinValue=%f", sd.fMinValue);
+  debug_log("fMaxValue=%f", sd.fMaxValue);
+  debug_log("dMinValue=%f", sd.dMinValue);
+  debug_log("dMaxValue=%f", sd.dMaxValue);
+  
+  resultcount=jvarscan_refineScanResults(agent->jvmti, agent->env, sd);//
   
   ps_writeQword(agent->pipe, resultcount);
 }
@@ -322,8 +338,6 @@ void js_getFieldSignatureByObject(PCEJVMTIAgent agent)
   debug_log("js_getFieldSignatureByObject");
   jobject object=(jobject)ps_readQword(agent->pipe);
   jfieldID fieldid=(jfieldID)ps_readQword(agent->pipe);
-  
-  debug_log("js_getFieldSignatureByObject");
 
   jclass klass=_env->GetObjectClass(agent->env, object);
   
@@ -2260,6 +2274,7 @@ void launchCEJVMTIServer(JNIEnv *env, jvmtiEnv *jvmti, void* soa)
             break;
             
           case JAVACMD_REFINESCANRESULTS:
+            debug_log("JAVACMD_REFINESCANRESULTS");
             js_refinescanresults(agent);
             break;  
 

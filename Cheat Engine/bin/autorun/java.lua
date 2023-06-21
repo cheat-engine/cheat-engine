@@ -2006,7 +2006,12 @@ local ST_UNCHANGED=4
 
 function java_search_start(value, boolean)
   --tag all known objects and set a variable to let some functions know they can not function until the scan has finished (they can't set tags)
+  
+  printf("java_search_start")
   local result=nil
+  
+  if value=='' then value=nil end
+  if value=='*' then value=nil end
 
   
   ms=createMemoryStream()
@@ -2095,11 +2100,9 @@ function java_search_start(value, boolean)
   
   javapipe.Timeout=JAVA_TIMEOUT
   
-
   java_scanning=true
   javapipe.unlock()
-
-
+  ms.destroy()
 
   return result
 end
@@ -2112,23 +2115,84 @@ function java_search_refine(scantype, scanvalue)
   --2 = decreased value
   --3 = changed value
   --4 = unchanged value
+  
+  printf("java_search_refine(%d,%s)", scantype, scanvalue)
+  
+
+
 
   local result=nil
 
   if scantype==nil then
     error(translate("Scantype was not set"))
   end
-
-  javapipe.lock()
-  javapipe.writeByte(JAVACMD_REFINESCANRESULTS)
-  javapipe.writeByte(scantype)
-  if scantype==0 then
-    javapipe.writeDouble(scanvalue)
+  
+  if scanvalue==nil then
+    error(translate("scanvalue was not set"))
   end
+  
+  local ms=createMemoryStream()
+  ms.writeByte(JAVACMD_REFINESCANRESULTS)
+  ms.writeDword(scantype)
+  ms.writeDword(1) --boolean, ignored at this point
+  
+  ms.writeByte(scanvalue and scanvalue~=0 and 1 or 0) --zValue:8
+  ms.writeByte(scanvalue and scanvalue or 0) --bValue:9
+  ms.writeWord(scanvalue and scanvalue or 0) --cValue:10-11
+  ms.writeWord(scanvalue and scanvalue or 0) --sValue:12-13
+  ms.writeWord(0) --filler: 14-15
+  ms.writeDword(scanvalue and scanvalue or 0) --iValue:16-19
+  ms.writeDword(0) --filler: 20-23
+  ms.writeQword(scanvalue) --jValue: 24-31
+  
+  local minvalue,maxvalue
+  
+  if scanvalue then
+    --parse the user input and figure out the accuracy requested
+    local vs=scanvalue:trim()
+    local v=tonumber(vs)
+    if v==nil then          
+      messageDialog(scanvalue..' can not be parsed by lua', mtError)
+      return
+    end 
+    local accuracy
+    local seperator=vs:find('%.')
+    if seperator==nil then
+      accuracy=0
+    else
+      accuracy=#s-seperator
+    end
+    
+    if accuracy==0 then
+      rounding='0.9'
+    else
+      rounding='0.'
+      for i=1,accuracy do
+        rounding=rounding..'0'
+      end
+      rounding=rounding..'9'
+    end
+
+    minvalue=vs-rounding
+    maxvalue=vs+rounding        
+  end
+  ms.writeFloat(minvalue)
+  ms.writeFloat(maxvalue)
+  
+  ms.writeDouble(minvalue)
+
+  ms.writeDouble(maxvalue) 
 
 
-  result=javapipe.readQword()
-
+  ms.position=0
+  
+  javapipe.lock()
+  javapipe.writeFromStream(ms)  
+  ms.destroy()  
+  javapipe.Timeout=0    
+  result=javapipe.readQword() --Wait till done, get nr of results)
+  javapipe.Timeout=JAVA_TIMEOUT
+  
   javapipe.unlock()
 
   return result
@@ -2632,10 +2696,6 @@ function varscan_cleanupResults()
 
   java.varscan.Results.clear()
 
-  for i=1,#java.varscan.currentresults do
-    java_dereferenceLocalObject(java.varscan.currentresults[i].object)
-  end
-
   java.varscan.currentresults=nil
 end
 
@@ -2726,7 +2786,9 @@ function miJavaVariableScanClick(sender)
     varscan.ScanType.Items.add('Decreased Value')
     varscan.ScanType.Items.add('Changed Value')
     varscan.ScanType.Items.add('Unchanged Value')
-  --  varscan.ScanType.visible=false
+    varscan.ScanType.Style='csDropDownList'
+    varscan.ScanType.ItemIndex=0
+    varscan.ScanType.visible=false
 
     varscan.FirstScan=createButton(varscan.controls)
     varscan.FirstScan.Caption=translate("First Scan")
@@ -2764,10 +2826,10 @@ function miJavaVariableScanClick(sender)
     varscan.ScanType.AnchorSideTop.Side=asrBottom  
     varscan.ScanType.Anchors="[akTop, akLeft, akRight]"
 
-    varscan.FirstScan.AnchorSideLeft.Control=varscan.ValueBox
+    varscan.FirstScan.AnchorSideLeft.Control=varscan.ScanType
     varscan.FirstScan.AnchorSideLeft.Side=asrLeft
 
-    varscan.FirstScan.AnchorSideTop.Control=varscan.ValueBox
+    varscan.FirstScan.AnchorSideTop.Control=varscan.ScanType
     varscan.FirstScan.AnchorSideTop.Side=asrBottom
     varscan.FirstScan.BorderSpacing.Top=5*dpim
     varscan.FirstScan.Anchors="[akTop, akLeft]"
@@ -2778,7 +2840,7 @@ function miJavaVariableScanClick(sender)
     varscan.NextScan.BorderSpacing.Left=5*dpim
     varscan.NextScan.OnClick=varscan_nextScan
 
-    varscan.NextScan.AnchorSideTop.Control=varscan.ValueBox
+    varscan.NextScan.AnchorSideTop.Control=varscan.ScanType
     varscan.NextScan.AnchorSideTop.Side=asrBottom
     varscan.NextScan.BorderSpacing.Top=5*dpim
     varscan.NextScan.Anchors="[akTop, akLeft]"
@@ -2803,7 +2865,7 @@ function miJavaVariableScanClick(sender)
 
     varscan.Results.PopupMenu=createPopupMenu(varscan.form)
     
-    varscan.OnClose=function()
+    varscan.form.OnClose=function()
       java.varscan=nil
       return caFree
     end
