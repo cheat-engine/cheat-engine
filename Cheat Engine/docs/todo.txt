@@ -41,6 +41,8 @@ codelist: replace with nops: if the address is already in the list it'll ask to 
 
 AddressList : Make check expand/collapse icons dpi aware
 
+addresslist: Make script entries have an address if requested (so that mr.Value can be compared in a script's timer)
+
 lua doesn't show errors anymore if the error is inside a component/luacaller   e.g: blax==nil and then blax.xxxx();
 for class fetching in java for android, add a downloadbar/progressbar
 
@@ -83,6 +85,8 @@ signature: resize signature (new version sig?)
 add table specific settings. E.g: show errors when activating table
 
 ceshare: seach gives errors
+
+lua: structure class: set a default index on Element
 
 ---
 

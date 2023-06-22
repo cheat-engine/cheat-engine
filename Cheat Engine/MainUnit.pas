@@ -2171,8 +2171,47 @@ begin
 end;
 
 procedure TMainForm.ShowError;
+var fn: string;
+  nosaveerror: boolean;
+  s: string;
+  path: string;
 begin
-  MessageDlg(currentexceptionerror, mterror,[mbok],0);
+
+  try
+    nosaveerror:=false;
+    fn:=ExtractFileName(SaveDialog1.filename);
+    if fn='' then
+    begin
+      fn:='noname.ct';
+      path:=opendialog1.InitialDir;
+    end
+    else
+    begin
+      if lowercase(ExtractFileExt(fn))<>'.ct' then
+        fn:=fn+'.ct';
+
+      path:=ExtractFilePath(SaveDialog1.filename);
+    end;
+
+
+
+    fn:='ExceptionAutoSave_'+fn;
+    fn:=path+fn;
+    SaveTable(fn);
+    nosaveerror:=true;
+  except
+  end;
+
+  if nosaveerror then
+  begin
+    s:=currentexceptionerror+#13#10+'The current table has been saved to '+fn;
+    MessageDlg(s, mterror,[mbok],0);
+  end
+  else
+  begin
+    MessageDlg(currentexceptionerror, mterror,[mbok],0);
+  end;
+
 end;
 
 //----------------------------------
@@ -2419,13 +2458,31 @@ end;
 procedure TMainForm.exceptionhandler(Sender: TObject; E: Exception);
 var
   s: string;
+  op: string;
 begin
   //unhandled exeption. Also clean lua stack
-  s:=GetThreadName+': Unhandled exception: '+e.message;
+  s:={$ifdef THREADNAMESUPPORT}GetThreadName+': '+{$endif}'Unhandled exception: '+e.message;
+
+  {$ifdef windows}
+  if e is EAccessViolation then
+  begin
+    case EAccessViolation(e).ExceptionRecord.ExceptionInformation[0] of
+      0: op:='read';
+      1: op:='write to';
+      8: op:='execute';
+      else op:='do something weird with';
+    end;
+
+    s:=s+' (tried to '+op+' address '+inttohex(qword(EAccessViolation(e).ExceptionRecord.ExceptionInformation[1]),8)+')';
+  end;
+  {$endif}
+
 
   if TraceExceptions then
   begin
-    DebugLn('Exception '+e.Message);
+    DebugLn(s);
+
+
     DumpExceptionBackTrace;
 
     s:=s+#13#10'Please send the cedebug.txt file to Dark Byte. Thanks';

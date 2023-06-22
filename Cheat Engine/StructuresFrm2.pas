@@ -1710,6 +1710,9 @@ begin
   if MainThreadID<>GetCurrentThreadId then
     raise EStructureException.create(rsStructureAccessOutsideMainThread);
 
+  if self=nil then
+    raise EStructureException.create('Nil structure getting an update');
+
   inc(fUpdateCounter);
   updatecalledSort:=false;
   updateChangedInformation:=false;
