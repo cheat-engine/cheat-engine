@@ -4887,6 +4887,7 @@ end;
 function TfrmStructures2.getStructElementFromNode(node: TStructureTreeNode): TStructelement;
 begin
   if node=nil then exit(nil);
+  if node.level=0 then exit(nil);
   result:=node.element;
 end;
 
