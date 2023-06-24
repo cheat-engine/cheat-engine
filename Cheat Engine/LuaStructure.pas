@@ -288,6 +288,8 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'endUpdate', structure_endUpdate);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'addToGlobalStructureList', structure_addToGlobalStructureList);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'removeFromGlobalStructureList', structure_removeFromGlobalStructureList);
+
+  luaclass_setDefaultArrayProperty(L, metatable, userdata, structure_getElement, nil);
 end;
 
 

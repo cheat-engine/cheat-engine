@@ -2710,6 +2710,7 @@ Properties:
   Size: Integer - The number of bytes between the last element and the start. ReadOnly
   Count: Integer - Number of elements in the structure. ReadOnly
   Element[]: structureElement - Returns the structure element at the given index. Readonly
+  [] = Element[]
 Methods:
   getName(): Returns the name
   setName(name): Sets the name
