@@ -1372,14 +1372,35 @@ function mono_class_isEnum(klass)
  monopipe.unlock()
  return retv==1
 end
+local function mono_classFindMethodByParameterCount(kls,mthdName,prmCount,prmName)
+  for k,v in pairs(mono_class_enumMethods(kls,1)) do
+    if v.name==mthdName then
+      local prms = mono_method_get_parameters(v.method)
+      if prmCount then
+        if #prms.parameters==prmCount then
+          if prmName then
+             for kk,vv in pairs(prms.parameters) do
+               if vv.name==prmName then return v end
+             end
+          else
+            return v
+          end
+        end
+      else
+        return v
+      end
+    end
+  end
+end
 
 function mono_class_IsPrimitive(klass)
   local tp = mono_class_get_type(klass)
   local rtp = mono_classtype_get_reflectiontype(tp)
   if not rtp then LaunchMonoDataCollector(); error('Reflection type not found') end
   local kls = mono_object_getClass(rtp)
-  local mtd = mono_class_findMethod(kls,'get_IsPrimitive')
-  assert(mtd,'Error: method "Type.get_IsPrimitive" was nil')
+  local mtd = mono_classFindMethodByParameterCount(kls,'get_IsPrimitive')
+  assert(mtd and mtd.method~=0,'Error: method "Type.get_IsPrimitive" was nil')
+  mtd = mtd.method
   local v = mono_invoke_method(nil,mtd,rtp,{})
   return v==1
 end
@@ -1649,7 +1670,7 @@ function mono_class_getVTable(domain, klass)
   return result  
 end
 
-local function GetInstancesOfClass(kls) 
+local function GetInstancesOfClass(kls)
   if getOperatingSystem()==0 then
     local reskls = mono_findClass("UnityEngine","Resources")
     local mthds = mono_class_enumMethods(reskls)
@@ -1660,7 +1681,17 @@ local function GetInstancesOfClass(kls)
         if #prms.parameters == 1 and prms.parameters[1].name=="type" then fn = v.method break end
       end
     end
-    if not fn then return end
+    if not fn then
+      reskls = mono_findClass("UnityEngine","Object")
+      mthds = mono_class_enumMethods(reskls)
+      for k,v in pairs(mthds) do
+        if v.name == 'FindObjectsOfType' then
+          local prms = mono_method_get_parameters(v.method)
+          if #prms.parameters == 1 and prms.parameters[1].name=="type" then fn = v.method break end
+        end
+      end
+      if not fn then return end
+    end
     local sig = mono_method_getSignature(fn)
     local klstype = mono_class_get_type(kls)
     local reftype = mono_classtype_get_reflectiontype(klstype)
