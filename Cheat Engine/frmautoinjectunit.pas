@@ -1489,7 +1489,11 @@ var
 begin
 
   getenableanddisablepos(assemblescreen.Lines,a,b);
-  if (a=-1) and (b=-1) then raise exception.create(rsCodeNeedsEnableAndDisable);
+  if (a=-1) and (b=-1) then
+  begin
+    MessageDlg(rsCodeNeedsEnableAndDisable,mtError,[mbok],0);
+    exit;
+  end;
 
   di:=TDisableInfo.create;
   if autoassemble(assemblescreen.lines,true,true,true,false,di) and

@@ -2011,6 +2011,7 @@ begin
 
   if useintelptfordebug then
   begin
+    if requiresAdmin=false then exit;
 
     if ce_getProcessIDFromProcessName('vmware-vmx.exe')<>0 then
     begin

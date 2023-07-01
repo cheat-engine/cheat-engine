@@ -3154,8 +3154,10 @@ var sav: pchar;
 procedure DBK32Initialize;
 var le: integer;
 begin
-
   outputdebugstring('DBK32Initialize');
+
+  if not requiresAdmin then exit;
+
   try
     if hdevice=INVALID_HANDLE_VALUE then
     begin
@@ -3173,6 +3175,7 @@ begin
       iamprotected:=false;
       apppath:=nil;
       hSCManager := OpenSCManager(nil, nil, GENERIC_READ or GENERIC_WRITE);
+
       try
         getmem(apppath,510);
         GetModuleFileNameW(0, apppath, 250);

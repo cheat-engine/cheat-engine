@@ -27,7 +27,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="7"/>
       <MinorVersionNr Value="5"/>
-      <BuildNr Value="7559"/>
+      <BuildNr Value="7583"/>
       <Language Value="041C"/>
       <CharSet Value="04B0"/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.5"/>
@@ -750,7 +750,7 @@
 -dLINUXTCCTEST
 -donebytejumps
 -dDEBUGTHREADERRORS"/>
-            <OtherDefines Count="22">
+            <OtherDefines Count="20">
               <Define0 Value="NOTMULTITHREADED"/>
               <Define1 Value="benchmarkps"/>
               <Define2 Value="cemain"/>
@@ -771,8 +771,6 @@
               <Define17 Value="DEBUGPROTOCOL"/>
               <Define18 Value="NEWCHANGEREGONX86"/>
               <Define19 Value="overflowdebug"/>
-              <Define20 Value="onebytejumps"/>
-              <Define21 Value="DEBUGTHREADERRORS"/>
             </OtherDefines>
           </Other>
         </CompilerOptions>

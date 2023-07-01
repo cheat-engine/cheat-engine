@@ -8892,6 +8892,11 @@ begin
 
   ActivePreviousResultColumn:=2;
 
+  if runningAsAdmin then
+    caption:=caption+' (Admin)';
+
+  askAboutRunningAsAdmin:=true;
+
 end;
 
 

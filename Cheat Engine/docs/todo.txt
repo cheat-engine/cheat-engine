@@ -84,9 +84,10 @@ signature: resize signature (new version sig?)
 
 add table specific settings. E.g: show errors when activating table
 
-ceshare: seach gives errors
+ceshare: search gives errors
 
-lua: structure class: set a default index on Element
+file->assign to cheat table with lua code gives error if no dll is injected yet  (todo2: luaclient stuff to injected c code)
+
 
 ---
 

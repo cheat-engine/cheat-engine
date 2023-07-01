@@ -195,7 +195,8 @@ var
   inteliptlogfindwhatroutines: boolean;
   maxiptconfigsize: integer;
   hideiptcapability: boolean; //in case it's unstable and you really really do not wish to accidentally use it
-
+  runningAsAdmin: boolean;
+  askAboutRunningAsAdmin: boolean;
 
 implementation
 
