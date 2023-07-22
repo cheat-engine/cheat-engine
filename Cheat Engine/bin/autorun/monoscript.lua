@@ -1611,7 +1611,7 @@ function mono_class_getVTable(domain, klass)
   return result  
 end
 
-local function GetInstancesOfClass(kls)   
+local function GetInstancesOfClass(kls)
   if getOperatingSystem()==0 then
     local reskls = mono_findClass("UnityEngine","Resources")
     local mthds = mono_class_enumMethods(reskls)
