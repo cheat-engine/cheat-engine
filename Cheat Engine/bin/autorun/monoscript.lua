@@ -1612,7 +1612,6 @@ function mono_class_getVTable(domain, klass)
 end
 
 local function GetInstancesOfClass(kls) 
-  if kls==nil then return end
   
   if getOperatingSystem()==0 then
     local reskls = mono_findClass("UnityEngine","Resources")
