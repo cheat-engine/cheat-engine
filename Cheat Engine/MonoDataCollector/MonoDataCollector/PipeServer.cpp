@@ -349,7 +349,7 @@ void CPipeServer::InitMono()
 	}
 	else
 	{
-		OutputDebugString("dlerror()=%s\n", dlerror);
+		OutputDebugString("dlerror()=%p\n", dlerror);
 
 		fp = dlsym(RTLD_DEFAULT, "il2cpp_thread_attach");
 		OutputDebugStringA("dlsym(RTLD_DEFAULT, \"il2cpp_thread_attach\") returned %p\n", fp);
