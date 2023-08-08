@@ -3025,7 +3025,8 @@ function mono_invoke_method_dialog(domain, method, address)
     for i=1, #params.parameters do
       args[i]={}
       args[i].type=monoTypeToVartypeLookup[params.parameters[i].type]
-      if args[i].type==vtString then
+      if params.parameters[i].type==MONO_TYPE_STRING then
+	args[i].type=vtString				
         args[i].value=mifinfo.parameters[i].edtVarText.Text
       else
         args[i].value=tonumber(mifinfo.parameters[i].edtVarText.Text)
