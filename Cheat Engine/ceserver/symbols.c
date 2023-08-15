@@ -227,6 +227,12 @@ Caller must free output manually
 {
   int i,j;
 
+  if (b->e_phentsize==0)
+  {
+    debug_log("invalid: e_phentsize is 0");
+    return 0;
+  }
+
   unsigned char *tempbuffer=NULL;
   int tempbufferpos=0;
   int maxoutputsize=TEMPBUFSIZE;
@@ -818,6 +824,12 @@ int GetModuleSize32(int f, uint32_t fileoffset, Elf32_Ehdr *b)
 {
  /* debug_log("32 bit\n");
   debug_log("b->e_ehsize=%d  (%d)\n", (int)b->e_ehsize, (int)sizeof(Elf32_Ehdr));*/
+
+  if (b->e_phentsize==0)
+  {
+    debug_log("invalid program header entry size (0)\n");
+    return -1;
+  }
 
   //Elf32_Shdr *sectionHeaders=malloc(b->e_shentsize*b->e_shnum);
   Elf32_Phdr *programHeaders=malloc(b->e_phentsize*b->e_phnum);
