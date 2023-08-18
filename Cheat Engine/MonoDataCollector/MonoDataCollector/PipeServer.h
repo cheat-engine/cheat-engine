@@ -206,6 +206,7 @@ typedef void* (__cdecl *MONO_ASSEMBLY_LOADED)(void *aname);
 typedef void* (__cdecl *MONO_IMAGE_LOADED)(void *aname);
 
 typedef void* (__cdecl *MONO_STRING_NEW)(void *domain, const char *text);
+typedef void* (__cdecl* IL2CPP_STRING_NEW)(const char* text);
 typedef char* (__cdecl *MONO_STRING_TO_UTF8)(void*);
 typedef void* (__cdecl *MONO_ARRAY_NEW)(void *domain, void *eclass, uintptr_t n);
 typedef void* (__cdecl *IL2CPP_ARRAY_NEW)(void *eclass, uintptr_t n);
@@ -372,6 +373,7 @@ private:
 	MONO_ASSEMBLY_LOADED mono_assembly_loaded;
 
 	MONO_STRING_NEW mono_string_new;
+        IL2CPP_STRING_NEW il2cpp_string_new;
 	MONO_STRING_TO_UTF8 mono_string_to_utf8;
 	MONO_ARRAY_NEW mono_array_new;
 	IL2CPP_ARRAY_NEW il2cpp_array_new;
