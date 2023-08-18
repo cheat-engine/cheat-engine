@@ -42,14 +42,19 @@ void loadStringTable64(int f, unsigned int fileoffset, Elf64_Shdr *sectionHeader
     stringTable[index]=malloc(sectionHeaders[index].sh_size);
     if (pread(f, stringTable[index], sectionHeaders[index].sh_size, sectionHeaders[index].sh_offset+fileoffset)==-1)
     {
-      debug_log("Failure loading the stringtable\n");
+      debug_log("loadStringTable64: Failure loading the stringtable\n");
       free(stringTable[index]);
       stringTable[index]=NULL;
     }
 
   }
   else
-    debug_log("Not a string table\n");
+  {
+    if (stringTable[index]==NULL)
+      debug_log("loadStringTable64: Was already loaded");
+    else
+      debug_log("loadStringTable64: Not a string table\n");
+  }
 }
 
 void loadStringTable32(int f, unsigned int fileoffset, Elf32_Shdr *sectionHeaders, unsigned char **stringTable, int index)
@@ -221,6 +226,12 @@ Caller must free output manually
 */
 {
   int i,j;
+
+  if (b->e_phentsize==0)
+  {
+    debug_log("invalid: e_phentsize is 0");
+    return 0;
+  }
 
   unsigned char *tempbuffer=NULL;
   int tempbufferpos=0;
@@ -449,12 +460,18 @@ Caller must free output manually
 {
   int i,j;
 
+  if (b->e_phentsize==0)
+  {
+    debug_log("invalid: e_phentsize is 0");
+    return 0;
+  }
 
   unsigned char *tempbuffer=NULL;
   int tempbufferpos=0;
   int maxoutputsize=TEMPBUFSIZE;
   tempbuffer=malloc(TEMPBUFSIZE);
   int offset=0;
+
 
   Elf64_Phdr *programHeaders=malloc(b->e_phentsize*b->e_phnum);
   if (pread(f, programHeaders, b->e_phentsize*b->e_phnum, b->e_phoff+fileoffset)==-1)
@@ -516,89 +533,104 @@ Caller must free output manually
 
   unsigned char **stringTable=calloc(b->e_shnum, sizeof(unsigned char*) );
 
-  loadStringTable64(f, fileoffset, sectionHeaders, stringTable, b->e_shstrndx);
-
-
-  for (i=0; i<b->e_shnum; i++)
+  if (b->e_shstrndx<b->e_shnum)
   {
-   // debug_log("Section %d (%lx): name=%s\n", i, sectionHeaders[i].sh_addr, &stringTable[b->e_shstrndx][sectionHeaders[i].sh_name]);
+    loadStringTable64(f, fileoffset, sectionHeaders, stringTable, b->e_shstrndx);
 
-    if ((sectionHeaders[i].sh_type==SHT_SYMTAB) || (sectionHeaders[i].sh_type==SHT_DYNSYM))
+
+    for (i=0; i<b->e_shnum; i++)
     {
-      Elf64_Sym *symbolTable=malloc(sectionHeaders[i].sh_size);
-      if (pread(f, symbolTable, sectionHeaders[i].sh_size, sectionHeaders[i].sh_offset+fileoffset)==-1)
+     // debug_log("Section %d (%lx): name=%s\n", i, sectionHeaders[i].sh_addr, &stringTable[b->e_shstrndx][sectionHeaders[i].sh_name]);
+
+      if ((sectionHeaders[i].sh_type==SHT_SYMTAB) || (sectionHeaders[i].sh_type==SHT_DYNSYM))
       {
-        //printf("Failure reading symbol table\n");
-        free(symbolTable);
-        symbolTable=NULL;
-      }
-
-      if (symbolTable)
-      {
-        int maxindex=sectionHeaders[i].sh_size / sizeof(Elf64_Sym);
-
-        loadStringTable64(f, fileoffset, sectionHeaders, stringTable, sectionHeaders[i].sh_link);
-
-
-        for (j=0; j<maxindex; j++)
+        Elf64_Sym *symbolTable=malloc(sectionHeaders[i].sh_size);
+        if (pread(f, symbolTable, sectionHeaders[i].sh_size, sectionHeaders[i].sh_offset+fileoffset)==-1)
         {
+          //printf("Failure reading symbol table\n");
+          free(symbolTable);
+          symbolTable=NULL;
+        }
 
-          if (symbolTable[j].st_value)
+        if (symbolTable)
+        {
+          int maxindex=sectionHeaders[i].sh_size / sizeof(Elf64_Sym);
+
+          if (sectionHeaders[i].sh_link<b->e_shnum)
           {
-            //add it to the tempbuffer
-            char *symbolname=(char *)&stringTable[sectionHeaders[i].sh_link][symbolTable[j].st_name];
 
-            size_t namelength=strlen(symbolname);
-            int entrysize=sizeof(symbolinfo)+namelength;
-            if (tempbufferpos+entrysize>=TEMPBUFSIZE)
+            loadStringTable64(f, fileoffset, sectionHeaders, stringTable, sectionHeaders[i].sh_link);
+
+
+            for (j=0; j<maxindex; j++)
             {
-               //compress the current temp buffer
-               //printf("compressing\n");
-               strm.avail_in=tempbufferpos;
-               strm.next_in=tempbuffer;
 
-               while (strm.avail_in)
-               {
-                 if (deflate(&strm, Z_NO_FLUSH)!=Z_OK)
-                 {
-                   debug_log("FAILURE TO COMPRESS!\n");
-                   return -1;
-                 }
-                 //printf("strm.avail_out=%d\n", strm.avail_out);
+              if (symbolTable[j].st_value)
+              {
+                //add it to the tempbuffer
+                char *symbolname=(char *)&stringTable[sectionHeaders[i].sh_link][symbolTable[j].st_name];
 
-                 if (strm.avail_out==0)
-                 {
+                size_t namelength=strlen(symbolname);
+                int entrysize=sizeof(symbolinfo)+namelength;
+                if (tempbufferpos+entrysize>=TEMPBUFSIZE)
+                {
+                   //compress the current temp buffer
+                   //printf("compressing\n");
+                   strm.avail_in=tempbufferpos;
+                   strm.next_in=tempbuffer;
 
-                    // debug_log("Out buffer full. Reallocating\n");
-                   *output=realloc(*output, maxoutputsize*2);
+                   while (strm.avail_in)
+                   {
+                     if (deflate(&strm, Z_NO_FLUSH)!=Z_OK)
+                     {
+                       debug_log("FAILURE TO COMPRESS!\n");
+                       return -1;
+                     }
+                     //printf("strm.avail_out=%d\n", strm.avail_out);
 
-                   strm.next_out=(unsigned char *)&(*output)[maxoutputsize];
-                   strm.avail_out=maxoutputsize;
-                   maxoutputsize=maxoutputsize*2;
-                 }
+                     if (strm.avail_out==0)
+                     {
 
-               }
-               tempbufferpos=0;
+                        // debug_log("Out buffer full. Reallocating\n");
+                       *output=realloc(*output, maxoutputsize*2);
+
+                       strm.next_out=(unsigned char *)&(*output)[maxoutputsize];
+                       strm.avail_out=maxoutputsize;
+                       maxoutputsize=maxoutputsize*2;
+                     }
+
+                   }
+                   tempbufferpos=0;
+                }
+
+
+
+                psymbolinfo si=(psymbolinfo)&tempbuffer[tempbufferpos];
+                si->address=symbolTable[j].st_value-offset;
+                si->size=symbolTable[j].st_size;
+                si->type=symbolTable[j].st_info;
+                si->namelength=namelength;
+                memcpy(&si->name, symbolname, namelength);
+
+
+                tempbufferpos+=entrysize;
+              }
             }
-
-
-
-            psymbolinfo si=(psymbolinfo)&tempbuffer[tempbufferpos];
-            si->address=symbolTable[j].st_value-offset;
-            si->size=symbolTable[j].st_size;
-            si->type=symbolTable[j].st_info;
-            si->namelength=namelength;
-            memcpy(&si->name, symbolname, namelength);
-
-
-            tempbufferpos+=entrysize;
+          }
+          else
+          {
+            debug_log("Error: sectionHeaders[%d].sh_link>=b->e_shnum", i);
           }
         }
+        free(symbolTable);
+
       }
-      free(symbolTable);
 
     }
-
+  }
+  else
+  {
+    debug_log("Error: e_shstrndx>=e_shnum");
   }
 
   for (i=0; i<b->e_shnum; i++)
@@ -793,6 +825,12 @@ int GetModuleSize32(int f, uint32_t fileoffset, Elf32_Ehdr *b)
  /* debug_log("32 bit\n");
   debug_log("b->e_ehsize=%d  (%d)\n", (int)b->e_ehsize, (int)sizeof(Elf32_Ehdr));*/
 
+  if (b->e_phentsize==0)
+  {
+    debug_log("invalid program header entry size (0)\n");
+    return -1;
+  }
+
   //Elf32_Shdr *sectionHeaders=malloc(b->e_shentsize*b->e_shnum);
   Elf32_Phdr *programHeaders=malloc(b->e_phentsize*b->e_phnum);
 /*  debug_log("e_shoff=%x\n", b->e_shoff);
@@ -853,16 +891,33 @@ int GetModuleSize64(int f, uint32_t fileoffset, Elf64_Ehdr *b)
   /*printf("64 bit\n");
   debug_log("b->e_ehsize=%d  (%d)\n", (int)b->e_ehsize, (int)sizeof(Elf32_Ehdr));*/
 
+  debug_log("b->e_phentsize=%d\n", b->e_phentsize);
+
+  if (b->e_phentsize==0)
+  {
+    debug_log("invalid program header entry size (0)\n");
+    return -1;
+  }
+
   Elf64_Phdr *programHeaders=malloc(b->e_phentsize*b->e_phnum);
-/*  debug_log("e_shoff=%x\n", (int)b->e_shoff);
+/*
+  debug_log("e_type=%d\n", b->e_type);
+  debug_log("e_machine=%d\n", b->e_machine);
+  debug_log("e_version=%d\n", b->e_version);
+
+  debug_log("e_shoff=%x\n", (int)b->e_shoff);
   debug_log("e_shentsize=%d\n", b->e_shentsize);
   debug_log("e_shnum=%d\n", b->e_shnum);
   debug_log("e_shstrndx=%d\n", b->e_shstrndx);
 
   debug_log("e_phoff=%x\n", (int)b->e_phoff);
   debug_log("e_phentsize=%d\n", b->e_phentsize);
-  debug_log("e_phnum=%d\n", b->e_phnum);
-  */
+  debug_log("e_phnum=%d\n", b->e_phnum);*/
+
+
+
+
+  memset(programHeaders,0, sizeof(Elf64_Phdr));
 
   if (pread(f, programHeaders, b->e_phentsize*b->e_phnum, b->e_phoff+fileoffset)==-1)
   {
@@ -949,6 +1004,9 @@ unsigned long long GetModuleSize(char *filename, uint32_t fileoffset, unsigned l
       close(f);
 
       //printf("%x\n",i);
+      if (i==-1)
+        i=defaultsize;
+
       return i;
     }
     else

@@ -575,7 +575,12 @@ void *CESERVERTEST(int pid )
   char *output;
   debug_log("CESERVERTEST: running (v2)\n");
 
-  GetModuleSize("/home/eric/x/bla2.so",0, 123);
+  i=GetModuleSize("/home/eric/x/ld-linux-x86-64.so.2",0x00027000, 123);
+  debug_log("modulesize=%d (%x)\n",i,i);
+
+  i=GetSymbolListFromFile("/home/eric/x/ld-linux-x86-64.so.2",0x00027000, &output);
+  debug_log("GetSymbolListFromFile returned %d\n",i);
+
 
   if (1)
     return NULL;
