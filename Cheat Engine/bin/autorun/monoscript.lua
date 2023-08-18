@@ -129,7 +129,7 @@ MONO_TYPE_PINNED     = 0x45       -- Local var that points to pinned object */
 
 MONO_TYPE_ENUM       = 0x55        -- an enumeration */
 
-={}
+monoTypeToVartypeLookup={}
 monoTypeToVartypeLookup[MONO_TYPE_BOOLEAN]=vtByte 
 monoTypeToVartypeLookup[MONO_TYPE_CHAR]=vtUnicodeString --the actual chars...
 monoTypeToVartypeLookup[MONO_TYPE_I1]=vtByte
