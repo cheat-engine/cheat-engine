@@ -129,7 +129,7 @@ MONO_TYPE_PINNED     = 0x45       -- Local var that points to pinned object */
 
 MONO_TYPE_ENUM       = 0x55        -- an enumeration */
 
-monoTypeToVartypeLookup={}
+={}
 monoTypeToVartypeLookup[MONO_TYPE_BOOLEAN]=vtByte 
 monoTypeToVartypeLookup[MONO_TYPE_CHAR]=vtUnicodeString --the actual chars...
 monoTypeToVartypeLookup[MONO_TYPE_I1]=vtByte
@@ -3025,8 +3025,9 @@ function mono_invoke_method_dialog(domain, method, address)
     for i=1, #params.parameters do
       args[i]={}
       args[i].type=monoTypeToVartypeLookup[params.parameters[i].type]
-      if args[i].type==vtString then
-        args[i].value=mifinfo.parameters[i].edtVarText.Text
+      if params.parameters[i].type==MONO_TYPE_STRING then
+	args[i].type=vtString
+	args[i].value=mifinfo.parameters[i].edtVarText.Text
       else
         args[i].value=tonumber(mifinfo.parameters[i].edtVarText.Text)
       end
