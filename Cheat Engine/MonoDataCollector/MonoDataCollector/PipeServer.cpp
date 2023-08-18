@@ -542,7 +542,8 @@ void CPipeServer::InitMono()
 				mono_method_desc_from_method = (MONO_METHOD_DESC_FROM_METHOD)GetProcAddress(hMono, "il2cpp_method_desc_from_method");;
 				mono_method_desc_free = (MONO_METHOD_DESC_FREE)GetProcAddress(hMono, "il2cpp_method_desc_free");;
 
-				mono_string_new = (MONO_STRING_NEW)GetProcAddress(hMono, "il2cpp_string_new");
+				il2cpp_string_new = (IL2CPP_STRING_NEW)GetProcAddress(hMono, "il2cpp_string_new");
+				
 				mono_string_to_utf8 = (MONO_STRING_TO_UTF8)GetProcAddress(hMono, "il2cpp_string_to_utf8");
 				il2cpp_array_new = (IL2CPP_ARRAY_NEW)GetProcAddress(hMono, "il2cpp_array_new");
 				mono_array_element_size = (MONO_ARRAY_ELEMENT_SIZE)GetProcAddress(hMono, "il2cpp_array_element_size");
@@ -2371,7 +2372,13 @@ void CPipeServer::InvokeMethod(void)
 		case MONO_TYPE_STRING:
 		{
 			char* ptr = ReadString();
-			arry[i] = mono_string_new(domain, ptr);
+                        if (!il2cpp) {
+	                    arry[i] = mono_string_new(domain, ptr);
+                        }
+                        else
+                        {
+	                   arry[i] = il2cpp_string_new(ptr);	
+                        }
 		}break;
 		case MONO_TYPE_OBJECT:
 		case MONO_TYPE_PTR:
