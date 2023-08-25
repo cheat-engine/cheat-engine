@@ -299,6 +299,7 @@ var
   v: double;
   e: extended;
   tablestartindex: integer;
+  offset: integer; // Add this line to declare the 'offset' variable
 begin
   result:=0;
   if lua_gettop(L)>=1 then
@@ -313,6 +314,7 @@ begin
       tablestartindex:=0;
 
 {$ifdef cpux86_64}
+    offset := tablestartindex; // Define the 'offset' variable with the correct value
     readBytesFromTable(L, 1, @ex[0], 10,tablestartindex);
     extendedtodouble(@ex[0],v);
 {$else}
