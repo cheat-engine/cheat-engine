@@ -9,7 +9,7 @@
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <AutoCreateForms Value="False"/>
-      <Title Value="Cheat Engine 7.5"/>
+      <Title Value="Cheat Engine"/>
       <UseXPManifest Value="True"/>
       <XPManifest>
         <DpiAware Value="True"/>
@@ -27,7 +27,8 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="7"/>
       <MinorVersionNr Value="5"/>
-      <BuildNr Value="7583"/>
+      <RevisionNr Value="1"/>
+      <BuildNr Value="7653"/>
       <Language Value="041C"/>
       <CharSet Value="04B0"/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.5"/>
@@ -824,7 +825,7 @@
         <PackageName Value="LCL"/>
       </Item9>
     </RequiredPackages>
-    <Units Count="422">
+    <Units Count="423">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -3051,6 +3052,10 @@
         <Filename Value="libcepack.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit421>
+      <Unit422>
+        <Filename Value="symbolsync.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit422>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

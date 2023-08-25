@@ -73,6 +73,7 @@ resourcestring
 
 procedure SymbolUpdate(item: TUserdefinedSymbolCallbackPart=suUserdefinedSymbol);
 begin
+  //can be called from other threads
   if frmsymbolhandler<>nil then
   begin
     frmsymbolhandler.updatepart:=item;

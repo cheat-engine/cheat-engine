@@ -136,7 +136,10 @@ begin
 
     finally
       if combobox<>nil then
+      begin
         combobox.Free;
+        combobox:=nil;
+      end;
       free;
     end;
   end;
