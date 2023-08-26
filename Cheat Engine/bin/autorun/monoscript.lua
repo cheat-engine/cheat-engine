@@ -3993,7 +3993,15 @@ end
 
 function miMonoActivateClick(sender)
   if monopipe then
-    monopipe.OnTimeout()
+	  if isKeyPressed(VK_CONTROL) then
+		monopipe.lock()
+		monopipe.writeByte(MONOCMD_TERMINATE)
+		monopipe.unlock()
+		monopipe.OnTimeout()
+		print('dll ejected')
+	  else
+		monopipe.OnTimeout()
+	  end
   else  
     if LaunchMonoDataCollector()==0 then
       showMessage(translate("Failure to launch  "))

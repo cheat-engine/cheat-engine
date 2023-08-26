@@ -90,6 +90,7 @@ DWORD WINAPI DataCollectorEntry(LPVOID lpThreadParameter)
 	OutputDebugString("starting CPipeServer instance\n");
 	pw->Start();
 
+    OutputDebugString("Destroying PipeServer\n");
 	DataCollectorThread=0;
 	delete pw;	
 
@@ -99,6 +100,7 @@ DWORD WINAPI DataCollectorEntry(LPVOID lpThreadParameter)
 	Sleep(1000);
 
 #ifdef _WINDOWS
+    OutputDebugString("Freeing Memory\n");
 	FreeLibraryAndExitThread(g_hInstance, 0);
 #endif
 	return 0;

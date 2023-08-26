@@ -2946,6 +2946,11 @@ void CPipeServer::Start(void)
 					break;
 
 				case MONOCMD_TERMINATE:
+					if (pipehandle != INVALID_HANDLE_VALUE)
+					{
+						DisconnectNamedPipe(pipehandle);
+						CloseHandle(pipehandle);
+					}
 					return;
 
 				case MONOCMD_DISASSEMBLE:
