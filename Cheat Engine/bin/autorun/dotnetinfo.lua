@@ -691,9 +691,9 @@ local function ClassSelectionChange(frmDotNetInfo, sender)
 
     local Class
     if frmDotNetInfo.FilteredClassList then
-      Class=frmDotNetInfo.FilteredClassList[lvc.ItemIndex]
+      Class=frmDotNetInfo.FilteredClassList[lvc.ItemIndex+1]
     else
-      Class=Image.Classes[lvc.ItemIndex]  
+      Class=Image.Classes[lvc.ItemIndex+1]  
     end
 
     

@@ -1644,6 +1644,7 @@ initialization
   registerclass(TApplicationProperties); //might be usefull...
   registerclass(TColorListBox);
   registerclass(TLazVirtualStringTree);
+  registerclass(TSynEdit);
 
 
 
