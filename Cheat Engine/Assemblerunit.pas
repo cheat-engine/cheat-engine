@@ -8307,6 +8307,7 @@ begin
   end;
 
   finally
+
     if result then
     begin
       //insert rex prefix if needed
@@ -8408,33 +8409,33 @@ begin
 
 
       end;
+    end;
+  end;
+
+  if not result then
+  begin
+    if (errorifnotfound<>'') then
+    begin
+      if (skiprangecheck=false) then
+        raise EAssemblerExceptionOffsetTooBig.Create(errorifnotfound)
+      else
+        exit(true);  //just a syntaxcheck. Everything is ok except the range
+    end;
+  end;
+
+  if needsAddressSwitchPrefix then //add it
+  begin
+    if canDoAddressSwitch then
+    begin
+      //put 0x67 in front
+      setlength(bytes,length(bytes)+1);
+      for i:=length(bytes)-1 downto 1 do
+        bytes[i]:=bytes[i-1];
+
+      bytes[0]:=$67;
     end
     else
-    begin
-      if (errorifnotfound<>'') then
-      begin
-        if (skiprangecheck=false) then
-          raise EAssemblerExceptionOffsetTooBig.Create(errorifnotfound)
-        else
-          exit(true);  //just a syntaxcheck. Everything is ok except the range
-
-      end;
-    end;
-
-    if needsAddressSwitchPrefix then //add it
-    begin
-      if canDoAddressSwitch then
-      begin
-        //put 0x67 in front
-        setlength(bytes,length(bytes)+1);
-        for i:=length(bytes)-1 downto 1 do
-          bytes[i]:=bytes[i-1];
-
-        bytes[0]:=$67;
-      end
-      else
-        raise EAssemblerException.create('Invalid address');
-    end;
+      raise EAssemblerException.create('Invalid address');
   end;
 end;
 

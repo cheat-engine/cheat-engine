@@ -7001,7 +7001,9 @@ var
   starta,startb, stopa,stopb: ptruint;
 
   wsisize: dword;
+  {$ifdef windows}
   wsi: PPSAPI_WORKING_SET_INFORMATION;
+  {$endif}
 
   getmemtimestart: qword;
   getmemtimestop: qword;

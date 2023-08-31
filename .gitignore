@@ -1,9 +1,19 @@
 Cheat Engine/lib
 Cheat Engine/backup
 Cheat Engine/bin
-
+Cheat Engine/test
+Cheat Engine/Tutorial/backup
+Cheat Engine/Tutorial/unitbin
+Cheat Engine/debuggertest/backup
+Cheat Engine/dbk32/backup
+Cheat Engine/betterControls/backup
+Cheat Engine/luamac
+Cheat Engine/macsrc
 .DS_Store
 *.lrj
+*.o
+*.ppu
+*.rsj
 Cheat Engine/cheatengine.lps
 Cheat Engine/cheatengine.res
 Cheat Engine/MonoDataCollector/.vs/MonoDataCollector/v17/.suo

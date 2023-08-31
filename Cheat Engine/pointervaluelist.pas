@@ -1061,9 +1061,10 @@ var bytepointer: PByte;
 
     regionfile: TFilestream;
     prangelist: TPRangeDynArray;
-
+    {$ifdef windows}
     wsisize: dword;
     wsi: PPSAPI_WORKING_SET_INFORMATION;
+    {$endif}
 begin
   self.progressbar:=_progressbar;
   OutputDebugString('TReversePointerListHandler.create');
