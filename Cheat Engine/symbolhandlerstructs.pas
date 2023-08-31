@@ -46,6 +46,12 @@ type
 
   TUserdefinedSymbolsList=array of TUserdefinedsymbol;
 
+
+
+
+
+
+
 type TModuleInfo=record
   modulename: string;
   modulepath: string;

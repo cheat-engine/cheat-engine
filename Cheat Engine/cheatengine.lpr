@@ -122,7 +122,7 @@ uses
   sourcecodehandler, frmSourceDisplayUnit, disassemblerarm64, contexthandler,
   DisAssemblerARM32, frmAnchorEditor, disassemblerArm32Thumb, iptnative, 
   iptlogdisplay, LuaVirtualStringTree, userbytedisassembler, 
-LuaNetworkInterface, libcepack;
+LuaNetworkInterface, libcepack, symbolsync;
 
 {$R cheatengine.res}
 {$IFDEF windows}
@@ -289,7 +289,7 @@ var
   noautorun: boolean;
 
 begin
-  Application.Title:='Cheat Engine 7.5';
+  Application.Title:='Cheat Engine';
  //'Cheat Engine 7.3';
   {$ifdef darwin}
   macPortFixRegPath;
@@ -341,6 +341,15 @@ begin
 
     if r.OpenKey('\Software\'+strCheatEngine,false) then
     begin
+      if r.ValueExists('RunAsAdmin') then
+      begin
+        if r.readbool('RunAsAdmin') then
+        begin
+          askAboutRunningAsAdmin:=false;
+          requiresAdmin;
+        end;
+      end;
+
       if r.ValueExists('Override Default Font') then
       begin
         if r.ReadBool('Override Default Font') then

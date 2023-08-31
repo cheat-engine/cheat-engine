@@ -1,7 +1,7 @@
 object frmEnumerateDLLs: TfrmEnumerateDLLs
-  Left = 876
+  Left = 878
   Height = 303
-  Top = 424
+  Top = 426
   Width = 369
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Enumerate DLL''s'

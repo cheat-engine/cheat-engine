@@ -209,7 +209,7 @@ begin
         tablestartindex:=1;
     end
     else
-      tablestartindex:=0;
+      tablestartindex:=1;
 
     readBytesFromTable(L, 1, @v, sizeof(v), tablestartindex);
     if (lua_gettop(L)>=2) and lua_toboolean(L,2) then
@@ -236,7 +236,7 @@ begin
         tablestartindex:=1;
     end
     else
-      tablestartindex:=0;
+      tablestartindex:=1;
 
     readBytesFromTable(L, 1, @v, sizeof(v), tablestartindex);
     lua_pushinteger(L,v);
@@ -259,7 +259,7 @@ begin
         tablestartindex:=1;
     end
     else
-      tablestartindex:=0;
+      tablestartindex:=1;
 
     readBytesFromTable(L, 1, @v, sizeof(v), tablestartindex);
     lua_pushnumber(L,v);
@@ -316,7 +316,7 @@ begin
     readBytesFromTable(L, 1, @ex[0], 10,tablestartindex);
     extendedtodouble(@ex[0],v);
 {$else}
-    readBytesFromTable(L, 1, @e, sizeof(e), offset);
+    readBytesFromTable(L, 1, @e, sizeof(e), tablestartindex);
     v:=e;
 {$endif}
     lua_pushnumber(L,v);

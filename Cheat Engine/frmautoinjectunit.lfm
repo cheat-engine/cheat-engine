@@ -1,7 +1,7 @@
 object frmAutoInject: TfrmAutoInject
-  Left = 540
+  Left = 542
   Height = 313
-  Top = 364
+  Top = 366
   Width = 431
   HelpContext = 1089
   AllowDropFiles = True

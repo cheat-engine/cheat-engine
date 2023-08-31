@@ -191,7 +191,7 @@ procedure Log(s: string);
 {$endif}
 
 
-function requiresAdmin: boolean;
+function requiresAdmin(featurename: string=''): boolean;
 function relaunchAsAdmin(params: widestring): boolean;
 
 
@@ -422,7 +422,7 @@ resourcestring
   rsPosition = ' Position';
   rsThisCanTakeSomeTime = 'This can take some time if you are missing the '
     +'PDB''s and CE will look frozen. Are you sure?';
-  rsAskToRestartForAdmin = 'This function requires administrator rights. '
+  rsAskToRestartForAdmin = '%s requires administrator rights. '
     +'Relaunch CE using admin rights?';
 
 function ProcessID: dword;
@@ -3883,6 +3883,7 @@ type
   TRequireAdminDialog=class
   private
   public
+    feature: string;
     result: boolean;
     procedure showDialog;
   end;
@@ -3897,7 +3898,14 @@ begin
 
   if askAboutRunningAsAdmin then
   begin
-    if MessageDlg(rsAskToRestartForAdmin, mtConfirmation, [mbYes, mbNo], 0)<>mryes then exit;
+    if feature<>'' then
+    begin
+      if MessageDlg(format(rsAskToRestartForAdmin, [feature]), mtConfirmation, [mbYes, mbNo], 0)<>mryes then exit;
+    end
+    else
+    begin
+      if MessageDlg(format(rsAskToRestartForAdmin, ['This function']), mtConfirmation, [mbYes, mbNo], 0)<>mryes then exit;
+    end;
   end;
 
 
@@ -3914,7 +3922,7 @@ begin
   {$endif}
 end;
 
-function requiresAdmin: boolean;
+function requiresAdmin(featurename: string=''): boolean;
 var d: TRequireAdminDialog;
 begin
   result:=runningAsAdmin;
@@ -3922,6 +3930,7 @@ begin
   if not result then
   begin
     d:=TRequireAdminDialog.Create;
+    d.feature:=featurename;
     if MainThreadID=GetCurrentThreadId then
       d.showDialog
     else

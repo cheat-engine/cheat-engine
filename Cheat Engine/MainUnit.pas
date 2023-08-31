@@ -1124,7 +1124,7 @@ uses cefuncproc, MainUnit2, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup,
   multilineinputqueryunit {$ifdef windows},winsapi{$endif} ,LuaClass, Filehandler{$ifdef windows}, feces{$endif}
   {$ifdef windows},frmDBVMWatchConfigUnit, frmDotNetObjectListUnit{$endif} ,ceregistry ,UnexpectedExceptionsHelper
   ,frmFoundlistPreferencesUnit, fontSaveLoadRegistry{$ifdef windows}, cheatecoins{$endif},strutils, iptlogdisplay,
-  libcepack;
+  libcepack, symbolsync;
 
 resourcestring
   rsInvalidStartAddress = 'Invalid start address: %s';
@@ -1613,11 +1613,11 @@ begin
 
         beep;
 
-        if formsettings.cbHideAllWindows.Checked then
+        if formsettings.frameHotkeyConfig.cbHideAllWindows.Checked then
         begin
           ToggleWindow;
 
-          if formsettings.cbCenterOnPopup.Checked then
+          if formsettings.frameHotkeyConfig.cbCenterOnPopup.Checked then
             if not allwindowsareback then
               setwindowpos(mainform.Handle, HWND_NOTOPMOST, (screen.Width div 2) -
                 (mainform.Width div 2), (screen.Height div 2) -
@@ -1651,7 +1651,7 @@ begin
           AttachThreadInput( CurrentThreadID, OtherThreadID, false );
         end;
 
-        if formsettings.cbCenterOnPopup.Checked then
+        if formsettings.frameHotkeyConfig.cbCenterOnPopup.Checked then
           setwindowpos(mainform.Handle, HWND_NOTOPMOST, (screen.Width div 2) -
             (mainform.Width div 2), (screen.Height div 2) -
             (mainform.Height div 2), mainform.Width, mainform.Height,
@@ -2097,13 +2097,13 @@ begin
 
       beep;
 
-      if formsettings.cbHideAllWindows.Checked then
+      if formsettings.frameHotkeyConfig.cbHideAllWindows.Checked then
       begin
         ToggleWindow;
 
         //      ToggleOtherWindows;
 
-        if formsettings.cbCenterOnPopup.Checked then
+        if formsettings.frameHotkeyConfig.cbCenterOnPopup.Checked then
           if not allwindowsareback then
             setwindowpos(mainform.Handle, HWND_NOTOPMOST, (screen.Width div 2) -
               (mainform.Width div 2), (screen.Height div 2) - (mainform.Height div
@@ -2125,7 +2125,7 @@ begin
       // if length(windowlist)<>0 then
       application.BringToFront;
 
-      if formsettings.cbCenterOnPopup.Checked then
+      if formsettings.frameHotkeyConfig.cbCenterOnPopup.Checked then
         setwindowpos(mainform.Handle, HWND_NOTOPMOST, (screen.Width div 2) -
           (mainform.Width div 2), (screen.Height div 2) - (mainform.Height div
           2), mainform.Width, mainform.Height, SWP_NOZORDER or SWP_NOACTIVATE);
@@ -2976,6 +2976,8 @@ end;
 
 function TMainForm.openprocessPrologue: boolean;
 begin
+  if (processid<>0) and Globals.SyncSymbols then
+    SyncSymbolsNow;
 
   Result := False;
 
@@ -3011,6 +3013,11 @@ begin
 
   outputdebugstring('openProcessEpilogue called');
 
+  if (oldprocess<>processid) and SyncSymbols and symsync_ClearSymbolListWhenOpeningADifferentProcess then
+    symhandler.DeleteAllUserdefinedSymbols;
+
+  if SyncSymbols then
+    SyncSymbolsNow(true); //get the latest symbols
 
   symhandler.reinitialize(true);
 //  symhandler.waitforsymbolsloaded;
@@ -3101,7 +3108,8 @@ begin
     if processid <> $FFFFFFFF then
     begin
       processlabel.Caption := strError;
-      raise Exception.Create(strErrorWhileOpeningProcess{$ifdef darwin}+strErrorwhileOpeningProcessMac{$endif});
+      MessageDlg(strErrorWhileOpeningProcess{$ifdef darwin}+strErrorwhileOpeningProcessMac{$endif}, mtError,[mbok],0);
+      exit;
     end
     else
     begin
@@ -7658,6 +7666,9 @@ var
 
 
 begin
+  if SyncSymbols and (processid<>0) then
+    SyncSymbolsNow;
+
   i:=0;
   while i<screen.CustomFormCount do
   begin
@@ -8329,7 +8340,7 @@ var
   reg: TRegistry;
 
 begin
-  if formsettings.cbHideAllWindows.Checked then
+  if formsettings.frameHotkeyConfig.cbHideAllWindows.Checked then
   begin
     if allwindowsareback then
     begin
@@ -10750,6 +10761,8 @@ var
   x: array of integer;
   reg: tregistry;
 begin
+
+
   if flashprocessbutton<>nil then
   begin
     flashprocessbutton.Terminate;
@@ -10883,28 +10896,25 @@ begin
       if speedhack <> nil then
         FreeAndNil(speedhack);
 
-      IF (GetKeyState(VK_MBUTTON) and $8000)=$8000 THEN
-      begin
-        outputdebugstring('bla');
-        raise exception.create('Using alternate method');
-      end;
-
-
       speedhack := TSpeedhack.Create;
     except
       on e: Exception do
       begin
-        outputdebugstring('Normal speedhack activation failed. Checking for :"activateAlternateSpeedhack"');
+       { outputdebugstring('Normal speedhack activation failed. Checking for :"activateAlternateSpeedhack"');
         lua_getglobal(luavm, 'activateAlternateSpeedhack');//failure. check if there is an alternative in lua
         if lua_isfunction(luavm,-1) then
         begin
           OutputDebugString('Calling activateAlternateSpeedhack');
           lua_pushboolean(luavm,true);
-          lua_pcall(luavm, 1,0,0);
+          lua_pcall(luavm, 1,1,0);
+          if lua_toboolean(luavm,-1)<>true then
+            cbSpeedhack.Checked:=false;
+
           exit;
         end
         else
           lua_pop(luavm,1);
+           }
 
         cbSpeedhack.Checked := False;
         MessageDlg(e.message,mtError,[mbok],0);

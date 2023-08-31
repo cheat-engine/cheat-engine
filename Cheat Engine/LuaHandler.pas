@@ -130,7 +130,7 @@ uses autoassembler, MainUnit, MainUnit2, LuaClass, frmluaengineunit, plugin, plu
   rttihelper, LuaDotNetPipe, LuaRemoteExecutor, windows7taskbar, debugeventhandler,
   tcclib, dotnethost, CSharpCompiler, LuaCECustomButton, feces, process,
   networkInterface, networkInterfaceApi, LuaVirtualStringTree, userbytedisassembler,
-  parsers, LuaNetworkInterface;
+  parsers, LuaNetworkInterface, symbolsync;
 
   {$warn 5044 off}
 
@@ -1539,98 +1539,66 @@ var i,e: integer;
   oldstack: integer;
   l: Plua_State;
 begin
- // OutputDebugString(inttohex(qword(GetCurrentThreadId),1)+':LUA_functioncall calling '+routinetocall);
- { if GetCurrentThreadId<>MainThreadID then
-  begin
-    OutputDebugString('Not main thread');
-    l:=lua_newthread(luavm);
-  end
-  else  }
-    l:=luavm;
-
+  l:=luavm;
 
   result:=-1;
   oldstack:=lua_gettop(l);
 
- // OutputDebugString('LUA_functioncall: oldstack='+inttostr(oldstack));
+  try
+    lua_getglobal(l, pchar(routinetocall));
+    p:=lua_gettop(l);
 
- // if luacs.TryEnter then
-  begin
-    try
-      //check if the routine exists
-    //  OutputDebugString('LUA_functioncall: calling getglobal');
-
-      lua_getglobal(l, pchar(routinetocall));
-
-     // OutputDebugString('LUA_functioncall: after getglobal');
-
-      p:=lua_gettop(l);
-     // OutputDebugString('LUA_functioncall: newstack='+inttostr(p));
-
-      if p<>oldstack then
+    if p<>oldstack then
+    begin
+      if lua_isfunction(l, -1) then
       begin
-        if lua_isfunction(l, -1) then
+        //routine exists, fill in the parameters
+        for i:=0 to length(parameters)-1 do
         begin
-          //OutputDebugString('LUA_functioncall: function exists');
-          //OutputDebugString('LUA_functioncall: length(parameters)='+inttostr(length(parameters)));
-
-          //routine exists, fill in the parameters
-          for i:=0 to length(parameters)-1 do
-          begin
-            case parameters[i].VType of
-              system.vtInteger : lua_pushinteger(L, parameters[i].VInteger);
-              system.vtBoolean: lua_pushboolean(L, parameters[i].VBoolean);
-              system.vtChar:
-              begin
-                c:=parameters[i].VChar;
-                lua_pushstring(L, c);
-              end;
-              system.vtExtended: lua_pushnumber(L, parameters[i].VExtended^);
-              system.vtString: lua_pushstring(L, pchar(parameters[i].VString));
-              system.vtPointer: lua_pushlightuserdata(L, parameters[i].VPointer);
-              system.vtPChar: lua_pushstring(L, parameters[i].VPChar);
-              system.vtObject: luaclass_newClass(L, parameters[i].VObject); //lua_pushlightuserdata(L, pointer(parameters[i].VObject));
-              system.vtClass: lua_pushlightuserdata(L, pointer(parameters[i].VClass));
-              system.vtWideChar, vtPWideChar, vtVariant, vtInterface,
-                vtWideString: lua_pushstring(L, rsCheatengineIsBeingAFag);
-              system.vtAnsiString: lua_pushstring(L, pchar(parameters[i].VAnsiString));
-              system.vtCurrency: lua_pushnumber(L, parameters[i].VCurrency^);
-              system.vtInt64:
-              begin
-                if (parameters[i].VInt64^<=$ffffffff) then
-                  lua_pushinteger(L, parameters[i].VInt64^)
-                else
-                  lua_pushlightuserdata(L, pointer(parameters[i].VInt64^));
-              end;
-              system.vtQWord:
-              begin
-                if (parameters[i].VQWord^<=$ffffffff) then
-                  lua_pushinteger(L, parameters[i].VQWord^)
-                else
-                  lua_pushlightuserdata(L, pointer(parameters[i].VQWord^));
-              end;
+          case parameters[i].VType of
+            system.vtInteger : lua_pushinteger(L, parameters[i].VInteger);
+            system.vtBoolean: lua_pushboolean(L, parameters[i].VBoolean);
+            system.vtChar:
+            begin
+              c:=parameters[i].VChar;
+              lua_pushstring(L, c);
             end;
-
+            system.vtExtended: lua_pushnumber(L, parameters[i].VExtended^);
+            system.vtString: lua_pushstring(L, pchar(parameters[i].VString));
+            system.vtPointer: lua_pushlightuserdata(L, parameters[i].VPointer);
+            system.vtPChar: lua_pushstring(L, parameters[i].VPChar);
+            system.vtObject: luaclass_newClass(L, parameters[i].VObject); //lua_pushlightuserdata(L, pointer(parameters[i].VObject));
+            system.vtClass: lua_pushlightuserdata(L, pointer(parameters[i].VClass));
+            system.vtWideChar, vtPWideChar, vtVariant, vtInterface,
+              vtWideString: lua_pushstring(L, rsCheatengineIsBeingAFag);
+            system.vtAnsiString: lua_pushstring(L, pchar(parameters[i].VAnsiString));
+            system.vtCurrency: lua_pushnumber(L, parameters[i].VCurrency^);
+            system.vtInt64:
+            begin
+              if (parameters[i].VInt64^<=$ffffffff) then
+                lua_pushinteger(L, parameters[i].VInt64^)
+              else
+                lua_pushlightuserdata(L, pointer(parameters[i].VInt64^));
+            end;
+            system.vtQWord:
+            begin
+              if (parameters[i].VQWord^<=$ffffffff) then
+                lua_pushinteger(L, parameters[i].VQWord^)
+              else
+                lua_pushlightuserdata(L, pointer(parameters[i].VQWord^));
+            end;
           end;
 
-         // OutputDebugString('Lua_functioncall: Calling lua_pcall');
-          lua_pcall(L, length(parameters), 1, 0);
-         // OutputDebugString('Lua_functioncall: returned from lua_pcall');
-          i:=lua_gettop(L);
-          if i>0 then //it has a parameter
-            result:=lua_tointeger(L, -1);
         end;
+        lua_pcall(L, length(parameters), 1, 0);
 
-
+        i:=lua_gettop(L);
+        if i>0 then //it has a parameter
+          result:=lua_tointeger(L, -1);
       end;
-
-
-    finally
-     // OutputDebugString('Lua_functioncall exit');
-      lua_settop(L, oldstack);
- //     luacs.leave;
     end;
-
+  finally
+    lua_settop(L, oldstack);
   end;
 end;
 
@@ -8519,6 +8487,11 @@ begin
   result:=1;
 end;
 
+function getABI(L: PLua_State): integer; cdecl;
+begin
+  lua_pushinteger(L, integer(processhandler.OSABI));
+  result:=1;
+end;
 
 
 function unregisterFormAddNotification(L: PLua_State): integer; cdecl;
@@ -10138,6 +10111,67 @@ begin
     unregisterStructureAndElementListCallback(lua_tointeger(L, 1));
 end;
 //----
+
+
+function lua_registerSpeedhackCallbacks(L: PLua_State): integer; cdecl;
+var
+  f: integer;
+  routine: string;
+  lc,lc2: tluacaller;
+begin
+  result:=0;
+  if lua_gettop(L)>=2 then
+  begin
+    if lua_isfunction(L, 1) then
+    begin
+      lua_pushvalue(L, 1);
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=f;
+    end
+    else
+    if lua_isstring(L,1) then
+    begin
+      routine:=lua_tostring(L,1);
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=routine;
+    end
+    else exit;
+
+    if lua_isfunction(L, 2) then
+    begin
+      lua_pushvalue(L, 2);
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      lc2:=TLuaCaller.create;
+      lc2.luaroutineIndex:=f;
+    end
+    else
+    if lua_isstring(L,2) then
+    begin
+      routine:=lua_tostring(L,2);
+      lc2:=TLuaCaller.create;
+      lc2.luaroutine:=routine;
+    end
+    else exit;
+
+    lua_pushinteger(L, registerSpeedhackCallbacks(lc.SpeedHackOnActivate, lc2.SpeedHackSetSpeedEvent));
+    result:=1;
+  end;
+
+end;
+
+function lua_unregisterSpeedhackCallbacks(L: PLua_State): integer; cdecl;
+var i: integer;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+  begin
+    i:=lua_tointeger(L,1);
+    unregisterSpeedhackCallbacks(i);
+  end;
+end;
 
 function lua_registerGlobalDisassembleOverride(L: PLua_State): integer; cdecl;
 var
@@ -15518,8 +15552,6 @@ begin
 
           try
             slist.AddSymbol('tcclib',sname,address,1);
-            symhandler.DeleteUserdefinedSymbol(sname);
-            symhandler.AddUserdefinedSymbol(inttohex(address,8),sname,true);
           except
           end;
           lua_pop(L,1);
@@ -16193,6 +16225,19 @@ begin
 
 end;
 
+function lua_syncSymbolsNow(L: Plua_State): integer;  cdecl;
+var retrieveOnly: boolean;
+begin
+  if lua_gettop(L)>=1 then
+    retrieveOnly:=lua_toboolean(L,1)
+  else
+    retrieveOnly:=false;
+
+
+  syncSymbolsNow(retrieveOnly);
+  result:=0;
+end;
+
 procedure InitLimitedLuastate(L: Plua_State);
 begin
   //don't put functioncallback events in here, as limited luastates can be destroyed
@@ -16206,6 +16251,8 @@ begin
   lua_register(L, 'targetIsX86', targetIsX86);
   lua_register(L, 'targetIsArm', targetIsArm);
   lua_register(L, 'targetIsAndroid', targetIsAndroid);
+
+  lua_register(L, 'getABI', getABI);
 
 
 
@@ -16347,6 +16394,10 @@ begin
   lua_register(L, 'invertColor',lua_InvertColor);
 
   lua_register(L, 'convertToUTF8',lua_convertToUTF8);
+
+
+  lua_register(L, 'syncSymbolsNow',lua_syncSymbolsNow);
+
 
   initializeLuaNetworkInterface(L);
 
@@ -16832,6 +16883,10 @@ begin
 
     lua_register(L, 'registerStructureAndElementListCallback', lua_registerStructureAndElementListCallback);
     lua_register(L, 'unregisterStructureAndElementListCallback', lua_unregisterStructureAndElementListCallback);
+
+
+    lua_register(L, 'registerSpeedhackCallbacks', lua_registerSpeedhackCallbacks);
+    lua_register(L, 'unregisterSpeedhackCallbacks', lua_unregisterSpeedhackCallbacks);
 
 
 

@@ -19,7 +19,9 @@ uses
      memscan,plugin, hotkeyhandler,frmProcessWatcherUnit, newkernelhandler,
      debuggertypedefinitions, commonTypeDefs, betterControls;
 
-const ceversion=7.5;
+const
+  ceversion=7.51;
+  strVersionPart='7.5.1';
 {$ifdef altname}  //i'd use $MACRO ON but fpc bugs out
   strCheatEngine='Runtime Modifier'; //if you change this, also change it in first.pas
   strCheatTable='Code Table';   //because it contains code.... duh.....
@@ -41,7 +43,8 @@ const ceversion=7.5;
 {$endif}
 
 resourcestring
-  cename = strCheatEngine+' 7.5';
+  cename = strCheatEngine;
+  cenamewithversion = strCheatEngine+' '+strVersionPart;
   rsCheatEngine = strCheatEngine;
   rsPleaseWait = 'Please Wait!';
 
@@ -54,10 +57,9 @@ const beta=''; //empty this for a release
 
 var
   CEnorm:string;
-  CERegion: string;
-  CESearch: string;
-  CERegionSearch: string;
-  CEWait: string;
+  CEVersionName: string;
+
+
 
 resourcestring
   strStart='Start';
@@ -119,7 +121,7 @@ implementation
 
 uses KernelDebugger,mainunit, DebugHelper, CustomTypeHandler, ProcessList, Globals,
      frmEditHistoryUnit, DBK32functions, frameHotkeyConfigUnit, UnexpectedExceptionsHelper,
-     TypInfo, StdCtrls;
+     TypInfo, StdCtrls, symbolsync;
 
 procedure UpdateToolsMenu;
 var i: integer;
@@ -171,6 +173,10 @@ begin
         with formsettings do
         begin
           LoadingSettingsFromRegistry:=true;
+
+          if reg.ValueExists('RunAsAdmin') then
+            cbAlwaysAttemptToLaunchAsAdmin.Checked:=reg.ReadBool('RunAsAdmin');
+
 
           if reg.ValueExists('Disable DarkMode Support') then
             cbDisableDarkModeSupport.checked:=reg.ReadBool('Disable DarkMode Support');
@@ -631,7 +637,7 @@ begin
 
 
           if reg.ValueExists('Center on popup') then
-            formsettings.cbCenterOnPopup.checked:=reg.readbool('Center on popup');
+            formsettings.frameHotkeyConfig.cbCenterOnPopup.checked:=reg.readbool('Center on popup');
 
           if reg.ValueExists('Update interval') then
             mainform.updatetimer.Interval:=reg.readInteger('Update interval');
@@ -801,7 +807,7 @@ begin
 
 
           if reg.ValueExists('Hide all windows') then
-            cbHideAllWindows.Checked:=reg.ReadBool('Hide all windows');
+            frameHotkeyConfig.cbHideAllWindows.Checked:=reg.ReadBool('Hide all windows');
 
           if reg.ValueExists('Really hide all windows') then
             temphideall:=reg.ReadBool('Really hide all windows');
@@ -820,6 +826,40 @@ begin
           Scan_MEM_PRIVATE:=cbMemPrivate.checked;
           Scan_MEM_IMAGE:=cbMemImage.Checked;
           Scan_MEM_MAPPED:=cbMemMapped.Checked;
+
+
+          if reg.ValueExists('SymbolSync') then
+            cbSynchronizeSymbols.checked:=reg.ReadBool('SymbolSync');
+
+          if reg.ValueExists('SymbolSync_ClearSymbolsOnNewProcess') then
+            cbClearSymbolsOnProcessOpen.Checked:=reg.readbool('SymbolSync_ClearSymbolsOnNewProcess');
+
+          if reg.ValueExists('SymbolSync_DontDeleteSymbols') then
+            cbDontDeleteSymbols.Checked:=reg.readbool('SymbolSync_DontDeleteSymbols');
+
+          if reg.ValueExists('SymbolSync_SynchronizePeriodically') then
+            cbSymbolSyncInterval.checked:=reg.ReadBool('SymbolSync_SynchronizePeriodically');
+
+          if reg.ValueExists('SymbolSync_SynchronizeInterval') then
+            symsync_Interval:=reg.ReadInteger('SymbolSync_SynchronizeInterval')
+          else
+            symsync_Interval:=10;
+
+          syncsymbols:=cbSynchronizeSymbols.checked;
+          symsync_ClearSymbolListWhenOpeningADifferentProcess:=cbClearSymbolsOnProcessOpen.checked;
+          symsync_DontDeleteSymbolsWhenSynchronizing:=cbDontDeleteSymbols.checked;
+
+          if cbSymbolSyncInterval.checked then
+          begin
+            if syncsymbols then
+              EnableSymbolSyncThread
+            else
+              DisableSymbolSyncThread;
+          end
+          else
+            DisableSymbolSyncThread;
+
+
 
           if reg.ValueExists('Can Step Kernelcode') then
             cbCanStepKernelcode.checked:=reg.ReadBool('Can Step Kernelcode');
@@ -1212,10 +1252,7 @@ begin
   Application.Title:=CENorm;
 
 
-  CERegion:=cenorm+' - '+rsPleaseWait;
-  CESearch:=CERegion;
-  CERegionSearch:= CERegion;
-  CEWait:= ceregion;
+
   {$ifdef darwin}
   {$ifdef CPUX86_64}
   if MacIsArm64 then

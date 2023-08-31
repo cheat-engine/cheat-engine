@@ -1,7 +1,7 @@
 object frmTrainerGenerator: TfrmTrainerGenerator
-  Left = 407
+  Left = 409
   Height = 412
-  Top = 224
+  Top = 227
   Width = 731
   AutoSize = True
   Caption = 'Trainer generator'

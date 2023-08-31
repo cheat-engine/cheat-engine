@@ -1,7 +1,7 @@
 object frmExeTrainerGenerator: TfrmExeTrainerGenerator
-  Left = 675
+  Left = 677
   Height = 273
-  Top = 243
+  Top = 246
   Width = 597
   AutoSize = True
   Caption = 'Exe Trainer Generator'

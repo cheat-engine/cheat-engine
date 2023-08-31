@@ -3,17 +3,20 @@ unit symbolsync;
 {$mode ObjFPC}{$H+}
 
 //xml format:
-//<process pid:int name: string>
-//  <symbol name: string address: integer donotsave: boolean size: integer></symbol>
-//  <symbol name: string address: integer donotsave: boolean size: integer></symbol>
-//  ....
-//  <symbollist name: string uniquename: string>
-//    <module name: string address: integer length: integer></module>
-//    <symbol name: string address: integer length: integer modulename: string></symbol>
-//    <symbol name: string address: integer length: integer></symbol>
-//    ...
-//  </symbollist>
-//</process>
+//<symbols>
+//  <process pid:int name: string>
+//    <symbol name: string address: integer donotsave: boolean size: integer></symbol>
+//    <symbol name: string address: integer donotsave: boolean size: integer></symbol>
+//    ....
+//    <symbollist name: string uniquename: string>
+//      <module name: string address: integer length: integer></module>
+//      <symbol name: string address: integer length: integer modulename: string></symbol>
+//      <symbol name: string address: integer length: integer></symbol>
+//      ...
+//    </symbollist>
+//  </process>
+//  ...
+//</symbols>
 
 
 interface
@@ -30,7 +33,7 @@ implementation
 
 uses LazFileUtils, ProcessHandlerUnit, FileUtil, Globals, mainunit2,
   symbolhandler, symbolhandlerstructs, SymbolListHandler, ProcessList,
-  maps, syncobjs;
+  maps, syncobjs, forms;
 
 type
   TSymbolSyncThread=class(TThread)
@@ -55,17 +58,29 @@ end;
 
 procedure TSymbolSyncThread.Execute;
 begin
-  Priority:=tpIdle;
-  while not terminated do
-  begin
-    if symsync_Interval=0 then
-      symsync_Interval:=1;
+  try
+    {$ifdef THREADNAMESUPPORT}
+    SetThreadDebugName(GetCurrentThreadId, 'Symbol synchronize thread');
+    {$endif}
+    Priority:=tpIdle;
+    while not terminated do
+    begin
+      if symsync_Interval=0 then
+        symsync_Interval:=1;
 
-    if canceled.WaitFor(symsync_Interval*1000)=wrSignaled then break;
-    if (lastsync=0) or (processid=0) then continue;
+      if canceled.WaitFor(symsync_Interval*1000)=wrSignaled then break;
+      if (lastsync=0) or (processid=0) then continue;
 
-    if SyncSymbols then
-      SyncSymbolsNow(false)
+      if SyncSymbols then
+      begin
+        if symhandler<>nil then
+          SyncSymbolsNow(false);
+      end;
+    end;
+  except
+    on e: exception do
+      if assigned(application.OnException) then
+        application.OnException(self, e);
   end;
 end;
 
@@ -240,8 +255,8 @@ var
   fs: TFilestream;
   trycount: integer;
 
-  d: TXMLDocument;
-  n: TDomElement;
+  d: TXMLDocument=nil;
+  n,symbolsyncnode, processnode: TDomElement;
   usedtempdir: string;
 
   HasBeenUpdatedSinceLastSync: boolean;
@@ -266,7 +281,7 @@ var
   symfileage: longint;
 
   updated: boolean;
-  madeChanges: boolean;
+  madeChanges: boolean=false;
 begin
 
   if (length(trim(tempdiralternative))>2) and dontusetempdir then
@@ -310,6 +325,8 @@ begin
     DeleteFileUTF8(symbolfilepath);
 
     d:=TXMLDocument.Create;
+    symbolsyncnode:=TDOMElement(d.CreateElement('symbolsync'));
+    d.AppendChild(symbolsyncnode);
   end;
 
   if retrieveonly then //only set when on openprocess
@@ -346,7 +363,12 @@ begin
     end;
 
     updated:=false;
-    nodelist:=d.GetChildNodes;
+    symbolsyncnode:=TDomElement(d.FindNode('symbolsync'));
+    if symbolsyncnode<>nil then
+      nodelist:=symbolsyncnode.ChildNodes
+    else
+      nodelist:=nil;
+
     i:=0;
     if nodelist<>nil then
     begin
@@ -373,13 +395,15 @@ begin
             if deleteEntry then
             begin
               nodelist[i].Free;
+              madeChanges:=true;
               continue;
             end
             else
             begin
               if pid=processid then
               begin
-                madeChanges:=SyncSymbolsFromNode(nodelist[i], HasBeenUpdatedSinceLastSync);
+                if SyncSymbolsFromNode(nodelist[i], HasBeenUpdatedSinceLastSync) then
+                  madeChanges:=true;
                 updated:=true;
               end;
             end;
@@ -398,10 +422,12 @@ begin
 
       if pidlookup.GetData(pid,t) then
       begin
-        n:=TDOMElement(d.AppendChild(d.CreateElement('process')));
-        n.SetAttribute('pid', processid.ToString);
-        n.SetAttribute('name', t);
-        madeChanges:=SyncSymbolsFromNode(n, false);
+        processnode:=TDOMElement(symbolsyncnode.AppendChild(d.CreateElement('process')));
+        processnode.AttribStrings['pid']:=processid.ToString;
+        processnode.AttribStrings['name']:=t;
+
+        if SyncSymbolsFromNode(processnode, false) then
+          madeChanges:=true;
       end;
     end;
 
@@ -419,6 +445,7 @@ begin
     end;
 
     lastsync:=FileAge(symbolfilepath);
+
 
   finally
     fs.Size:=0;
@@ -443,6 +470,9 @@ begin
       mi.free;
       pidlookup.Free;
     end;
+
+    if d<>nil then
+      freeandnil(d);
 
   end;
 

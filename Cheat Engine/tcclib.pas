@@ -222,8 +222,9 @@ type
 
 implementation
 
-uses forms,dialogs, StrUtils, Contnrs {$ifndef standalonetest}, symbolhandler, ProcessHandlerUnit,
-  newkernelhandler, CEFuncProc, sourcecodehandler, MainUnit, globals{$endif};
+uses forms,dialogs, StrUtils, Contnrs {$ifndef standalonetest}, symbolhandler,
+  ProcessHandlerUnit, newkernelhandler, CEFuncProc, sourcecodehandler, MainUnit,
+  globals{$endif};
 const
   TCC_RELOCATE_AUTO=pointer(1); //relocate
   TCC_OUTPUT_MEMORY  = 1; { output will be run in memory (default) }
@@ -1457,6 +1458,9 @@ begin
 
   if nodebug=false then
     params:='-g '+params;
+
+  if processhandler.isAndroid then
+    params:='-D ANDROID '+params;
 
 
   set_options(s,pchar(params));

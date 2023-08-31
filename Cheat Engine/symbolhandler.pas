@@ -231,7 +231,7 @@ type
     fshowsymbols: boolean;   ///
     fshowsections: boolean;   ///
 
-    UserdefinedSymbolCallback: TUserdefinedSymbolCallback;
+    UserdefinedSymbolCallback: TUserdefinedSymbolCallback; //warning: called from other threads
     searchpath: string;
 
     globalalloc: pointer; //if set it hold a pointer to the last free memory that was allocated.
@@ -364,6 +364,9 @@ type
     procedure setsearchpath(path:string);
 
     //userdefined symbols
+
+    function SyncSymbols(var symbols: TUserdefinedSymbolsList; var newsymbollists: TSymbolListHandlerArray; dontdelete: boolean; applychanges: boolean): boolean;
+
     function DeleteUserdefinedSymbol(symbolname:string):boolean;
     procedure DeleteAllUserdefinedSymbols;
     function GetUserdefinedSymbolByName(symbolname:string):ptrUint;
@@ -400,6 +403,10 @@ type
     function getMainSymbolList: TSymbolListHandler;
 
     function getLastModuleListUpdateTime: qword; //poll this when using async modulelist updates if you do wish to know when it finishes
+
+
+    procedure refreshGUI;
+
 
     procedure StopSymbolLoaderThread;
 
@@ -3699,10 +3706,213 @@ begin
 end;
 
 procedure TSymhandler.DeleteAllUserdefinedSymbols;
+var i: integer;
+ l: array of TSymbolListHandler;
 begin
   userdefinedsymbolsCS.enter;
   userdefinedsymbolspos:=0;
   userdefinedsymbolsCS.leave;
+
+  symbollistsMREW.Beginwrite;
+  setlength(l, length(symbollists));
+  for i:=0 to length(symbollists)-1 do
+    l[i]:=symbollists[i];
+
+  for i:=0 to length(l)-1 do
+  begin
+    l[i].unregisterList;
+    if l[i].refcount=0 then
+      l[i].free;
+  end;
+
+  setlength(symbollists,0);
+  symbollistsMREW.Endwrite;
+end;
+
+function TSymhandler.SyncSymbols(var symbols: TUserdefinedSymbolsList; var newsymbollists: TSymbolListHandlerArray; dontdelete: boolean; applychanges: boolean): boolean;
+var
+  i,j: integer;
+  updated: boolean=false;
+  found: boolean;
+
+  newe: TUserdefinedsymbol;
+  newsl: TSymbolListHandler;
+
+  deleteSymbollists, addSymbollists: Tlist;
+begin
+  result:=false;
+
+  //first userdefined symbols
+
+  userdefinedsymbolsCS.enter;
+  try
+
+    //add the missing entries to the symbols list (can also be used to just get the symbols themselves)
+    i:=0;
+    for i:=0 to userdefinedsymbolspos-1 do
+    begin
+      found:=false;
+      for j:=0 to length(symbols)-1 do
+      begin
+        if symbols[j].symbolname=userdefinedsymbols[i].symbolname then
+        begin
+          found:=true;
+          if symbols[j].address<>userdefinedsymbols[j].address then result:=true; //address changes
+          break;
+        end;
+      end;
+
+      if (not found) and dontdelete then
+      begin
+        setlength(symbols, length(symbols)+1);
+        symbols[length(symbols)-1]:=userdefinedsymbols[i];
+        result:=true;  //added a new entry to the xml file
+      end;
+    end;
+
+    //check for newly added symbols (just to notify the ui for changes)
+    for i:=0 to length(symbols)-1 do
+    begin
+      found:=false;
+      for j:=0 to userdefinedsymbolspos-1 do
+        if symbols[i].symbolname=userdefinedsymbols[i].symbolname then
+        begin
+          found:=true;
+          break;
+        end;
+
+      if not found then
+      begin
+        result:=true;
+        break;
+      end;
+    end;
+
+
+    if applychanges then
+    begin
+      if length(userdefinedsymbols)<length(symbols) then
+        setlength(userdefinedsymbols, length(symbols));
+
+      for i:=0 to length(symbols)-1 do
+        userdefinedsymbols[i]:=symbols[i];
+
+      userdefinedsymbolspos:=length(symbols);
+
+    end;
+  finally
+    userdefinedsymbolsCS.Leave;
+  end;
+
+  //now the symbollists
+  if applychanges then
+  begin
+    deleteSymbollists:=tlist.Create;
+    addSymbollists:=tlist.create;
+    symbollistsMREW.Beginwrite;
+
+  end
+  else
+    symbollistsMREW.Beginread;
+
+  try
+    i:=0;
+
+    //first check for entries that are not in the new list
+    for i:=0 to length(symbollists)-1 do
+    begin
+      found:=false;
+      for j:=0 to length(newsymbollists)-1 do
+      begin
+        if symbollists[i].internalname=newsymbollists[j].internalname then
+        begin
+          found:=true;
+          break;
+        end;
+      end;
+
+      if not found then
+      begin
+        result:=true;
+
+        if dontdelete then
+        begin
+          //copy the contents to newsl
+          newsl:=TSymbolListHandler.create(symbollists[i].name, symbollists[i].internalname);
+          newsl.PID:=symbollists[i].pid;
+          newsl.SyncSymbols(symbollists[i], false, true);
+
+          //and add it to the newsymbollists list (so it gets into the xml file)
+          setlength(newsymbollists, length(newsymbollists)+1);
+          newsymbollists[length(newsymbollists)-1]:=newsl;
+        end
+        else
+        begin
+          //delete it
+          if applychanges then
+            deleteSymbollists.Add(symbollists[i]);
+
+        end;
+      end;
+    end;
+
+
+    //create new entries in the symbollists list that matches newsymbollists if needed, and update existing ones
+    for i:=0 to length(newsymbollists)-1 do
+    begin
+      found:=false;
+      for j:=0 to length(symbollists)-1 do
+      begin
+        if symbollists[j].internalname=newsymbollists[i].internalname then  //found a match
+        begin
+          found:=true;
+          if symbollists[j].SyncSymbols(newsymbollists[i], dontdelete, applychanges) then //sync the list itself
+            result:=true;
+          break;
+        end;
+      end;
+
+      if not found then
+      begin
+        result:=true;  //change happened
+
+        if applychanges then //not yet in the list
+        begin
+          //create a new list owned by the symhandler (so refcount=0)
+          newsl:=TSymbolListHandler.create(newsymbollists[i].name, newsymbollists[i].internalname);
+          newsl.PID:=newsymbollists[i].pid;
+          newsl.SyncSymbols(newsymbollists[i], false, true);
+          newsl.refcount:=0;
+          AddSymbolLists.Add(newsl);
+        end;
+      end;
+    end;
+
+
+
+  finally
+    if applychanges then
+    begin
+      for i:=0 to deleteSymbollists.Count-1 do
+      begin
+        TSymbolListHandler(deleteSymbollists[i]).unregisterList;
+        if TSymbolListHandler(deleteSymbollists[i]).refcount<=0 then
+          TSymbolListHandler(deleteSymbollists[i]).Free;
+      end;
+
+      deleteSymbollists.free;
+
+      for i:=0 to addSymbollists.count-1 do
+        AddSymbolList(TSymbolListHandler(AddSymbolLists[i]));
+
+      addSymbollists.Free;
+
+
+      symbollistsMREW.Endwrite;
+    end
+    else
+      symbollistsMREW.Endread;
+  end;
 end;
 
 
@@ -6274,7 +6484,8 @@ begin
     symbollists[length(symbollists)-1]:=sl;
 
     if assigned(UserdefinedSymbolCallback) then
-      UserdefinedSymbolCallback(suSymbolList);
+      UserdefinedSymbolCallback(suSymbolList)
+
   finally
     symbollistsMREW.Endwrite;
   end;
@@ -6282,19 +6493,23 @@ end;
 
 procedure TSymhandler.RemoveSymbolList(sl: TSymbolListHandler);
 var i,j: integer;
+  found: boolean;
 begin
   symbollistsMREW.Beginwrite;
   try
+    found:=false;
     for i:=0 to length(symbollists)-1 do
       if symbollists[i]=sl then
       begin
+        found:=true;
         for j:=i to length(symbollists)-2 do
           symbollists[i]:=symbollists[i+1];
 
         setlength(symbollists, length(symbollists)-1);
       end;
 
-    if assigned(UserdefinedSymbolCallback) then
+
+    if assigned(UserdefinedSymbolCallback) and found then
       UserdefinedSymbolCallback(suSymbolList);
   finally
     symbollistsMREW.Endwrite;
@@ -6342,6 +6557,14 @@ begin
   end;
 end;
 
+procedure TSymhandler.refreshGUI;
+begin
+  if assigned(UserdefinedSymbolCallback) then
+  begin
+    UserdefinedSymbolCallback(suUserdefinedSymbol);
+    UserdefinedSymbolCallback(suSymbolList);
+  end;
+end;
 
 destructor TSymhandler.destroy;
 begin

@@ -1,7 +1,7 @@
 object frmStructures2: TfrmStructures2
-  Left = 494
+  Left = 496
   Height = 509
-  Top = 86
+  Top = 88
   Width = 585
   Caption = 'Structure dissect'
   ClientHeight = 489

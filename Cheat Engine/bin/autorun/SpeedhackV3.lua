@@ -1,7 +1,7 @@
 --Copyright Cheat Engine
 
 
-local function getOriginalCodeAndFiller(address)
+function getOriginalCodeAndFiller(address)
   local original,filler
 
   if type(address)~='number' then
@@ -37,61 +37,24 @@ local function getOriginalCodeAndFiller(address)
 end
 
 
-local function hookSpeedFunctions()
-  if speedhack and speedhack.processid==getOpenedProcessID() then    
+function hookSpeedFunctions()
+  --print("hookSpeedFunctions")
+  if getAddressSafe("new_gettickcount")~=nil and getAddressSafe("speedhack_wantedspeed")~=nil then
     return true
   end
-
+  
+  local r,r2=injectCEHelperLib()
+  
+  if not r then
+    messageDialog('error in injectCEHelperLib(): '..r2, mtError,mbOK)
+    return false
+  end
+  
   local result, data=autoAssemble([[
-    alloc(speedhack_wantedspeed,4)
-    registersymbol(speedhack_wantedspeed)
+    globalalloc(speedhack_wantedspeed,4)
     speedhack_wantedspeed:
     dd (float)1
 
-    alloc(cespinlock,32)
-    cespinlock:
-    lock bts [rcx],0 //on linux change to rdi
-    jc cespinlock_wait
-    ret
-    cespinlock_wait:
-    pause
-    jmp cespinlock
-
-{$c}
-
-    typedef struct _cecs
-    {
-      volatile int locked;
-      volatile int threadid;
-      volatile int lockcount;
-    } cecs, *Pcecs;
-
-    extern void cespinlock(int *lock);
-    extern int getCurrentThreadID();
-
-    void csenter(cecs *cs)
-    {
-      if ((cs->locked) && (cs->threadid==getCurrentThreadID()))
-      {
-        cs->lockcount++;
-        return;
-      }
-
-      cespinlock(&cs->locked);
-      cs->threadid=getCurrentThreadID();
-      cs->lockcount++;
-    }
-
-    void csleave(cecs *cs)
-    {
-      cs->lockcount--;
-      if (cs->lockcount==0)
-      {
-        cs->threadid=0;
-        cs->locked=0;
-      }
-
-    }
 
 {$asm}
 
@@ -135,7 +98,7 @@ label(gtchook_exit)
 #include <celib.h>
 
 
-uint64_t gtc_originalcode(void);
+__stdcall uint64_t gtc_originalcode(void);
 float gtc_speed=1.0f;
 uint64_t gtc_initialtime=0;
 uint64_t gtc_initialoffset=0;
@@ -145,14 +108,18 @@ extern float speedhack_wantedspeed;
 extern void csenter(cecs *cs);
 
 
-uint64_t new_gettickcount(void)
+__stdcall uint64_t new_gettickcount(void)
 {
   uint64_t newtime;
 
-  uint64_t currenttime=gtc_originalcode();
-  float wantedspeed=speedhack_wantedspeed; //small issue with tcc where you can not compare against extern directly
+  uint64_t currenttime;
+  float wantedspeed; //small issue with tcc where you can not compare against extern directly
 
   csenter(&gtc_cs);
+  
+  currenttime=gtc_originalcode();
+  
+  wantedspeed=speedhack_wantedspeed;
 
   if (gtc_initialtime==0)
   {
@@ -240,27 +207,35 @@ label(qpchook_exit)
 #include <stddef.h>
 #include <celib.h>
 
-int qpc_originalcode(uint64_t *count);
+__stdcall int  qpc_originalcode(uint64_t *count);
 float qpc_speed=1.0f;
 uint64_t qpc_initialtime=0;
 uint64_t qpc_initialoffset=0;
 cecs qpc_cs;
 
+uint64_t qpc_lastresult=0;
+
 extern float speedhack_wantedspeed;
 extern void csenter(cecs *cs);
 
 
-int new_RtlQueryPerformanceCounter(uint64_t *count)
+__stdcall int  new_RtlQueryPerformanceCounter(uint64_t *count)
 {
   uint64_t newtime;
 
   uint64_t currenttime;
+  uint64_t newwantedspeed;
+
+
+  float wantedspeed; //small issue with tcc where you can not compare against extern directly
+
+  csenter(&qpc_cs);
 
   int result=qpc_originalcode(&currenttime);
 
-  float wantedspeed=speedhack_wantedspeed; //small issue with tcc where you can not compare against extern directly
 
-  csenter(&qpc_cs);
+  
+  wantedspeed=speedhack_wantedspeed;
 
   if (qpc_initialtime==0)
   {
@@ -270,7 +245,7 @@ int new_RtlQueryPerformanceCounter(uint64_t *count)
 
   newtime=(currenttime-qpc_initialtime)*qpc_speed;
 
-  newtime+=qpc_initialoffset;
+  newtime=newtime+qpc_initialoffset;
   if (qpc_speed!=wantedspeed)
   {
     //the user wants to change the speed
@@ -278,8 +253,11 @@ int new_RtlQueryPerformanceCounter(uint64_t *count)
     qpc_initialtime=currenttime;
     qpc_speed=speedhack_wantedspeed;
   }
+  
 
-  csleave(&qpc_cs);
+
+  csleave(&qpc_cs); 
+  
 
   *count=newtime;
 
@@ -307,60 +285,44 @@ qpc_returnhere:
     local result2, data2=autoAssemble(s)
   end;
 
-  if result or result2 then
-    speedhack={}
-    speedhack.processid=getOpenedProcessID()
-  end
   return result or result2
 end
 
-local AlternateSpeedhackActive=false
-function activateAlternateSpeedhack(hooknow)
-  if AlternateSpeedhackActive then return false end
-  
 
-  MainForm.cbSpeedhack.OnChange=function(s)
-    if s.Checked then
-      --print("enabling speedhack")
-      local canEnable=(speedhack and speedhack.processid==getOpenedProcessID()) or hookSpeedFunctions()
 
-      if canEnable then        
-        MainForm.Panel14.Visible=true        
-      else
-        s.Checked=false
-      end
+registerSpeedhackCallbacks(function() --OnActivate
+  if (not isConnectedToCEServer()) and targetIsX86() then
+    local result, errormsg
+    
+    if getAddressSafe("new_gettickcount")==nil or getAddressSafe("speedhack_wantedspeed")==nil then
+      --still needs hooking
+      result,errormsg=hookSpeedFunctions()
     else
-      --print("disabling speedhack")
-      if speedhack and speedhack.processid==getOpenedProcessHandle() then
-        writeFloat("speedhack_wantedspeed", 1)
-      end
+      result=true
+    end
+        
+    return true, result, errormsg
+  else
+    return false
+  end
+end,
 
-      MainForm.Panel14.Visible=false
+function(speed) --OnSetSpeed(speed)
+  if (not isConnectedToCEServer()) and targetIsX86() then
+    local result, errormsg
+    if getAddressSafe("new_gettickcount")==nil or getAddressSafe("speedhack_wantedspeed")==nil then
+      print("not yet hooked yet")
+      result,errormsg=hookSpeedFunctions()
+      if not result then return true, false, errormsg end
     end
+
+    writeFloat("speedhack_wantedspeed", speed)
+    result=true      
+    
+    return true, true
+  else
+    return false
   end
-  
-  MainForm.btnSetSpeedhack2.OnClick=function(b)
-    if speedhack and speedhack.processid==getOpenedProcessID() then
-      writeFloat("speedhack_wantedspeed", tonumber(MainForm.editSH2.Text))
-    end
-  end  
-   
-  speedhack_setSpeed=function(newspeed)
-    hookSpeedFunctions()
-    writeFloat("speedhack_wantedspeed", tonumber(newspeed))  
-  end
-  
-  speedhack_getSpeed=function()
-    return readFloat("speedhack_wantedspeed")
-  end
-  
-  AlternateSpeedhackActive=true
-  
-  if hooknow then
-    if hookSpeedFunctions() then
-      MainForm.Panel14.Visible=true
-    end
-  end  
-  
-  return true
-end
+end)
+
+

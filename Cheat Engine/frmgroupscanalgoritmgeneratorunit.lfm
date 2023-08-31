@@ -1,7 +1,7 @@
 object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
-  Left = 555
+  Left = 557
   Height = 340
-  Top = 330
+  Top = 333
   Width = 473
   Caption = 'Generate groupscan command'
   ClientHeight = 340

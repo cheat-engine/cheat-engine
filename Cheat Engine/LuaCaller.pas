@@ -82,6 +82,9 @@ type
       function StructureListCallback(callbackid: integer; list: tstringlist; max: integer=-1):boolean;
       function ElementListCallback(moduleid: integer; typeid: integer; list: TStringlist): boolean;
 
+      function SpeedHackSetSpeedEvent(speed: single; out r: boolean; out error: string): boolean;
+      function SpeedHackOnActivate(out r: boolean; out error: string): boolean;
+
       procedure AssemblerEvent(address:qword; instruction: string; var bytes: TAssemblerBytes);
       procedure AutoAssemblerPrologueEvent(code: TStrings; syntaxcheckonly: boolean);
       procedure AutoAssemblerTemplateCallback(script: TStrings; sender: TObject);
@@ -1531,6 +1534,53 @@ begin
       end;
 
       result:=true;
+    end;
+  finally
+    lua_settop(Luavm, oldstack);
+  end;
+end;
+
+function TLuaCaller.SpeedHackSetSpeedEvent(speed: single; out r: boolean; out error: string): boolean;
+var oldstack: integer;
+begin
+  result:=false;
+  if Luavm=nil then exit;
+  oldstack:=lua_gettop(Luavm);
+  try
+    PushFunction;
+    lua_pushnumber(Luavm, speed);
+    if lua_pcall(Luavm, 1,3,0)=0 then
+    begin
+      result:=lua_toboolean(luavm,-3);
+      if result then
+      begin
+        r:=lua_toboolean(Luavm,-2);
+        if r=false then
+          error:=Lua_ToString(Luavm,-1);
+      end;
+    end;
+  finally
+    lua_settop(Luavm, oldstack);
+  end;
+end;
+
+function TLuaCaller.SpeedHackOnActivate(out r: boolean; out error: string): boolean;
+var oldstack: integer;
+begin
+  result:=false;
+  if Luavm=nil then exit;
+  oldstack:=lua_gettop(Luavm);
+  try
+    PushFunction;
+    if lua_pcall(Luavm, 0,3,0)=0 then
+    begin
+      result:=lua_toboolean(luavm,-3);
+      if result then
+      begin
+        r:=lua_toboolean(Luavm,-2);
+        if r=false then
+          error:=Lua_ToString(Luavm,-1);
+      end;
     end;
   finally
     lua_settop(Luavm, oldstack);

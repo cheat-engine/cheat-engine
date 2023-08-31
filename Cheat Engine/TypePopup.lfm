@@ -1,7 +1,7 @@
 object TypeForm: TTypeForm
-  Left = 429
+  Left = 431
   Height = 118
-  Top = 709
+  Top = 711
   Width = 764
   AutoSize = True
   BorderIcons = [biSystemMenu]
@@ -12,7 +12,7 @@ object TypeForm: TTypeForm
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.0.6.0'
+  LCLVersion = '2.2.2.0'
   object Panel1: TPanel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
