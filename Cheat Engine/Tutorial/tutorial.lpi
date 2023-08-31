@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="11"/>
+    <Version Value="12"/>
     <PathDelim Value="\"/>
     <General>
-      <MainUnit Value="0"/>
+      <Flags>
+        <CompatibilityMode Value="True"/>
+      </Flags>
       <UseXPManifest Value="True"/>
       <XPManifest>
         <DpiAware Value="True"/>
@@ -110,7 +112,13 @@
               <ShowHints Value="False"/>
             </Verbosity>
             <CustomOptions Value="-dbc_skipsynedit
--dskip_mainunit2"/>
+-dskip_mainunit2
+-dbc_skipvirtualstringtree"/>
+            <OtherDefines Count="3">
+              <Define0 Value="bc_skipsynedit"/>
+              <Define1 Value="skip_mainunit2"/>
+              <Define2 Value="bc_skipvirtualstringtree"/>
+            </OtherDefines>
           </Other>
         </CompilerOptions>
       </Item3>
@@ -158,7 +166,13 @@
               <ShowHints Value="False"/>
             </Verbosity>
             <CustomOptions Value="-dbc_skipsynedit
--dskip_mainunit2"/>
+-dskip_mainunit2
+-dbc_skipvirtualstringtree"/>
+            <OtherDefines Count="3">
+              <Define0 Value="bc_skipsynedit"/>
+              <Define1 Value="skip_mainunit2"/>
+              <Define2 Value="bc_skipvirtualstringtree"/>
+            </OtherDefines>
           </Other>
         </CompilerOptions>
       </Item4>
@@ -167,11 +181,14 @@
       <Version Value="2"/>
     </PublishOptions>
     <RunParams>
+      <local>
+        <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T &apos;Lazarus Run Output&apos; -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+      </local>
       <FormatVersion Value="2"/>
       <Modes Count="1">
         <Mode0 Name="default">
           <local>
-            <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+            <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T &apos;Lazarus Run Output&apos; -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
           </local>
         </Mode0>
       </Modes>
@@ -181,13 +198,13 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="40">
+    <Units Count="41">
       <Unit0>
         <Filename Value="tutorial.lpr"/>
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="4"/>
-        <CursorPos Y="28"/>
+        <CursorPos Y="29"/>
         <UsageCount Value="73"/>
         <Loaded Value="True"/>
       </Unit0>
@@ -489,10 +506,12 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmHelpUnit"/>
-        <EditorIndex Value="-1"/>
+        <EditorIndex Value="21"/>
         <TopLine Value="56"/>
         <CursorPos X="53" Y="65"/>
         <UsageCount Value="31"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
       </Unit32>
       <Unit33>
         <Filename Value="C:\lazarus200\lcl\controls.pp"/>
@@ -525,8 +544,8 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="betterControls"/>
         <EditorIndex Value="11"/>
-        <TopLine Value="84"/>
-        <CursorPos X="68" Y="101"/>
+        <TopLine Value="34"/>
+        <CursorPos X="11" Y="58"/>
         <UsageCount Value="22"/>
         <Loaded Value="True"/>
       </Unit36>
@@ -555,116 +574,139 @@
         <UsageCount Value="10"/>
         <Loaded Value="True"/>
       </Unit39>
+      <Unit40>
+        <Filename Value="..\betterControls\newvirtualstringtree.pas"/>
+        <EditorIndex Value="22"/>
+        <CursorPos X="32" Y="8"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit40>
     </Units>
-    <JumpHistory Count="27" HistoryIndex="26">
+    <OtherDefines Count="3">
+      <Define0 Value="bc_skipsynedit"/>
+      <Define1 Value="skip_mainunit2"/>
+      <Define2 Value="bc_skipvirtualstringtree"/>
+    </OtherDefines>
+    <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="Unit1.pas"/>
-        <Caret Line="46" Column="58"/>
-      </Position1>
-      <Position2>
         <Filename Value="cetranslator.pas"/>
         <Caret Line="2"/>
+      </Position1>
+      <Position2>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="48" Column="136" TopLine="34"/>
       </Position2>
       <Position3>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="48" Column="136" TopLine="34"/>
+        <Caret Line="50" Column="24" TopLine="34"/>
       </Position3>
       <Position4>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="50" Column="24" TopLine="34"/>
+        <Caret Line="55" Column="105" TopLine="34"/>
       </Position4>
       <Position5>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="55" Column="105" TopLine="34"/>
+        <Caret Line="118" Column="35" TopLine="105"/>
       </Position5>
       <Position6>
-        <Filename Value="Unit1.pas"/>
-        <Caret Line="118" Column="35" TopLine="105"/>
+        <Filename Value="Unit2.pas"/>
+        <Caret Line="54" Column="49" TopLine="40"/>
       </Position6>
       <Position7>
-        <Filename Value="Unit2.pas"/>
-        <Caret Line="54" Column="49" TopLine="40"/>
-      </Position7>
-      <Position8>
         <Filename Value="Unit1.pas"/>
         <Caret Line="46" Column="31" TopLine="19"/>
-      </Position8>
-      <Position9>
+      </Position7>
+      <Position8>
         <Filename Value="Unit2.pas"/>
         <Caret Line="54" Column="49" TopLine="40"/>
-      </Position9>
-      <Position10>
+      </Position8>
+      <Position9>
         <Filename Value="Unit3.pas"/>
         <Caret Line="69" Column="22" TopLine="31"/>
-      </Position10>
-      <Position11>
+      </Position9>
+      <Position10>
         <Filename Value="Unit1.pas"/>
         <Caret Line="14" Column="27"/>
-      </Position11>
-      <Position12>
+      </Position10>
+      <Position11>
         <Filename Value="..\betterControls\bettercontrols.pas"/>
         <Caret Line="104" Column="37" TopLine="91"/>
-      </Position12>
-      <Position13>
+      </Position11>
+      <Position12>
         <Filename Value="Unit1.pas"/>
         <Caret Line="40" Column="82" TopLine="33"/>
-      </Position13>
-      <Position14>
+      </Position12>
+      <Position13>
         <Filename Value="cetranslator.pas"/>
         <Caret Line="78" Column="58" TopLine="64"/>
+      </Position13>
+      <Position14>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="48" Column="67" TopLine="39"/>
       </Position14>
       <Position15>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="48" Column="67" TopLine="39"/>
+        <Caret Line="47" Column="22" TopLine="39"/>
       </Position15>
       <Position16>
-        <Filename Value="Unit1.pas"/>
-        <Caret Line="47" Column="22" TopLine="39"/>
-      </Position16>
-      <Position17>
         <Filename Value="Unit10.pas"/>
         <Caret Line="308" Column="32"/>
+      </Position16>
+      <Position17>
+        <Filename Value="Unit4.pas"/>
+        <Caret Line="37" TopLine="22"/>
       </Position17>
       <Position18>
         <Filename Value="Unit4.pas"/>
-        <Caret Line="37" TopLine="22"/>
+        <Caret Line="54" Column="19" TopLine="16"/>
       </Position18>
       <Position19>
-        <Filename Value="Unit4.pas"/>
-        <Caret Line="54" Column="19" TopLine="16"/>
-      </Position19>
-      <Position20>
         <Filename Value="cetranslator.pas"/>
         <Caret Line="65" Column="16" TopLine="58"/>
-      </Position20>
-      <Position21>
+      </Position19>
+      <Position20>
         <Filename Value="Unit10.pas"/>
         <Caret Line="78" Column="38" TopLine="72"/>
-      </Position21>
-      <Position22>
+      </Position20>
+      <Position21>
         <Filename Value="Unit9.pas"/>
         <Caret Line="89" Column="46" TopLine="75"/>
-      </Position22>
-      <Position23>
+      </Position21>
+      <Position22>
         <Filename Value="Unit8.pas"/>
         <Caret Line="36" Column="45" TopLine="12"/>
-      </Position23>
-      <Position24>
+      </Position22>
+      <Position23>
         <Filename Value="Unit7.pas"/>
         <Caret Line="40" Column="45" TopLine="33"/>
-      </Position24>
-      <Position25>
+      </Position23>
+      <Position24>
         <Filename Value="Unit6.pas"/>
         <Caret Line="36" Column="45" TopLine="25"/>
+      </Position24>
+      <Position25>
+        <Filename Value="cetranslator.pas"/>
+        <Caret Line="83" Column="71" TopLine="67"/>
       </Position25>
       <Position26>
         <Filename Value="cetranslator.pas"/>
-        <Caret Line="83" Column="71" TopLine="67"/>
+        <Caret Line="93" Column="37" TopLine="79"/>
       </Position26>
       <Position27>
-        <Filename Value="cetranslator.pas"/>
-        <Caret Line="93" Column="37" TopLine="79"/>
+        <Filename Value="frmhelpunit.pas"/>
+        <Caret Line="65" Column="53" TopLine="56"/>
       </Position27>
+      <Position28>
+        <Filename Value="..\betterControls\newvirtualstringtree.pas"/>
+        <Caret Line="8" Column="32"/>
+      </Position28>
+      <Position29>
+        <Filename Value="..\betterControls\bettercontrols.pas"/>
+      </Position29>
+      <Position30>
+        <Filename Value="..\betterControls\bettercontrols.pas"/>
+        <Caret Line="58" Column="11" TopLine="34"/>
+      </Position30>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

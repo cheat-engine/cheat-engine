@@ -764,6 +764,15 @@ begin
 
   Open_Process;
 
+  if ProcessHandle=0 then
+  begin
+    if not runningAsAdmin then
+    begin
+      showmessage('error='+le.ToString);
+      raise exception.Create('Failed opening process. Likely due to lack of admin rights');
+    end;
+  end;
+
   ProcessSelected:=true;
 
   {$ifdef windows}
@@ -789,27 +798,33 @@ end;
 procedure TProcessWindow.OKButtonClick(Sender: TObject);
 var ProcessIDString: String; 
 begin
-  Outputdebugstring('OK button click');
-  if Processlist.ItemIndex>-1 then
-  begin
-    unpause;
-    DetachIfPossible;
+  try
+    Outputdebugstring('OK button click');
+    if Processlist.ItemIndex>-1 then
+    begin
+      unpause;
+      DetachIfPossible;
 
-    ProcessIDString:=copy(ProcessList.Items[Processlist.ItemIndex], 1, pos('-',ProcessList.Items[Processlist.ItemIndex])-1);
+      ProcessIDString:=copy(ProcessList.Items[Processlist.ItemIndex], 1, pos('-',ProcessList.Items[Processlist.ItemIndex])-1);
 
-    Outputdebugstring('calling PWOD');
-    PWOP(ProcessIDString);
+      Outputdebugstring('calling PWOD');
+      PWOP(ProcessIDString);
 
 
 
-    if TabHeader.TabIndex=0 then
-      MainForm.ProcessLabel.caption:=ProcessIDString+'-'+extractfilename(getProcessPathFromProcessID(processid))
-    else
-      MainForm.ProcessLabel.caption:=ProcessList.Items[Processlist.ItemIndex];
-    Modalresult:=MROK;
-    //ProcessWindow.close;
+      if TabHeader.TabIndex=0 then
+        MainForm.ProcessLabel.caption:=ProcessIDString+'-'+extractfilename(getProcessPathFromProcessID(processid))
+      else
+        MainForm.ProcessLabel.caption:=ProcessList.Items[Processlist.ItemIndex];
+      Modalresult:=MROK;
+      //ProcessWindow.close;
+    end;
+
+
+  except
+    on e: exception do
+      MessageDlg(e.Message,mtError,[mbok],0);
   end;
-
   //outputdebugstring('After ok click handler');
 end;
 

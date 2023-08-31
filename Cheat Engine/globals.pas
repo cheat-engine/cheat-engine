@@ -198,6 +198,11 @@ var
   runningAsAdmin: boolean;
   askAboutRunningAsAdmin: boolean;
 
+  SyncSymbols: boolean;
+  symsync_ClearSymbolListWhenOpeningADifferentProcess: boolean;
+  symsync_DontDeleteSymbolsWhenSynchronizing: boolean;
+  symsync_Interval: integer;
+
 implementation
 
 

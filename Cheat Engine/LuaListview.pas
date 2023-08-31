@@ -11,7 +11,7 @@ procedure initializeLuaListview;
 
 implementation
 
-uses luaclass, luahandler, LuaWinControl, ceguicomponents;
+uses LCLType, luaclass, luahandler, LuaWinControl, ceguicomponents;
 
 function createListView(L: Plua_State): integer; cdecl;
 var
@@ -172,8 +172,14 @@ var
   listview: TCustomListView;
 begin
   listview:=luaclass_getClassObject(L);
-  luaclass_newClass(L, Listview.TopItem);
-  result:=1;
+  if (listview.handle<>0) and (listview.handle<>HWND(-1)) then
+  begin
+    luaclass_newClass(L, Listview.TopItem);
+    result:=1;
+  end
+  else
+    result:=0;
+
 end;
 
 function listview_getVisibleRowCount(L: PLua_State): integer; cdecl;

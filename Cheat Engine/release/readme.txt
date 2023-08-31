@@ -1,144 +1,31 @@
 Additions and changes:
 
-from 7.4.3 to 7.5:
-  removed the driver requirement for the access memory regions tool
-  added 1 byte jmp instructions (that will install an exception handler and place an int3 at the location)
-  added a scanoption so you can skip unpaged memory. (should prevent targets from eating up RAM when scanned)
-  reassemble() now rewrites an instruction using multiple lines when needed 
-  make some error messages more descriptive
-  added an option to center the highlighted disassembler code to the center
-  added an explanation why the driver won't load and a link with info on how to get it to load for now
-  memoryrecord hotkeys can now be disabled individually
-  codefilter: unwind info now gives less bad results
-  added support for pseudo-ops like cmpss/sd/ps/pd
-  lua: added ceserver commands
-  lua: show a stacktrace on execution error
-  lua: added convertToUTF8(stringbytetable, regioncode)
-  made loading CT files with signatures possible under wine and proton
-  
-
-from 7.4.2-7.4.3:
-  ceserver: pipe support (mono data dissector)
-  ceserver: added change memory protection capability
-  ceserver: Available options can now be sent to the CE GUI
-  .netinfo: Replaced the fields view with a tree
-  network config: The processlist now has focus after opening a server
-  lua: added virtualstringtree
-  lua: added invertColor
-  lua: added disassembleBytes(bytestring)
-  autoassembler: now a visual warning is shown when nearby allocation fails
-  autoassembler: the templates now generate 14 byte jmp safe original code blocks as well
-  pointerscan now has a deviation option for "pointer must end with offset" to help find pointers back after update
-  ultimap: added copy selected results to clipboard
+from 7.5 to 7.5.1:
+No more version numbering in the main caption. Only the about screen now has it
+can run without admin and asks for admin if needed (you can set to run as admin in settings as well)
+better error reporting (Especially if using the debugsymbol version)
+symbol synchronization.  Symbols are shared between CE instances and remembered when reopening CE
+Speedhack v3 now replaces the old speedhack in windows. No more speedhack dll's to inject (more dll's to follow in the future)
+byteTableToxxx now support an start index
+autoassembler command AOBSCANEX - Scan only executable memory
+c compiler: added __stdcall define
+c compiler: windows: auto assembler can deal with stdcall mangled symbols names, and c compiler can deal with unmangled symbols when stdcall is used
+c compiler: header files are used as table files. And tablefiles can have any name now
+added Java info similar to .net/mono info
+improved the .net info classlist performance (especially noticable in ceserver)
+ctrl+space on selected bytes in hexview will make the disassembler go there
+bunch of mono info improvements
+lua: treenode.Index is now writable
+redesigned the internals of structure dissect. Expect many new bugs there, please report! (I already know a few of them, but just waiting to get a report on them before fixing ;-) )
 
 
-from 7.4.1-7.4.2:
-  ipt: Added intel process trace feature provided by microsoft.
-  ceserver: Improve the modulelist fetch speed, more stable
-  ceserver: option to disconnect from closed ceservers
-  ceserver: the discovery list is now also a history list
-  ceserver: implement injection on arm64 as well
-  ceserver: also gets the fpu registers now
-  assembler x86_64: prefer mov rax,[rip+xxx] over mov rax,[imm64] 
-  disasembler x86_64: switch from r#l to r#b because why not
-  mono: the dll now has a versioncheck so that you don't accidentally mix monodatacollector dll's
-  mono: deal with situations where there is no mainform
-  mono/.net: the methodlist is now sorted by name
-  better arm disassembler and assembler
-  better arm64 disassembler and assembler  
-  the scanregions can be saved/loaded upon close/start ce (seperate option in settings)
-  added an option to skip loading .PDB files
-  a lot more functions are exposed to newstate threads
-  added ranges scans to groupscan
-  freeze+allow increase/decrease now also looks if the value is signed
-  trainers: Forms and controls now scale based on DPI
-  changing record showassigned/showashex now also applies to other selected entries
-  texttraces now don't save as .cetrace but as .txt now
-  ccode: #include now searches table files for files there as well
-  ccode: the internal symbolhandler can now deal with stdcalled function symbols
-  lua: added ImageIndex property to TTreeNode
-  lua: added OnValuechanged and OnValueChangedByUser callbacks to MemoryRecord objects
-  lua: added getOpenedFileSize()
-  lua: added onHelpEvent callback
-  lua: added releaseDebugFiles()
-  lua: added enumRegisteredSymbolLists() and enumRegisteredSymbols()
-  lua: added getBitmap method to ImageList objects
-
-  
-
-from 7.4-7.4.1:
-  added .Visible property to treenode entries
-  added .VisibleRowCount and .TopItem to listviews
-  added arm64 disassembling and assembling
-  added lua function "runCommand"
-  added a radiobutton to select if the generated script will use 5 or 14 byte jmps.
-  conditional jumps can now deal 2gb+ destinations (will get rewritten)
-  dotnetinfo: Performance improvement
-  memory record hotkeys now have a "Only while down" option
-  Updated the dbghelp to a more recent version which can better handle nowadys pdb symbols
-  different memory allocations now get placed within the initial allocation block. Protection is changed afterwards
-  tracer can now step over rep instructions
-  lua stringstream now inherits from memorystream, so you have access to the Memory field
-  lua: Added a callback for whenever the structure list is modified
-  added architecture distinguishing to ceserver
-  pressing escape in the hotkey form will now close it
-  added nested structure support
-  added string based custom types
-  ctrl+enter in the disassembler now shows relative addresses from that point
-  the diffcount in "find out what accessess/writes" will now stay even when disabling the option to find the number of different addresses an instruction accesses
 
 Fixes:
-from 7.4.3 to 7.5:
-  vehdebug: Fixed a case where a new thread creation or other event would cause another event that would trigger at exactly the same time to get the exception ignored and just continued
-  monodatacollector: fixed invoke method
-  dotnetdatacollector: Fixed issue of loading a wrong version of dbgshim.dll
-  fixed disassembling cvtdq2pd
-
-
-from 7.4.2-7.4.3:
-  ceserver: Fixed extension loading in some cases
-  ceserver: fixed stepping on x86 targets
-  fixed the name showing as [physical memory] instead of the filename when opening a file
-  fixed a rare error when scanning using specific options
-  fixed some documentation in celua at some points
-  fixed stackview in "more info" being garbage/access violation
-  fixed tracer search for instructions ending with ]
-  fixed enumExports lua function
-  fixed issue where vehdebug would crash
-  fixed the assembler from handing [rex+reg*x] as a symbol when debugging
-  fixed the disassembler backlist
-  fixed termination issue on the memscan object
-
-from 7.4.1-7.4.2:
-  Fixed the tracer search for instructions ending with a ]
-  VEH debug: Fixed the potential of invalid handles being used
-  Kernelmode debug anmd VEH debug: Fixed setting context on non suspended threads
-  fixed the lua_pcallk delegate in the c# plugin example
-  fixed speedhack on wine 7.0
-  fixed high dpi issue of structure dissect on first view
-  fixed high dpi issue on find what access/writes dialogs
-  restored the anchor editor (was gone in 7.4.1)
-  fixed .net info instance lookup issue
-  fixed customtypes getting marked as string (bug introduced in 7.4.1)
-  fixed runcommand
-  fixed modalforms from losing their text color internally (bug introduced in 7.4.1)
-  mac: fixed some progressbars not properly updating
-
-from 7.4-7.4.1:
-
-  fixed the all type not finding 4 types when double was deselected
-  fixed the "all" type when not using double
-  fixed ccode esp access in 32-bit and "reg"f types
-  fixed disassembling when using binutils for disassembly
-  fixed the tablefiles menulist eating memory because they didn't get deleted properly
-  fixed .net issues that use obfoscated modules and missing metadata
-  fixed paring value starting with a - or +
-  fixed assembling pmovmskb
-  fixed disassembling vgather* vex256 instructions and allow usage of xmm/ymm registers as address (for instructions that allow it. Like this one)
-  fixed the addresslist not giving a proper error when using multiple enable or disable section
-  fixed error when using ctrl for speedhack hotkeys
-  fixed the groupscan command parser from assigning wildcard to the wrong combobox
-  fixed disassembling xchg eax/rax,xxx
-  fixed lua custom type registering as float when using the non lua function method
-  fixed small memoryscan issue for data at the end of a memoryblock
-  ccode doesn't register useless symbols anymore
+from 7.5 to 7.5.1:
+Loooots of fixes in ceserver from symbollookup to debugging, pipes, basic initialization going wrong, etc...
+fixed symbol to address lookup picking an old version of a same named symbol instead of later (was an issue with symbollists, like ccode)
+fixed an error with .net/mono info giving an error when looking at a string
+fixed disassembling of some vector instructions
+fixed VEX instructions not working in 32-bit targets
+fixed the translation files not being up to date in the installer
+dissectcode high dpi fix

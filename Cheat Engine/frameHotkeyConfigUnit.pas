@@ -21,6 +21,9 @@ type
   { TframeHotkeyConfig }
 
   TframeHotkeyConfig = class(TFrame)
+    btnExcludeProcesses: TButton;
+    cbCenterOnPopup: TCheckBox;
+    cbHideAllWindows: TCheckBox;
     cbStopOnRelease: TCheckBox;
     fhcImageList: TImageList;
     MenuItem1: TMenuItem;
@@ -43,6 +46,7 @@ type
     Label4: TLabel;
     Label5: TLabel;
     PopupMenu1: TPopupMenu;
+    procedure btnExcludeProcessesClick(Sender: TObject);
     procedure Edit1MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure edtSHSpeedChange(Sender: TObject);
@@ -74,6 +78,8 @@ type
   end;
 
 implementation
+
+uses frmExcludeHideUnit;
 
 
 procedure TFrameHotkeyConfig.UpdateSpeed;
@@ -219,6 +225,18 @@ begin
 
   if key<>0 then
     Edit1KeyDown(edit1, key, shift);
+  {$endif}
+end;
+
+procedure TframeHotkeyConfig.btnExcludeProcessesClick(Sender: TObject);
+begin
+  {$ifndef net}
+
+  with tfrmExcludeHide.create(self) do
+  begin
+    showmodal;
+    free;
+  end;
   {$endif}
 end;
 

@@ -3156,7 +3156,7 @@ var le: integer;
 begin
   outputdebugstring('DBK32Initialize');
 
-  if not requiresAdmin then exit;
+  if not requiresAdmin('DBK driver') then exit;
 
   try
     if hdevice=INVALID_HANDLE_VALUE then
