@@ -2467,7 +2467,7 @@ void CPipeServer::InvokeMethod(void)
 			WriteQword(*(UINT64*)mono_object_unbox(result));
 			break;
 		case MONO_TYPE_VALUETYPE:
-			WriteQword((UINT64)mono_object_unbox(result));
+			WriteQword((UINT64)result);
 			break;
 			/*case MONO_TYPE_PTR:
 			case MONO_TYPE_BYREF:
