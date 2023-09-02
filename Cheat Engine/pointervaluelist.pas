@@ -1065,9 +1065,10 @@ var bytepointer: PByte;
 
     regionfile: TFilestream;
     prangelist: TPRangeDynArray;
-
+    {$ifdef windows}
     wsisize: dword;
     wsi: PPSAPI_WORKING_SET_INFORMATION;
+    {$endif}
 begin
   LUA_functioncall('onPointerMapGenerationStart', [self]);
 

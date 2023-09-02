@@ -7,18 +7,19 @@ interface
 uses
   {$ifdef darwin}
     LResources, LCLIntf, LCLProc, MacOSAll,MacOSXPosix, LMessages, Classes, Forms, Controls, Messages,
-  ComCtrls, stdctrls,sysutils, graphics,menus, dialogs, extctrls, math, buttons,
+  ComCtrls, stdctrls,sysutils,    graphics,menus, dialogs, extctrls, math, buttons,
   ImgList, ActnList, registry, Clipbrd, NewKernelHandler, Assemblerunit,
   symbolhandler,autoassembler, addresslist, CustomTypeHandler, MemoryRecordUnit,memscan,
   SaveFirstScan, foundlisthelper, disassembler, tablist, simpleaobscanner,frmSelectionlistunit,
   lua, LuaHandler, lauxlib, lualib,CEDebugger,debughelper ,speedhack2, groupscancommandparser,
   frmautoinjectunit, commonTypeDefs, unrandomizer,savedscanhandler,luafile,hotkeyhandler,
-  genericHotkey,LazLogger,lcltype,FrmMemoryRecordDropdownSettingsUnit,
+  genericHotkey,LazLogger,lcltype,syncobjs, SyncObjs2,FrmMemoryRecordDropdownSettingsUnit,
   ceguicomponents,formdesignerunit,xmlutils,vartypestrings,plugin,byteinterpreter,
   MenuItemExtra,frmgroupscanalgoritmgeneratorunit
 
   , macport,LCLVersion, UTF8Process, macportdefines, fgl, networkInterfaceApi,
   networkInterface,
+
   betterControls;     //last one
   {$endif}
 
@@ -3756,12 +3757,14 @@ end;
 
 procedure TMainForm.miClearWorkingSetClick(Sender: TObject);
 begin
+  {$ifdef windows}
   if assigned(EmptyWorkingSet) then
   begin
     if messagedlg(rsClearingMeansSlowness, mtInformation, [mbyes, mbno], 0)=
       mryes then
       EmptyWorkingSet(processhandle);
   end;
+  {$endif}
 end;
 
 procedure TMainForm.miTutorial64Click(Sender: TObject);

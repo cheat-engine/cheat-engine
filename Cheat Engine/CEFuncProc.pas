@@ -3892,6 +3892,7 @@ procedure TRequireAdminDialog.showDialog;
 var i: integer;
 begin
   result:=false;
+  {$ifdef windows}
   for i:=1 to ParamCount do
     if ParamStr(i)='relaunchAsAdmin' then exit; //weird, but should prevent infinite loops in case this happens
 
@@ -3918,6 +3919,7 @@ begin
     end;
 
   end;
+  {$endif}
 end;
 
 function requiresAdmin(featurename: string=''): boolean;
@@ -3947,6 +3949,7 @@ initialization
   StackStartCacheCS:=TCriticalSection.Create;
 
   askAboutRunningAsAdmin:=false;
+  {$ifdef windows}
   runningAsAdmin:=IsWindowsAdmin;
   if runningAsAdmin then
   begin
@@ -3956,6 +3959,7 @@ initialization
     else
       CloseServiceHandle(h);
   end;
+  {$endif}
 
   if not assigned(OpenProcess) then
   begin

@@ -9,7 +9,7 @@
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <AutoCreateForms Value="False"/>
-      <Title Value="Cheat Engine"/>
+      <Title Value="Cheat Engine 7.5"/>
       <UseXPManifest Value="True"/>
       <XPManifest>
         <DpiAware Value="True"/>
@@ -27,8 +27,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="7"/>
       <MinorVersionNr Value="5"/>
-      <RevisionNr Value="1"/>
-      <BuildNr Value="7653"/>
+      <BuildNr Value="7587"/>
       <Language Value="041C"/>
       <CharSet Value="04B0"/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.5"/>
@@ -211,7 +210,7 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir);$(LazarusDir)\ide\include\$(TargetOS);$(LazarusDir)\images;$(LazarusDir)\ideintf\images"/>
-            <OtherUnitFiles Value="VEHDebug;dbk32;luamac;jvdesign;$(LazarusDir)\designer;$(LazarusDir)\ide;betterControls"/>
+            <OtherUnitFiles Value="VEHDebug;dbk32;luamac;macsrc;jvdesign;$(LazarusDir)\designer;$(LazarusDir)\ide;betterControls"/>
             <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <Parsing>
@@ -825,7 +824,7 @@
         <PackageName Value="LCL"/>
       </Item9>
     </RequiredPackages>
-    <Units Count="423">
+    <Units Count="422">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -3052,10 +3051,6 @@
         <Filename Value="libcepack.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit421>
-      <Unit422>
-        <Filename Value="symbolsync.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit422>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
