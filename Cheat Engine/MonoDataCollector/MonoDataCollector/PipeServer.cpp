@@ -2357,17 +2357,15 @@ void CPipeServer::InvokeMethod(void)
 			break;
 		case MONO_TYPE_R4:
 		{
-			void* f;
-			Read(&f, 4);
-			args[i] = (UINT64)(void*)f;
-			arry[i] = &args[i];
+			float f;
+                        Read(&f, 4);
+                        arry[i] = &f;
 		}break;
 		case MONO_TYPE_R8:
 		{
-			void* d;
-			Read(&d, 8);
-			args[i] = (UINT64)(void*)d;
-			arry[i] = &args[i];
+			double d;
+                        Read(&d, 8);
+                        arry[i] =&d;
 		}break;
 		case MONO_TYPE_STRING:
 		{
