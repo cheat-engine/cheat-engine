@@ -9,7 +9,6 @@
 #include "PipeServer.h"
 
 
-
 HANDLE DataCollectorThread;
 HANDLE SuicideThread;
 HINSTANCE g_hInstance;
@@ -61,7 +60,17 @@ typedef int (NTAPI *ZWSETINFORMATIONTHREAD)(
     );
 #endif
 
-
+#ifdef CUSTOM_DEBUG
+FILE* CreateAndTestDebugConsole()
+{
+    FILE* f = nullptr;
+#if DEBUG_CONSOLE
+    AllocConsole();
+    freopen_s(&f, "CONOUT$", "w", stdout);
+#endif
+    return f;
+}
+#endif
 
 DWORD WINAPI DataCollectorEntry(LPVOID lpThreadParameter)
 {
@@ -85,7 +94,12 @@ DWORD WINAPI DataCollectorEntry(LPVOID lpThreadParameter)
 
 	OutputDebugString("creating new CPipeServer instance\n");
 	pw=new CPipeServer();
-    
+
+#ifdef CUSTOM_DEBUG
+    FILE* console = CreateAndTestDebugConsole();
+    if (console)
+        printf("Console created!\n");
+#endif
 
 	OutputDebugString("starting CPipeServer instance\n");
 	pw->Start();
@@ -93,6 +107,14 @@ DWORD WINAPI DataCollectorEntry(LPVOID lpThreadParameter)
     OutputDebugString("Destroying PipeServer\n");
 	DataCollectorThread=0;
 	delete pw;	
+
+#ifdef CUSTOM_DEBUG
+    if (console)
+        fclose(console);
+#if DEBUG_CONSOLE
+    FreeConsole();
+#endif
+#endif
 
 	if (SuicideThread)
 		TerminateThread(SuicideThread, 0);

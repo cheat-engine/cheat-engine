@@ -21,7 +21,7 @@ local dpiscale=getScreenDPI()/96
 
 mono_timeout=3000 --change to 0 to never timeout (meaning: 0 will freeze your face off if it breaks on a breakpoint, just saying ...)
 
-MONO_DATACOLLECTORVERSION=20230512
+MONO_DATACOLLECTORVERSION=20230830
 
 MONOCMD_INITMONO=0
 MONOCMD_OBJECT_GETCLASS=1
@@ -144,6 +144,9 @@ monoTypeToVartypeLookup[MONO_TYPE_R4]=vtSingle
 monoTypeToVartypeLookup[MONO_TYPE_R8]=vtDouble
 monoTypeToVartypeLookup[MONO_TYPE_STRING]=vtPointer --pointer to a string object
 monoTypeToVartypeLookup[MONO_TYPE_PTR]=vtPointer
+monoTypeToVartypeLookup[MONO_TYPE_I]=vtPointer --IntPtr
+monoTypeToVartypeLookup[MONO_TYPE_U]=vtPointer
+monoTypeToVartypeLookup[MONO_TYPE_OBJECT]=vtPointer --object
 monoTypeToVartypeLookup[MONO_TYPE_BYREF]=vtPointer
 monoTypeToVartypeLookup[MONO_TYPE_CLASS]=vtPointer
 monoTypeToVartypeLookup[MONO_TYPE_FNPTR]=vtPointer
@@ -166,7 +169,7 @@ monoTypeToCStringLookup[MONO_TYPE_I8]='int64'
 monoTypeToCStringLookup[MONO_TYPE_U8]='unsigned int 64'
 monoTypeToCStringLookup[MONO_TYPE_R4]='single'
 monoTypeToCStringLookup[MONO_TYPE_R8]='double'
-monoTypeToCStringLookup[MONO_TYPE_STRING]='String' --pointer to a string object
+monoTypeToCStringLookup[MONO_TYPE_STRING]='String'
 monoTypeToCStringLookup[MONO_TYPE_PTR]='Pointer'
 monoTypeToCStringLookup[MONO_TYPE_BYREF]='Object'
 monoTypeToCStringLookup[MONO_TYPE_CLASS]='Object'
@@ -1415,6 +1418,10 @@ function mono_class_isValueType(klass)
  return retv==1
 end
 
+function mono_class_isStruct(klass)
+ return mono_class_isValueType(klass) and not(mono_class_isEnum(klass)) and not(mono_class_IsPrimitive(klass))
+end
+
 function mono_class_isSubClassOf(klass,parentklass,checkInterfaces)
  checkInterfaces = checkInterfaces and 1 or 0
  if not klass or klass==0 then return false end
@@ -2112,7 +2119,7 @@ function mono_class_enumFields(class, includeParents, expandedStructs)
   if expandedStructs then
     for k,v in pairs(mainFields) do
       local lockls = mono_field_getClass(v.field)
-      if ((v.monotype==MONO_TYPE_VALUETYPE) and not(mono_class_isEnum(lockls)) and not(mono_class_isSubClassOf(mono_field_getClass(v.field),class))) and not(v.isStatic or v.isConst) then --does not want to infinitely loop if the struct has some static member of the same class
+      if not(v.isStatic or v.isConst) and mono_class_isStruct(lockls) and not(mono_class_isSubClassOf(lockls,class)) then --does not want to infinitely loop if the struct has some static member of the same class
          local subFields = GetFields(lockls, includeParents, expandedStructs, true)
          --print(v.name, v.typename, fu(v.monotype))
          if #subFields >0 then
@@ -2626,6 +2633,7 @@ function mono_method_get_parameters(method)
   end
   
   --result  
+  result.returnmonotype = monopipe.readQword()
   result.returntype=monopipe.readDword()  
   
   monopipe.unlock()
@@ -4644,7 +4652,7 @@ function monoform_exportArrayStructInternal(acs, arraytype, elemtype, recursive,
         end
       local elementkls = mono_class_getArrayElementClass(arraytype)
       local elementmonotype = mono_type_get_type(mono_class_get_type(elementkls))
-      local isStruct = mono_class_isValueType(elementkls) and not(mono_class_IsPrimitive(elementkls)) and not(mono_class_isEnum(elementkls))
+      local isStruct = mono_class_isStruct(elementkls)--mono_class_isValueType(elementkls) and not(mono_class_IsPrimitive(elementkls)) and not(mono_class_isEnum(elementkls))
       --print(fu(elementkls),mono_class_getFullName(elementkls),fu(elementmonotype))
       if isStruct  then
          --print("yep, a struct")
@@ -4657,7 +4665,7 @@ function monoform_exportArrayStructInternal(acs, arraytype, elemtype, recursive,
               ce=acs.addElement()
               ce.Name=string.format("[%d]%s",j,nm)
               ce.Offset=j*psize+start+v.offset-suboffset
-              ce.Vartype= monoTypeToVarType( v.monotype ) --vtPointer
+              ce.Vartype= mono_class_isEnum(mono_field_getClass( v.field )) and vtDword or monoTypeToVarType( v.monotype ) --vtPointer
 	      if ce.Vartype == vtDword then
 		     ce.DisplayMethod = 'dtSignedInteger'
 	      end

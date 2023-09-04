@@ -6,8 +6,13 @@
 #endif
 
 
+//#define CUSTOM_DEBUG
+#ifdef CUSTOM_DEBUG
+#define DEBUG_CONSOLE 1
+#endif // CUSTOM_DEBUG
+
                                 //yyyymmdd
-#define MONO_DATACOLLECTORVERSION 20230512 
+#define MONO_DATACOLLECTORVERSION 20230830 
 
 #define MONO_TYPE_NAME_FORMAT_IL  0
 #define MONO_TYPE_NAME_FORMAT_REFLECTION  1

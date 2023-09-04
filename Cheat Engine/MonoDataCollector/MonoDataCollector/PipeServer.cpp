@@ -21,7 +21,6 @@
 #endif //linux
 
 
-
 #include <signal.h>
 #include <sys/types.h>
 
@@ -30,6 +29,15 @@
 
 //todo: Make this multithreaded. So: Make a list of threads that can AV
 
+
+void Log(_In_z_ _Printf_format_string_ char const* const _Format, ...)
+{
+#ifdef DEBUG_CONSOLE 
+	va_list args;
+	va_start(args, _Format);
+	vprintf(_Format, args);
+#endif
+}
 
 BOOL ExpectingAccessViolations = FALSE;
 
@@ -448,6 +456,7 @@ void CPipeServer::InitMono()
 				mono_free = (MONO_FREE)GetProcAddress(hMono, "il2cpp_free");
 
 				mono_get_root_domain = (MONO_GET_ROOT_DOMAIN)GetProcAddress(hMono, "il2cpp_get_root_domain");
+				mono_get_root_domain = mono_get_root_domain ? mono_get_root_domain : (MONO_GET_ROOT_DOMAIN)GetProcAddress(hMono, "mono_get_root_domain"); //some modern games have the same name as mono
 				mono_thread_attach = (MONO_THREAD_ATTACH)GetProcAddress(hMono, "il2cpp_thread_attach");
 				mono_thread_detach = (MONO_THREAD_DETACH)GetProcAddress(hMono, "il2cpp_thread_detach");
 
@@ -542,7 +551,8 @@ void CPipeServer::InitMono()
 				mono_method_desc_from_method = (MONO_METHOD_DESC_FROM_METHOD)GetProcAddress(hMono, "il2cpp_method_desc_from_method");;
 				mono_method_desc_free = (MONO_METHOD_DESC_FREE)GetProcAddress(hMono, "il2cpp_method_desc_free");;
 
-				mono_string_new = (MONO_STRING_NEW)GetProcAddress(hMono, "il2cpp_string_new");
+				mono_string_new = (MONO_STRING_NEW)GetProcAddress(hMono, "mono_string_new"); // il2cpp also has "mono_string_new". Th il2cpp_string_new is a different function
+				mono_string_new = mono_string_new ? mono_string_new : (MONO_STRING_NEW)GetProcAddress(hMono, "il2cpp_string_new");
 				mono_string_to_utf8 = (MONO_STRING_TO_UTF8)GetProcAddress(hMono, "il2cpp_string_to_utf8");
 				il2cpp_array_new = (IL2CPP_ARRAY_NEW)GetProcAddress(hMono, "il2cpp_array_new");
 				mono_array_element_size = (MONO_ARRAY_ELEMENT_SIZE)GetProcAddress(hMono, "il2cpp_array_element_size");
@@ -772,7 +782,7 @@ void CPipeServer::Object_New()
 		domain = (void*)mono_domain_get();
 
 	void* klass = (void*)ReadQword();
-	void* object = mono_object_new(domain, klass);
+	void* object = il2cpp ? mono_object_new(klass, klass) : mono_object_new(domain, klass); //No domain in il2cpp; And since it is __stdcall, the prms should be fine in x86 il2pp processes
 	WriteQword((UINT64)object);
 }
 
@@ -1588,16 +1598,17 @@ void CPipeServer::GetMonoDataCollectorVersion()
 	WriteDword(MONO_DATACOLLECTORVERSION);
 }
 
-void CPipeServer::NewString()
+DECLSPEC_NOINLINE void CPipeServer::NewString()
 {
+	//Log("Creating new string\n");
 	void* domain = (void*)ReadQword();
-	if (domain == NULL)
+	if (domain == NULL && !il2cpp) //No domain required in il2cpp
 		domain = (void*)mono_get_root_domain();
 
 	char* s = ReadString();
+	void* string = mono_string_new ? mono_string_new(domain, s) : nullptr;
 	free(s);
 
-	void* string = mono_string_new(domain, s);
 	WriteQword((UINT_PTR)string);
 }
 
@@ -1647,6 +1658,7 @@ void CPipeServer::GetMethodParameters()
 
 		{
 			void* returntype = il2cpp_method_get_return_type(method);
+			WriteQword((UINT64)returntype);
 			if (returntype)
 				WriteDword(mono_type_get_type(returntype));
 			else
@@ -1695,17 +1707,12 @@ void CPipeServer::GetMethodParameters()
 
 			{
 				MonoType* returntype = mono_signature_get_return_type(methodsignature);
+				WriteQword((UINT64)returntype);
 				if (returntype)
 					WriteDword(mono_type_get_type(returntype));
 				else
 					WriteDword(0);
 			}
-
-
-
-
-
-
 		}
 		else
 			WriteByte(0);
