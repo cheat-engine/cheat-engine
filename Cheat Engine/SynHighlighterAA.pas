@@ -1822,6 +1822,7 @@ begin
 end;
 
 procedure TSynAASyn.UnknownProc;
+var utf8len: integer;
 begin
 {$IFDEF SYN_MBCSSUPPORT}
   if FLine[Run] in LeadBytes then
@@ -1831,7 +1832,13 @@ begin
 
   fTokenID := tkUnknown;
   if ord(fline[run])>$80 then  //utf8
-    inc(Run,2)
+  begin
+    utf8len:=Utf8CodePointLen(@fline[run],length(fline)-run,false);
+    if utf8len=0 then
+      utf8len:=2; //guess...
+
+    inc(Run,utf8len);
+  end
   else
     inc(run);
 end;

@@ -394,7 +394,7 @@ begin
     if inquote2 and (input[i]<>'"') then continue;
 
     case input[i] of
-      'a'..'z','A'..'Z','0'..'9','.', '_','#','@': if a=-1 then a:=i;
+      'a'..'z','A'..'Z','0'..'9','.', '_','#','@', #128..#255: if a=-1 then a:=i;
       else
       begin
         if (input[i]='''') then
