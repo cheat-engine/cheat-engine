@@ -1,0 +1,19 @@
+name: Build CheatEngine server for android
+
+on:
+  push:
+    branches:
+      - '*'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r25c
+      - runs: ndk-build NDK_PROJECT_PATH="Cheat Engine/ceserver/ndk-build/EXECUTABLE" APP_BUILD_SCRIPT="Cheat Engine/ceserver/ndk-build/EXECUTABLE/Android.mk" NDK_APPLICATION_MK="Cheat Engine/ceserver/ndk-build/EXECUTABLE/Application.mk"
