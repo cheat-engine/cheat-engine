@@ -1,7 +1,7 @@
 object frmIPTLogDisplay: TfrmIPTLogDisplay
-  Left = 512
+  Left = 514
   Height = 238
-  Top = 131
+  Top = 133
   Width = 452
   Caption = 'IPT Log Display'
   ClientHeight = 238

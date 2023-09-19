@@ -23,12 +23,12 @@ function spawnDotNetSearchDialog(DataSource, frmDotNetInfo, searchtype)
   elseif searchtype==1 then
     frmSearch.Caption=translate('Find Field')    
     frmSearch.cbLimitToCurrentBase.Caption=translate('Limit to current class')
-    frmSearch.cbLimitToCurrentBase.Enabled=frmDotNetInfo.lbClasses.ItemIndex>=0 
+    frmSearch.cbLimitToCurrentBase.Enabled=frmDotNetInfo.lvClasses.ItemIndex>=0 
     frmSearch.lvResults.Columns[2].Caption='Field'
   elseif searchtype==2 then
     frmSearch.Caption=translate('Find Method')  
     frmSearch.cbLimitToCurrentBase.Caption=translate('Limit to current class')
-    frmSearch.cbLimitToCurrentBase.Enabled=frmDotNetInfo.lbClasses.ItemIndex>=0  
+    frmSearch.cbLimitToCurrentBase.Enabled=frmDotNetInfo.lvClasses.ItemIndex>=0  
     frmSearch.lvResults.Columns[2].Caption='Method'    
   else 
     return nil,'no'
@@ -63,13 +63,14 @@ function spawnDotNetSearchDialog(DataSource, frmDotNetInfo, searchtype)
         frmDotNetInfo.lbImages.ItemIndex=r.ImageIndex-1
         
         local timeout=getTickCount()
-        while frmDotNetInfo.lbClasses.Items.Count<r.ClassIndex do
+        while frmDotNetInfo.lvClasses.Items.Count<r.ClassIndex do
           CheckSynchronize(100)
           
           if getTickCount()>timeout+10000 then return end --failure getting the classlist
         end
         
-        frmDotNetInfo.lbClasses.ItemIndex=r.ClassIndex-1
+        frmDotNetInfo.lvClasses.ItemIndex=r.ClassIndex-1
+        frmDotNetInfo.lvClasses.Items[frmDotNetInfo.lvClasses.ItemIndex].makeVisible(false)
   
       
         if searchtype==1 then

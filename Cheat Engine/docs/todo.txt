@@ -41,6 +41,8 @@ codelist: replace with nops: if the address is already in the list it'll ask to 
 
 AddressList : Make check expand/collapse icons dpi aware
 
+addresslist: Make script entries have an address if requested (so that mr.Value can be compared in a script's timer)
+
 lua doesn't show errors anymore if the error is inside a component/luacaller   e.g: blax==nil and then blax.xxxx();
 for class fetching in java for android, add a downloadbar/progressbar
 
@@ -65,6 +67,7 @@ form editor: save objectinspector treeview height
 binary type hotkey: increase value by doesn't work
 
 ceshare list filter search has an error
+ceshare comments is white in dark mode ce
 
 macos: luaserver
 macos: pointerscan column click sorting
@@ -76,6 +79,24 @@ executeCodeLocalEx fails when no parameters are given
 
 dbvm: switch emu yuzu fails to load any game when dbvm is running
 
+dpi: change address dialog: sizefield is too small
+
+signature: resize signature (new version sig?)
+
+add table specific settings. E.g: show errors when activating table
+
+ceshare: search gives errors
+
+file->assign to cheat table with lua code gives error if no dll is injected yet  (todo2: luaclient stuff to injected c code)
+
+add a temp symbol file that holds the most recent PID's and registered symbols in them so that when CE closes it remembers where the allocated code is
+
+In structure dissect add a option to get all the vtable methods and open code filter with them filled in
+
+structure dissect: Multiselect and then del doesn't delete the entries
+structure dissect: when all entries are deleted, you can't insert
+
+javainfo window is not centered
 
 ---
 

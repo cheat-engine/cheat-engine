@@ -195,7 +195,13 @@ var
   inteliptlogfindwhatroutines: boolean;
   maxiptconfigsize: integer;
   hideiptcapability: boolean; //in case it's unstable and you really really do not wish to accidentally use it
+  runningAsAdmin: boolean;
+  askAboutRunningAsAdmin: boolean;
 
+  SyncSymbols: boolean;
+  symsync_ClearSymbolListWhenOpeningADifferentProcess: boolean;
+  symsync_DontDeleteSymbolsWhenSynchronizing: boolean;
+  symsync_Interval: integer;
 
 implementation
 

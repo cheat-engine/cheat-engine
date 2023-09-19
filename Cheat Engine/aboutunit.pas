@@ -119,11 +119,7 @@ var
     rs: TResourceStream;
     logopic: tpicture;
 begin
-  {$ifdef net}
-    groupbox1.Caption:=unit2.CEnorm;
-  {$else}
-    groupbox1.Caption:=mainunit2.CEnorm;
-  {$endif}
+  groupbox1.Caption:=cenamewithversion;
 
 
   i:=GetFontData(font.Handle).Height;

@@ -306,11 +306,12 @@ void ps_read(PPipeServer this, void* buf, int count)
     {
       debug_log("ps_read: r!=count");
 #ifdef _WIN32   
-        CloseHandle(this->handle);
+      CloseHandle(this->handle);
 #else
-        close(this->handle);
+      close(this->handle);
 #endif      
-        this->handle=0;
+      debug_log("closed the handle");   
+      this->handle=0;
     }
   }
 }
@@ -324,11 +325,12 @@ void ps_write(PPipeServer this, void* buf, int count)
     { 
       debug_log("ps_write: r!=count");      
 #ifdef _WIN32         
-        CloseHandle(this->handle);
+      CloseHandle(this->handle);
 #else
-        close(this->handle);
+      close(this->handle);
 #endif
-        this->handle=0;
+      debug_log("closed the handle");    
+      this->handle=0;
     }
   }
 }

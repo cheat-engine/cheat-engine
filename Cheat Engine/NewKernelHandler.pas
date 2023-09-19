@@ -14,12 +14,14 @@ uses jwawindows, windows,LCLIntf,sysutils, dialogs, classes, controls,
 const dbkdll='DBK32.dll';
 
 
-{$ifdef windows}
-
 const
   VQE_PAGEDONLY=1;
   VQE_DIRTYONLY=2;
   VQE_NOSHARED=4 ;
+
+
+{$ifdef windows}
+
 
 
 type

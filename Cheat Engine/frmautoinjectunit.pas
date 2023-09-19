@@ -1489,16 +1489,26 @@ var
 begin
 
   getenableanddisablepos(assemblescreen.Lines,a,b);
-  if (a=-1) and (b=-1) then raise exception.create(rsCodeNeedsEnableAndDisable);
+  if (a=-1) and (b=-1) then
+  begin
+    MessageDlg(rsCodeNeedsEnableAndDisable,mtError,[mbok],0);
+    exit;
+  end;
 
   di:=TDisableInfo.create;
-  if autoassemble(assemblescreen.lines,true,true,true,false,di) and
-     autoassemble(assemblescreen.lines,true,false,true,false,di) then
-  begin
-    //add a entry with type 255
-    mainform.AddAutoAssembleScript(assemblescreen.text);
-  end
-  else showmessage(rsFailedToAddToTableNotAllCodeIsInjectable);
+  try
+    if autoassemble(assemblescreen.lines,true,true,true,false,di) and
+       autoassemble(assemblescreen.lines,true,false,true,false,di) then
+    begin
+      //add a entry with type 255
+      mainform.AddAutoAssembleScript(assemblescreen.text);
+    end
+    else showmessage(rsFailedToAddToTableNotAllCodeIsInjectable);
+
+  except
+    on e:exception do
+      MessageDlg(e.Message,mtError, [mbok],0);
+  end;
 
   di.free;
 

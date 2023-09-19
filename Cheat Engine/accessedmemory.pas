@@ -5,7 +5,7 @@ unit AccessedMemory;
 interface
 
 uses
-  windows, Classes, SysUtils, FileUtil, laz.VirtualTrees, Forms, Controls, Graphics,
+  {$ifdef windows}windows, {$endif}Classes, SysUtils, FileUtil, laz.VirtualTrees, Forms, Controls, Graphics,
   Dialogs, StdCtrls, ExtCtrls, Menus, ComCtrls, genericHotkey, DBK32functions,
   commonTypeDefs, newkernelhandler, betterControls,AvgLvlTree, Laz_AVL_Tree;
 
@@ -67,7 +67,9 @@ type
     hkStop: TGenericHotkey;
 
     results: TIndexedAVLTree;
+    {$ifdef windows}
     watchinfo: PPSAPI_WS_WATCH_INFORMATION;
+    {$endif}
     watchinfosize: dword;
 
     flost: integer;
@@ -144,6 +146,7 @@ var
   search: TPListDescriptor;
   n: TAVLTreeNode;
 begin
+  {$ifdef windows}
   if watchinfo=nil then
   begin
     watchinfosize:=64*1024*1024;
@@ -208,6 +211,7 @@ begin
       end;
     end;
   end;
+  {$endif}
 end;
 
 procedure TfrmAccessedMemory.vsResultsDblClick(Sender: TObject);

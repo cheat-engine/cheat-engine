@@ -9,7 +9,7 @@ object Form1: TForm1
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
-  LCLVersion = '2.0.6.0'
+  LCLVersion = '2.2.2.0'
   object Label1: TLabel
     Left = 0
     Height = 13
@@ -146,6 +146,32 @@ object Form1: TForm1
     Top = 144
     Width = 38
     Caption = 'Label14'
+    ParentColor = False
+  end
+  object lblFail1: TLabel
+    Left = 56
+    Height = 13
+    Top = 112
+    Width = 22
+    Caption = 'QPC'
+    ParentColor = False
+    Visible = False
+  end
+  object lblFail2: TLabel
+    Left = 56
+    Height = 13
+    Top = 123
+    Width = 22
+    Caption = 'GTC'
+    ParentColor = False
+    Visible = False
+  end
+  object lblbeats: TLabel
+    Left = 208
+    Height = 13
+    Top = 0
+    Width = 33
+    Caption = 'Beats='
     ParentColor = False
   end
   object Timer1: TTimer

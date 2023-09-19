@@ -479,6 +479,7 @@ void CPipeServer::InitMono()
 				mono_class_get_methods = (MONO_CLASS_GET_METHODS)GetProcAddress(hMono, "il2cpp_class_get_methods");
 				mono_class_get_method_from_name = (MONO_CLASS_GET_METHOD_FROM_NAME)GetProcAddress(hMono, "il2cpp_class_get_method_from_name");
 				mono_class_get_fields = (MONO_CLASS_GET_FIELDS)GetProcAddress(hMono, "il2cpp_class_get_fields");
+				mono_class_get_interfaces = (MONO_CLASS_GET_INTERFACES)GetProcAddress(hMono, "il2cpp_class_get_interfaces");
 				mono_class_get_parent = (MONO_CLASS_GET_PARENT)GetProcAddress(hMono, "il2cpp_class_get_parent");
 				mono_class_get_image = (MONO_CLASS_GET_IMAGE)GetProcAddress(hMono, "il2cpp_class_get_image");
 
@@ -505,6 +506,7 @@ void CPipeServer::InitMono()
 				mono_type_get_name = (MONO_TYPE_GET_NAME)GetProcAddress(hMono, "il2cpp_type_get_name");
 				mono_type_get_type = (MONO_TYPE_GET_TYPE)GetProcAddress(hMono, "il2cpp_type_get_type");
 				il2cpp_type_get_object = (IL2CPP_TYPE_GET_OBJECT)GetProcAddress(hMono, "il2cpp_type_get_object");
+				il2cpp_method_get_object = (IL2CPP_METHOD_GET_OBJECT)GetProcAddress(hMono, "il2cpp_method_get_object");
 				mono_type_get_name_full = (MONO_TYPE_GET_NAME_FULL)GetProcAddress(hMono, "il2cpp_type_get_name_full");
 
 				mono_method_get_name = (MONO_METHOD_GET_NAME)GetProcAddress(hMono, "il2cpp_method_get_name");
@@ -542,7 +544,7 @@ void CPipeServer::InitMono()
 
 				mono_string_new = (MONO_STRING_NEW)GetProcAddress(hMono, "il2cpp_string_new");
 				mono_string_to_utf8 = (MONO_STRING_TO_UTF8)GetProcAddress(hMono, "il2cpp_string_to_utf8");
-				mono_array_new = (MONO_ARRAY_NEW)GetProcAddress(hMono, "il2cpp_array_new");
+				il2cpp_array_new = (IL2CPP_ARRAY_NEW)GetProcAddress(hMono, "il2cpp_array_new");
 				mono_array_element_size = (MONO_ARRAY_ELEMENT_SIZE)GetProcAddress(hMono, "il2cpp_array_element_size");
 				mono_value_box = (MONO_VALUE_BOX)GetProcAddress(hMono, "il2cpp_value_box");
 				mono_object_unbox = (MONO_OBJECT_UNBOX)GetProcAddress(hMono, "il2cpp_object_unbox");
@@ -637,6 +639,7 @@ void CPipeServer::InitMono()
 				mono_class_get_methods = (MONO_CLASS_GET_METHODS)GetProcAddress(hMono, "mono_class_get_methods");
 				mono_class_get_method_from_name = (MONO_CLASS_GET_METHOD_FROM_NAME)GetProcAddress(hMono, "mono_class_get_method_from_name");
 				mono_class_get_fields = (MONO_CLASS_GET_FIELDS)GetProcAddress(hMono, "mono_class_get_fields");
+				mono_class_get_interfaces = (MONO_CLASS_GET_INTERFACES)GetProcAddress(hMono, "mono_class_get_interfaces");
 				mono_class_get_parent = (MONO_CLASS_GET_PARENT)GetProcAddress(hMono, "mono_class_get_parent");
 				mono_class_get_image = (MONO_CLASS_GET_IMAGE)GetProcAddress(hMono, "mono_class_get_image");
 				mono_class_is_generic = (MONO_CLASS_IS_GENERIC)GetProcAddress(hMono, "mono_class_is_generic"); 
@@ -663,6 +666,7 @@ void CPipeServer::InitMono()
 				mono_type_get_name = (MONO_TYPE_GET_NAME)GetProcAddress(hMono, "mono_type_get_name");
 				mono_type_get_type = (MONO_TYPE_GET_TYPE)GetProcAddress(hMono, "mono_type_get_type");
 				mono_type_get_object = (MONO_TYPE_GET_OBJECT)GetProcAddress(hMono, "mono_type_get_object");
+				mono_method_get_object = (MONO_METHOD_GET_OBJECT)GetProcAddress(hMono, "mono_method_get_object");
 				mono_type_get_name_full = (MONO_TYPE_GET_NAME_FULL)GetProcAddress(hMono, "mono_type_get_name_full");
 
 				mono_method_get_name = (MONO_METHOD_GET_NAME)GetProcAddress(hMono, "mono_method_get_name");
@@ -1298,6 +1302,20 @@ void CPipeServer::EnumFieldsInClass()
 	} while (field);
 }
 
+void CPipeServer::EnumImplementedInterfacesOfClass()
+{
+	void* klass = (void*)ReadQword();
+	void* iter = NULL;
+	void* interfaces;
+
+	do
+	{
+		interfaces = mono_class_get_interfaces(klass, &iter);
+		WriteQword((UINT_PTR)interfaces);
+	} while (interfaces);
+	
+}
+
 
 void CPipeServer::EnumMethodsInClass()
 {
@@ -1847,6 +1865,35 @@ void CPipeServer::GetReflectionTypeOfClassType()
 		OutputDebugString("error at GetReflectionTypeOfClassType");
 		WriteQword(0);
 	}
+}
+
+void CPipeServer::GetReflectionMethodOfMethod()
+{
+	//returns MonoReflectionMethod* equavalent of MonoMethodInfo (C#)
+	void* method = (void*)ReadQword(); //MonoMethod*
+	void* klass = (void*)ReadQword(); //MonoClass*
+
+	try
+	{
+		if (il2cpp && il2cpp_method_get_object)
+			WriteQword((UINT64)il2cpp_method_get_object(method, klass));
+		else if (mono_method_get_object)
+			WriteQword((UINT64)mono_method_get_object(domain, method, klass));
+		else
+			WriteQword(0);
+	}
+	catch (...)
+	{
+		OutputDebugString("error at GetReflectionMethodOfMethod");
+		WriteQword(0);
+	}
+}
+
+void CPipeServer::UnBoxMonoObject()
+{
+	void* object = (void*)ReadQword();
+	WriteQword(object ? (UINT64)mono_object_unbox(object) : 0);
+	OutputDebugString("Unbox Object Called");
 }
 
 
@@ -2626,6 +2673,18 @@ void CPipeServer::GetArrayElementSize()
 		WriteDword(0);
 }
 
+void CPipeServer::NewCSArray()
+{
+	void* klass = (void*)ReadQword();
+	int count = ReadDword();
+	if (il2cpp && il2cpp_array_new)
+		WriteQword((UINT64)il2cpp_array_new(klass, count));
+	else if (mono_array_new)
+		WriteQword((UINT64)mono_array_new(domain, klass, count));
+	else
+		WriteQword(0);
+}
+
 void CPipeServer::IsIL2CPP()
 {
 	WriteByte(il2cpp);
@@ -2830,6 +2889,10 @@ void CPipeServer::Start(void)
 					EnumFieldsInClass();
 					break;
 
+				case MONOCMD_ENUMINTERFACESOFCLASS:
+					EnumImplementedInterfacesOfClass();
+					break;
+
 				case MONOCMD_ENUMMETHODSINCLASS:
 					EnumMethodsInClass();
 					break;
@@ -2988,7 +3051,14 @@ void CPipeServer::Start(void)
 				case MONOCMD_GETREFLECTIONTYPEOFCLASSTYPE:
 					GetReflectionTypeOfClassType();
 					break;
+					
+				case MONOCMD_GETREFLECTIONMETHODOFMONOMETHOD:
+					GetReflectionMethodOfMethod();
+					break;
 
+				case MONOCMD_MONOOBJECTUNBOX:
+					UnBoxMonoObject();
+					break;
 
 				case MONOCMD_FREE:
 					FreeObject();
@@ -3008,6 +3078,10 @@ void CPipeServer::Start(void)
 
 				case MONOCMD_ARRAYELEMENTSIZE:
 					GetArrayElementSize();
+					break;
+
+				case MONOCMD_MONOARRAYNEW:
+					NewCSArray();
 					break;
 
 				}

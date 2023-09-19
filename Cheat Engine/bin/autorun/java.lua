@@ -53,7 +53,10 @@ JAVACMD_FINDFIELDS=39
 JAVACMD_FINDMETHODS=40
 JAVAVMD_GETOBJECTCLASSNAME=41 --gets the name of the class instead of just a local ref
 JAVACMD_SETFIELDVALUES=42
+JAVACMD_GETOBJECTCLASSNAMES=43
 
+
+JAVACMD_GETFIELDSIGNATUREBYOBJECT=44
 
 JAVACMD_TERMINATESERVER=255
 
@@ -1731,29 +1734,69 @@ function java_getFieldDeclaringClass(klass, fieldid)
   return result
 end
 
-function java_getFieldSignature(klass, fieldid)
+function java_getFieldSignatureByObject(object, fieldid)
+--slightly faster as 2 pipecalls can be skipped if you don't have the class (get class, release class)
   local result={}
+  
+  local ms=createMemoryStream()
+  ms.writeByte(JAVACMD_GETFIELDSIGNATUREBYOBJECT)
+  ms.writeQword(object) 
+  ms.writeQword(fieldid)
+  ms.Position=0
+  
   javapipe.lock()
-  javapipe.writeByte(JAVACMD_GETFIELDSIGNATURE)
-  javapipe.writeQword(klass)
-  javapipe.writeQword(fieldid)
-
-  local length
-  length=javapipe.readWord()
-  result.name=javapipe.readString(length)
-
-  length=javapipe.readWord()
-  result.signature=javapipe.readString(length)
-
-  length=javapipe.readWord()
-  result.generic=javapipe.readString(length)
-
-
+  javapipe.writeFromStream(ms)
+  ms.clear()
+  local sz=javapipe.readDword()
+  javapipe.readIntoStream(ms, sz)
   javapipe.unlock()
+  
+  ms.position=0
+  
+  
+  local length
+  length=ms.readWord()
+  result.name=ms.readString(length)
+
+  length=ms.readWord()
+  result.signature=ms.readString(length)
+
+  length=ms.readWord()
+  result.generic=ms.readString(length)
+  
+  ms.destroy()
   return result
 end
 
+function java_getFieldSignature(class, fieldid)
+  local result={}
+  
+  local ms=createMemoryStream()
+  ms.writeByte(JAVACMD_GETFIELDSIGNATURE)
+  ms.writeQword(class) 
+  ms.writeQword(fieldid)
+  ms.Position=0
+  
+  javapipe.lock()
+  javapipe.writeFromStream(ms)
+  ms.clear()
+  local sz=javapipe.readDword()
+  javapipe.unlock()
+  
+  
+  local length
+  length=ms.readWord()
+  result.name=ms.readString(length)
 
+  length=ms.readWord()
+  result.signature=ms.readString(length)
+
+  length=ms.readWord()
+  result.generic=ms.readString(length)
+  
+  ms.destroy()
+  return result
+end
  
 
 function java_setFieldValues(newValues)   
@@ -1892,11 +1935,7 @@ end
 function java_getField(jObject, fieldid, signature)
 
   if signature==nil then
-    --I need to figure it out myself I guess...
-  local klass=java_getObjectClass(jObject)
-  signature=java_getFieldSignature(klass, fieldid).signature
-
-  java_dereferenceLocalObject(klass)
+    signature=java_getFieldSignatureByObject(jObject, fieldid).signature
   end
 
   --parse the signature
@@ -1932,10 +1971,7 @@ end
 function java_setField(jObject, fieldid, signature, value)
   if signature==nil then
     --I need to figure it out myself I guess...
-  local klass=java_getObjectClass(jObject)
-  signature=java_getFieldSignature(klass, fieldid).signature
-
-  java_dereferenceLocalObject(klass)
+    signature=java_getFieldSignatureByObject(jObject, fieldid).signature
   end
 
   local vartype=Java_TypeSigToIDConversion[string.sub(signature,1,1)]
@@ -1961,31 +1997,112 @@ function java_setField(jObject, fieldid, signature, value)
 
 end
 
+local ST_UNKNOWN=0xffffffff
+local ST_EXACT=0
+local ST_INCREASED=1
+local ST_DECREASED=2
+local ST_CHANGED=3
+local ST_UNCHANGED=4
+
 function java_search_start(value, boolean)
   --tag all known objects and set a variable to let some functions know they can not function until the scan has finished (they can't set tags)
+  
+  printf("java_search_start")
   local result=nil
-  javapipe.lock()
-  javapipe.writeByte(JAVACMD_STARTSCAN)
+  
+  if value=='' then value=nil end
+  if value=='*' then value=nil end
 
-  if value==nil then
-    javapipe.writeByte(1) --unknown initial value scan
-  else
-    javapipe.writeByte(0) --value scan
-    javapipe.writeDouble(value)
-    if (boolean~=nil) and (boolean==true) then
-      javapipe.writeByte(1)
+  
+  ms=createMemoryStream()
+  ms.writeByte(JAVACMD_STARTSCAN)
+  
+  if ms.Size~=1 then error('invalid structure size') end
+  
+  --setup a scandata block (look at jvarscan.c for the offsets) 
+  ms.writeDword(value and ST_EXACT or ST_UNKNOWN) --0-3: value==0 > 0xffffffff else 0 (SO_EXACT)
+  ms.writeDword(boolean and 1 or 0)    --4-7
+  
+  if ms.Size~=1+8 then error('invalid structure size 2') end
+  
+  ms.writeByte(value and value~=0 and 1 or 0) --zValue:8
+  ms.writeByte(value and value or 0) --bValue:9
+  ms.writeWord(value and value or 0) --cValue:10-11
+  ms.writeWord(value and value or 0) --sValue:12-13
+  ms.writeWord(0) --filler: 14-15
+  ms.writeDword(value and value or 0) --iValue:16-19
+  ms.writeDword(0) --filler: 20-23
+  ms.writeQword(value) --jValue: 24-31
+  
+  if ms.Size~=1+32 then error('invalid structure size 4') end
+  
+  
+  
+  local minvalue,maxvalue
+  
+  if value then
+    --parse the user input and figure out the accuracy requested
+    local vs=value:trim()
+    local v=tonumber(vs)
+    if v==nil then          
+      messageDialog(value..' can not be parsed by lua', mtError)
+      return
+    end 
+    local accuracy
+    local seperator=vs:find('%.')
+    if seperator==nil then
+      accuracy=0
     else
-      javapipe.writeByte(0)
+      accuracy=#s-seperator
     end
-  end
+    
+    if accuracy==0 then
+      rounding='0.9'
+    else
+      rounding='0.'
+      for i=1,accuracy do
+        rounding=rounding..'0'
+      end
+      rounding=rounding..'9'
+    end
 
+    minvalue=vs-rounding
+    maxvalue=vs+rounding        
+  end
+  ms.writeFloat(minvalue)
+  if ms.Size~=1+32+4 then error('invalid structure size 5.1') end
+    
+  ms.writeFloat(maxvalue)
+  if ms.Size~=1+32+4+4 then error('invalid structure size 5.2') end
+  
+  ms.writeDouble(minvalue)
+  if ms.Size~=1+32+4+4+8 then error('invalid structure size 5.3') end
+   
+  ms.writeDouble(maxvalue) 
+  if ms.Size~=1+32+4+4+8+8 then error('invalid structure size 5.4') end  
+
+  if ms.Size~=1+56 then error('invalid structure size 5') end
+  
+  
+  
+  ms.position=0
+  outputDebugString('Sending firstscan command and scandata. Size of packet:'..ms.Size)
+  
+  
+  javapipe.lock()
+  javapipe.writeFromStream(ms)  
+  javapipe.Timeout=0
+  
+  outputDebugString('Waiting for result')
+  
 
   result=javapipe.readQword() --Wait till done, get nr of results)
-
+  
+  javapipe.Timeout=JAVA_TIMEOUT
+  
   java_scanning=true
-
-
   javapipe.unlock()
+  ms.destroy()
 
   return result
 end
@@ -1998,23 +2115,84 @@ function java_search_refine(scantype, scanvalue)
   --2 = decreased value
   --3 = changed value
   --4 = unchanged value
+  
+  printf("java_search_refine(%d,%s)", scantype, scanvalue)
+  
+
+
 
   local result=nil
 
   if scantype==nil then
     error(translate("Scantype was not set"))
   end
-
-  javapipe.lock()
-  javapipe.writeByte(JAVACMD_REFINESCANRESULTS)
-  javapipe.writeByte(scantype)
-  if scantype==0 then
-    javapipe.writeDouble(scanvalue)
+  
+  if scanvalue==nil then
+    error(translate("scanvalue was not set"))
   end
+  
+  local ms=createMemoryStream()
+  ms.writeByte(JAVACMD_REFINESCANRESULTS)
+  ms.writeDword(scantype)
+  ms.writeDword(1) --boolean, ignored at this point
+  
+  ms.writeByte(scanvalue and scanvalue~=0 and 1 or 0) --zValue:8
+  ms.writeByte(scanvalue and scanvalue or 0) --bValue:9
+  ms.writeWord(scanvalue and scanvalue or 0) --cValue:10-11
+  ms.writeWord(scanvalue and scanvalue or 0) --sValue:12-13
+  ms.writeWord(0) --filler: 14-15
+  ms.writeDword(scanvalue and scanvalue or 0) --iValue:16-19
+  ms.writeDword(0) --filler: 20-23
+  ms.writeQword(scanvalue) --jValue: 24-31
+  
+  local minvalue,maxvalue
+  
+  if scanvalue then
+    --parse the user input and figure out the accuracy requested
+    local vs=scanvalue:trim()
+    local v=tonumber(vs)
+    if v==nil then          
+      messageDialog(scanvalue..' can not be parsed by lua', mtError)
+      return
+    end 
+    local accuracy
+    local seperator=vs:find('%.')
+    if seperator==nil then
+      accuracy=0
+    else
+      accuracy=#s-seperator
+    end
+    
+    if accuracy==0 then
+      rounding='0.9'
+    else
+      rounding='0.'
+      for i=1,accuracy do
+        rounding=rounding..'0'
+      end
+      rounding=rounding..'9'
+    end
+
+    minvalue=vs-rounding
+    maxvalue=vs+rounding        
+  end
+  ms.writeFloat(minvalue)
+  ms.writeFloat(maxvalue)
+  
+  ms.writeDouble(minvalue)
+
+  ms.writeDouble(maxvalue) 
 
 
-  result=javapipe.readQword()
-
+  ms.position=0
+  
+  javapipe.lock()
+  javapipe.writeFromStream(ms)  
+  ms.destroy()  
+  javapipe.Timeout=0    
+  result=javapipe.readQword() --Wait till done, get nr of results)
+  javapipe.Timeout=JAVA_TIMEOUT
+  
   javapipe.unlock()
 
   return result
@@ -2023,12 +2201,12 @@ end
 
 function java_search_getResults(maxresults)
   --get the results
-  --note, the results are referencec to the object, so CLEAN UP when done with it (and don't get too many)
+  --note, the results are references to the object, so CLEAN UP when done with it (and don't get too many)
   local result={}
-
+  
   javapipe.lock()
   javapipe.writeByte(JAVACMD_GETSCANRESULTS)
-  if maxresults==0 then
+  if (maxresults==nil) or (maxresults==0) then
     maxresults=10
   end
 
@@ -2036,24 +2214,29 @@ function java_search_getResults(maxresults)
 
 
   --local i=1
-
-  while true do
-    --print(i)
-   -- i=i+1
-
-    local object=javapipe.readQword()
-    if (object==0) or (object==nil) then
-      --print("End of the list")
-      break
-    end --end of the list
-
+  local ms=createMemoryStream()
+  local sz=javapipe.readDword()
+  
+  printf("streamsize=%d", sz);
+  
+  javapipe.readIntoStream(ms,sz)  
+  
+  javapipe.unlock()
+  
+  
+  printf("successfully read stream");
+  
+  
+  ms.Position=0
+  local count=ms.readDword()
+  printf("count=%d (maxresults=%d)", count, maxresults)
+  for i=1,count do
     local r={}
-    r.object=object
-    r.fieldid=javapipe.readQword()
-
+    r.object=ms.readQword()
+    r.fieldid=ms.readQword()
+    r.fieldindex=ms.readDword()
     table.insert(result, r)
   end
-  javapipe.unlock()
 
   return result
 end
@@ -2303,6 +2486,42 @@ function java_getObjectClassName(jObject)
   return result
 end
 
+function java_getObjectClassNames(jObjectList)
+  if jObjectList==nil then return nil, 'list may not be nil' end
+  if type(jObjectList)~='table' then return nil,'the list must be a table' end
+ 
+  local results={}
+  
+  local ms=createMemoryStream()
+  ms.writeByte(JAVACMD_GETOBJECTCLASSNAMES)
+  ms.writeDword(#jObjectList)
+  for i=1,#jObjectList do
+    ms.writeQword(jObjectList[i])
+  end  
+  ms.Position=0
+  javapipe.lock()
+  javapipe.writeFromStream(ms)
+  ms.clear()
+
+  local sz=javapipe.readDword()
+  javapipe.readIntoStream(ms, sz)
+  javapipe.unlock()
+  
+  ms.Position=0
+  local count=ms.readDword()
+  if count~=#jObjectList then return nil,'Invalid list returned' end
+  
+  for i=1,count do
+    local strlen=ms.readWord()
+    results[i]=ms.readString(strlen)    
+  end
+  
+  ms.destroy()
+  
+  
+  return result
+end
+
 function java_getClassSignature(jClass)
   local length
   local result=''
@@ -2430,137 +2649,46 @@ function miJavaActivateClick(sender)
 end
 
 
---[[
-function javaForm_treeviewExpanding(sender, node)
-  local allow=true
-
-  --outputDebugString("Expanding "..node.Text)
-
-  --print("javaForm_treeviewExpanding "..node.level)
-  if node.Level==0 then --root level (class expasion)
-    if node.Count==0 then  --not yet filled in
-      --expand the class this node describes
-      local jklass=node.Data
-      local methods=java_getClassMethods(jklass)
-      local fields=java_getClassFields(jklass)
-      local interfaces=java_getImplementedInterfaces(jklass)
-      local superclass=java_getSuperClass(jklass)
-
-      local i
-
-      if superclass~=0 then
-        node.add(translate('superclass=')..java_getClassSignature(superclass))
-        java_dereferenceLocalObject(superclass)
-      end
-
-
-
-      node.add(translate('---Implemented interfaces---'));
-      for i=1, #interfaces do
-        local name
-        if interfaces[i]>0 then
-          name=java_getClassSignature(interfaces[i])
-        else
-          name='???'
-        end
-
-        node.add(string.format("%x : %s", interfaces[i], name))
-      end
-
-      node.add(translate('---Fields---'));
-      for i=1, #fields do
-        node.add(string.format("%x: %s: %s (%s)", fields[i].jfieldid, fields[i].name, fields[i].signature,fields[i].generic))
-      end
-
-      node.add(translate('---Methods---'));
-
-      for i=1, #methods do
-        local n=node.add(string.format("%x: %s%s           %s", methods[i].jmethodid, methods[i].name, methods[i].signature, methods[i].generic))
-        n.data=methods[i].jmethodid  --ONLY methods have this field set at level 1. (!ONLY METHODS!)
-      end
-
-
-    --java_getClassFields(jklass);
-    end
-  end
-
-  return allow
-end
-
-function javaForm_searchClass(sender)
-  javaForm.findAll=false --classes only
-  javaForm.findDialog.Title=translate("Search for class...")
-  javaForm.findDialog.execute()
-end
-
-function javaForm_searchAll(sender)
-  javaForm.findAll=true --everything
-  javaForm.findDialog.Title=translate("Search for...")
-  javaForm.findDialog.execute()
-end
-
-function javaForm_doSearch(sender)
-  --search for javaForm.findDialog.FindText
-  local currentindex=1
-  local findall=javaForm.findAll
-  local searchstring=javaForm.findDialog.FindText
-
-  if javaForm.treeview.Selected ~= nil then
-    currentindex=javaForm.treeview.Selected.AbsoluteIndex+1 --start at the next one
-  end
-
-  while currentindex<javaForm.treeview.Items.Count do
-    local node=javaForm.treeview.Items[currentindex]
-
-    if (node.level==0) or findall then
-      --check if node.Text contains the searchstring
-     if string.find(node.Text,searchstring) ~= nil then
-        --found one
-        node.Selected=true
-        node.makeVisible()
-        return
-      end
-    end
-
-    if findall and node.HasChildren then
-      node.expand()
-    end
-    currentindex=currentindex+1
-  end
-end--]]
 
 function varscan_showResults(count)
-  --print("showing results for "..count.." results");
-  java.varscan.currentresults=java_search_getResults(math.min(count, 100))
+  print("showing results for "..count.." results");
+  local r=java_search_getResults(math.min(count, 50))
+  
+  local newcount=#r
 
 
+  printf("setting count") 
 
-  if count>100 then
-    java.varscan.Count.Caption=string.format('%d of %d', #java.varscan.currentresults, count)
+  if newcount~=count then
+    java.varscan.Count.Caption=string.format('%d of %d', newcount, count)
   else
     java.varscan.Count.Caption=count
   end
-
-  count=#java.varscan.currentresults
-
+  
+  
+  
+  java.varscan.currentresults=r
+  
 
   local i
   for i=1,count do
     local object=java.varscan.currentresults[i].object
     local fieldid=java.varscan.currentresults[i].fieldid
 
-
-
-    local class=java_getObjectClass(object)
-    local classname=java_getClassSignature(class)
-
-    --local class2=java_getFieldDeclaringClass(class, fieldid)
-    local fieldname=java_getFieldSignature(class, fieldid)
-    java_dereferenceLocalObject(class)
-    --java_dereferenceLocalObject(class2)
-
-    java.varscan.Results.Items.Add('Obj('..classname..'.'..fieldname.name..')')
+    outputDebugString(string.format("Getting classname from object %x", object));
+    local classname=java_getObjectClassName(object)
+    local fieldname='fieldindex '..java.varscan.currentresults[i].fieldindex
+    
+    if fieldid then          
+      local fieldsig=java_getFieldSignatureByObject(object, fieldid)
+      if fieldsig.name then
+        fieldname=fieldsig.name.. '  ('..fieldname..')'
+      end
+    end   
+    
+    java.varscan.Results.Items.Add('Obj('..classname..'::'..fieldname..')')
   end
+
 end
 
 function varscan_cleanupResults()
@@ -2568,26 +2696,26 @@ function varscan_cleanupResults()
 
   java.varscan.Results.clear()
 
-  for i=1,#java.varscan.currentresults do
-    java_dereferenceLocalObject(java.varscan.currentresults[i].object)
-  end
-
   java.varscan.currentresults=nil
 end
 
 function varscan_firstScan(sender)
-  --print("first scan")
+  print("first scan")
   if (sender.Tag==0) then
     --first scan
 
     local count=java_search_start(java.varscan.ValueBox.Text)
+    
+    printf("found %d results", count)
+    
     varscan_showResults(count)
-
 
     sender.Caption=translate("New Scan")
     sender.Tag=1
-
-    java.varscan.NextScan.Enabled=#java.varscan.currentresults>0
+    
+    if java.varscan.currentresults then
+      java.varscan.NextScan.Enabled=count>0
+    end
   else
     --new scan
     varscan_cleanupResults()
@@ -2622,16 +2750,22 @@ function miFindWhatAccessClick(sender)
 end
 
 function miJavaVariableScanClick(sender)
-  javaInjectAgent()
+  local status,err=javaInjectAgent()
+  if not status then 
+    messageDialog(err, mtError, mbOK)
+    return
+  end
 
   local varscan=java.varscan
+
+  local dpim=getScreenDPI()/96
 
   if varscan==nil then
     --build a gui
     varscan={}
     varscan.form=createForm()
-    varscan.form.Width=400
-    varscan.form.Height=400
+    varscan.form.Width=400*dpim
+    varscan.form.Height=400*dpim
     varscan.form.Position=poScreenCenter
     varscan.form.Caption=translate("Java Variable Scanner")
     varscan.form.BorderStyle=bsSizeable
@@ -2645,52 +2779,75 @@ function miJavaVariableScanClick(sender)
 
     varscan.ValueText=createLabel(varscan.controls)
     varscan.ValueText.Caption=translate("Value")
+    
+    varscan.ScanType=createComboBox(varscan.controls)
+    varscan.ScanType.Items.add('Exact Value')
+    varscan.ScanType.Items.add('Increased Value')
+    varscan.ScanType.Items.add('Decreased Value')
+    varscan.ScanType.Items.add('Changed Value')
+    varscan.ScanType.Items.add('Unchanged Value')
+    varscan.ScanType.Style='csDropDownList'
+    varscan.ScanType.ItemIndex=0
+    varscan.ScanType.visible=false
 
     varscan.FirstScan=createButton(varscan.controls)
     varscan.FirstScan.Caption=translate("First Scan")
+    varscan.FirstScan.AutoSize=true
 
     varscan.NextScan=createButton(varscan.controls)
     varscan.NextScan.Caption=translate("Next Scan")
+    varscan.NextScan.AutoSize=true
 
-    local width=6+math.max(varscan.form.Canvas.getTextWidth(varscan.FirstScan.Caption), varscan.form.Canvas.getTextWidth(varscan.NextScan.Caption)) --guess which one will be bigger... (just in case someone translates this)
+    local width=6*dpim+math.max(varscan.form.Canvas.getTextWidth(varscan.FirstScan.Caption), varscan.form.Canvas.getTextWidth(varscan.NextScan.Caption)) --guess which one will be bigger... (just in case someone translates this)
+
+
 
     varscan.FirstScan.ClientWidth=width
     varscan.NextScan.ClientWidth=width
+    varscan.FirstScan.Height=varscan.form.Canvas.getTextHeight('XXX')+3*dpim
+    varscan.NextScan.Height=varscan.FirstScan.Height
 
     varscan.ValueBox=createEdit(varscan.controls)
 
-    varscan.ValueBox.Top=20
-    varscan.ValueBox.Left=20;
+    varscan.ValueBox.Top=20*dpim
+    varscan.ValueBox.Left=20*dpim;
 
     varscan.ValueText.AnchorSideLeft.Control=varscan.ValueBox
     varscan.ValueText.AnchorSideLeft.Side=asrLeft
     varscan.ValueText.AnchorSideBottom.Control=varscan.ValueBox
     varscan.ValueText.AnchorSideBottom.Side=asrTop
     varscan.ValueText.Anchors="[akLeft, akBottom]"
+    
+    varscan.ScanType.AnchorSideLeft.Control=varscan.ValueBox   
+    varscan.ScanType.AnchorSideLeft.Side=asrLeft
+    varscan.ScanType.AnchorSideRight.Control=varscan.ValueBox   
+    varscan.ScanType.AnchorSideRight.Side=asrRight    
+    varscan.ScanType.AnchorSideTop.Control=varscan.ValueBox
+    varscan.ScanType.AnchorSideTop.Side=asrBottom  
+    varscan.ScanType.Anchors="[akTop, akLeft, akRight]"
 
-
-    varscan.FirstScan.AnchorSideLeft.Control=varscan.ValueBox
+    varscan.FirstScan.AnchorSideLeft.Control=varscan.ScanType
     varscan.FirstScan.AnchorSideLeft.Side=asrLeft
 
-    varscan.FirstScan.AnchorSideTop.Control=varscan.ValueBox
+    varscan.FirstScan.AnchorSideTop.Control=varscan.ScanType
     varscan.FirstScan.AnchorSideTop.Side=asrBottom
-    varscan.FirstScan.BorderSpacing.Top=5
+    varscan.FirstScan.BorderSpacing.Top=5*dpim
     varscan.FirstScan.Anchors="[akTop, akLeft]"
     varscan.FirstScan.OnClick=varscan_firstScan
 
     varscan.NextScan.AnchorSideLeft.Control=varscan.FirstScan
     varscan.NextScan.AnchorSideLeft.Side=asrRight
-    varscan.NextScan.BorderSpacing.Left=5
+    varscan.NextScan.BorderSpacing.Left=5*dpim
     varscan.NextScan.OnClick=varscan_nextScan
 
-    varscan.NextScan.AnchorSideTop.Control=varscan.ValueBox
+    varscan.NextScan.AnchorSideTop.Control=varscan.ScanType
     varscan.NextScan.AnchorSideTop.Side=asrBottom
-    varscan.NextScan.BorderSpacing.Top=5
+    varscan.NextScan.BorderSpacing.Top=5*dpim
     varscan.NextScan.Anchors="[akTop, akLeft]"
     varscan.NextScan.Enabled=false
 
     varscan.ValueBox.Width=varscan.NextScan.Left+varscan.NextScan.Width-varscan.ValueBox.Left
-    varscan.controls.Width=varscan.ValueBox.Width+40
+    varscan.controls.Width=varscan.ValueBox.Width+40*dpim
 
     varscan.ResultPanel=createPanel(varscan.form)
     varscan.ResultPanel.Align=alClient
@@ -2704,14 +2861,20 @@ function miJavaVariableScanClick(sender)
 
     varscan.Results=createListBox(varscan.ResultPanel)
     varscan.Results.Align=alClient
-    varscan.Results.Width=200
+    varscan.Results.Width=200*dpim
 
     varscan.Results.PopupMenu=createPopupMenu(varscan.form)
+    
+    varscan.form.OnClose=function()
+      java.varscan=nil
+      return caFree
+    end
 
     local mi
     mi=createMenuItem(varscan.Results.PopupMenu)
     mi.Caption=translate("Find what accesses this value")
     mi.OnClick=miFindWhatAccessClick;
+    mi.Enabled=java.capabilities.can_generate_field_access_events
     varscan.Results.PopupMenu.Items.add(mi)
 
   end

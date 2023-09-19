@@ -5,7 +5,7 @@ LazarusResources.Add('TForm2','FORMDATA',[
   +'th'#3#128#2#11'BorderIcons'#11#12'biSystemMenu'#0#7'Caption'#6#6'Step 2'#12
   +'ClientHeight'#3#17#1#11'ClientWidth'#3#128#2#5'Color'#7#9'clBtnFace'#7'OnCl'
   +'ose'#7#9'FormClose'#12'OnCloseQuery'#7#14'FormCloseQuery'#8'OnCreate'#7#10
-  +'FormCreate'#10'LCLVersion'#6#7'2.0.6.0'#0#12'TSpeedButton'#12'SpeedButton1'
+  +'FormCreate'#10'LCLVersion'#6#7'2.2.2.0'#0#12'TSpeedButton'#12'SpeedButton1'
   +#23'AnchorSideRight.Control'#7#5'Owner'#20'AnchorSideRight.Side'#7#9'asrBott'
   +'om'#24'AnchorSideBottom.Control'#7#5'Owner'#21'AnchorSideBottom.Side'#7#9'a'
   +'srBottom'#4'Left'#3'f'#2#6'Height'#2#19#3'Top'#3#254#0#5'Width'#2#26#7'Anch'

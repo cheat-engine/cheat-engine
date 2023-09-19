@@ -1,7 +1,7 @@
 object FormDesigner: TFormDesigner
-  Left = 545
+  Left = 547
   Height = 55
-  Top = 259
+  Top = 262
   Width = 1217
   AutoSize = True
   BorderStyle = bsSizeToolWin

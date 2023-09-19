@@ -128,10 +128,19 @@
     #define __REDIRECT(name, proto, alias) name proto __asm__ (#alias)
     #define __REDIRECT_NTH(name, proto, alias) name proto __asm__ (#alias) __THROW
 #else
-  //Cheat Engine modification start (all externs are handled as __declspec(dllimport) )
-  #define extern __declspec(dllimport) extern 
-  #define cheatengine
-  //Cheat Engine modification end
+    //Cheat Engine modification start (all externs are handled as __declspec(dllimport) )
+    #define extern __declspec(dllimport) extern 
+    #define cheatengine
+#ifdef _WIN64
+    #define __stdcall
+    #define _AMD64_ 1
+    #define __x86_64 1
+#else
+    #define __stdcall __attribute__((__stdcall__))
+    #define _X86_ 1
+    #define WIN32 1
+#endif
+    //Cheat Engine modification end
 #endif
 
     /* skip __builtin... with -E */

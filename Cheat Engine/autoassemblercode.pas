@@ -39,6 +39,7 @@ type
 
       symbols: array of record
         name: string;
+        altname: string;
         address: ptruint;
       end;
 
@@ -427,6 +428,7 @@ var
 
   writesuccess: boolean;
   writesuccess2: boolean;
+  temps: string;
 
 begin
   secondarylist:=TStringList.create;
@@ -577,6 +579,28 @@ begin
 
         a:=ptruint(tempsymbollist.Objects[k]);
         writesuccess2:=writeProcessMemory(phandle, pointer(dataForPass2.cdata.references[j].address),@a,psize,bw);
+      end;
+
+      //stdcall symbols: (32-bit)
+      if processhandler.is64Bit=false then //unlikely nowadays, but check anyhow
+      begin
+        //could be using stdcall function names (_symbolname@#)
+        for i:=0 to tempsymbollist.count-1 do
+        begin
+          if tempsymbollist[i].StartsWith('_') and
+             (tempsymbollist[i][length(tempsymbollist[i])] in ['0'..'9']) and
+             tempsymbollist[i].Contains('@') then
+          begin
+            j:=tempsymbollist[i].IndexOf('@');
+            temps:=tempsymbollist[i].Substring(j+1);
+            if TryStrToInt(temps,k) then
+            begin
+              //it is a _symbolname@###
+              temps:=tempsymbollist[i].Substring(1,j-1);
+              tempsymbollist.AddObject(temps, tempsymbollist.Objects[i]);
+            end;
+          end;
+        end;
       end;
 
 
@@ -1127,7 +1151,7 @@ end;
 procedure AutoAssemblerCodePass1(script: TStrings; out dataForPass2: TAutoAssemblerCodePass2Data; syntaxcheckonly: boolean; targetself: boolean);
 //this way the script only needs to be parsed once for quite similar code
 var
-  i,j,r: integer;
+  i,j,k,r: integer;
   endpos: integer;
   uppercaseline: string;
   s, linenrstring: string;
@@ -1143,6 +1167,9 @@ var
   ms: TMemorystream;
   bytesizeneeded: integer;
   symbolerror: boolean;
+
+  temps: string;
+
   //
 begin
   if tcclibimportlist=nil then
@@ -1211,24 +1238,27 @@ begin
             setlength(parameters,0);
             parseLuaCodeParameters(parameterstring, parameters);
 
-            if (syntaxcheckonly=false) and (hasAddedLuaServerCode=false) then
+            if luaserverExists('CELUASERVER'+inttostr(getcurrentprocessid))=false then
+              tluaserver.create('CELUASERVER'+inttostr(getcurrentprocessid));
+
+            symhandler.getAddressFromName('CELUA_ServerName',false,symbolerror);
+
+            if symbolerror then
             begin
-              //add the code that runs and configures the luaserver
-              if luaserverExists('CELUASERVER'+inttostr(getcurrentprocessid))=false then
-                tluaserver.create('CELUASERVER'+inttostr(getcurrentprocessid));
-
-
+              //need to add the CELUA_ library
               if processhandler.is64Bit then
                 script.insert(0,'loadlibrary(luaclient-x86_64.dll)')
               else
                 script.insert(0,'loadlibrary(luaclient-i386.dll)');
-
-              script.insert(1,'CELUA_ServerName:');
-              script.insert(2,'db ''CELUASERVER'+inttostr(getcurrentprocessid)+''',0');
-              inc(i,3);
-
-              hasAddedLuaServerCode:=true;
             end;
+
+            //add the code that runs and configures the luaserver
+            script.insert(1,'CELUA_ServerName:');
+            script.insert(2,'db ''CELUASERVER'+inttostr(getcurrentprocessid)+''',0');
+            inc(i,3);
+
+            hasAddedLuaServerCode:=true;
+
 
             AutoAssemblerLuaCodePass(script, parameters, i, syntaxcheckonly)
           end
@@ -1383,6 +1413,28 @@ begin
         for i:=imports.count to imports.count+length(dataforpass2.cdata.linklist)-1 do
           dataforpass2.cdata.references[i].name:=dataforpass2.cdata.linklist[i-imports.count].name;
 
+
+        if processhandler.is64Bit=false then //unlikely nowadays, but check anyhow
+        begin
+          //could be using stdcall function names (_symbolname@#)
+          for i:=0 to symbols.count-1 do
+          begin
+            if symbols[i].StartsWith('_') and
+               (symbols[i][length(symbols[i])] in ['0'..'9']) and
+               symbols[i].Contains('@') then
+            begin
+              j:=symbols[i].IndexOf('@');
+              temps:=symbols[i].Substring(j+1);
+              if TryStrToInt(temps,k) then
+              begin
+                //it is a _symbolname@###
+                temps:=symbols[i].Substring(1,j-1);
+                symbols.Add(temps);
+              end;
+            end;
+          end;
+        end;
+
         if dataforpass2.cdata.symbolPrefix<>'' then
         begin //add another version with the prefix added
           setlength(dataforpass2.cdata.symbols, symbols.count*2);
@@ -1401,6 +1453,7 @@ begin
           begin
             dataforpass2.cdata.symbols[i].name:=symbols[i];
             dataforpass2.cdata.symbols[i].address:=0;
+            //dataforpass2.cdata.symbols[i].altname:=stripsymbolname(symbols[i]);
           end;
         end;
 

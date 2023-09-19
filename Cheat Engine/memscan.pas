@@ -7001,7 +7001,9 @@ var
   starta,startb, stopa,stopb: ptruint;
 
   wsisize: dword;
+  {$ifdef windows}
   wsi: PPSAPI_WORKING_SET_INFORMATION;
+  {$endif}
 
   getmemtimestart: qword;
   getmemtimestop: qword;
@@ -7074,7 +7076,7 @@ begin
  // OutputDebugString('scanExecutable='+inttostr(integer(scanExecutable)));
  // OutputDebugString('scanCopyOnWrite='+inttostr(integer(scanCopyOnWrite)));
 
-  {$ifndef darwin}
+
   vqecacheflag:=0;
 
   if not Scan_MEM_MAPPED then
@@ -7088,7 +7090,7 @@ begin
 
 
   VirtualQueryEx_StartCache(processhandle, vqecacheflag);
-  {$endif}
+
 
   {$ifdef windows}
   if workingsetonly and assigned(QueryWorkingSet) then
@@ -7282,9 +7284,7 @@ begin
 
   end;
 
-  {$ifndef darwin}
   VirtualQueryEx_EndCache(processhandle);
-  {$endif}
 
    {
   OutputDebugString(format('memRegionPos=%d',[memRegionPos]));

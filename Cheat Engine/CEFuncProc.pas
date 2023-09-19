@@ -15,7 +15,7 @@ uses
    mactypes, LCLType,macport,
   {$endif}
   {$ifdef windows}
-   jwawindows, windows,
+   jwawindows, windows, WinUtils,
   {$endif}
   zstream, LazUTF8, LCLIntf,StdCtrls,Classes,SysUtils,dialogs,{tlhelp32,}forms,messages,
 Graphics,
@@ -191,6 +191,10 @@ procedure Log(s: string);
 {$endif}
 
 
+function requiresAdmin(featurename: string=''): boolean;
+function relaunchAsAdmin(params: widestring): boolean;
+
+
 const
   Exact_value = 0;
   Increased_value = 1;
@@ -359,7 +363,7 @@ uses disassembler,CEDebugger,debughelper, symbolhandler, symbolhandlerstructs,
      frmProcessWatcherUnit, KernelDebugger, formsettingsunit, MemoryBrowserFormUnit,
      savedscanhandler, networkInterface, networkInterfaceApi, vartypestrings,
      processlist, Parsers, Globals, xinput, luahandler, LuaClass, LuaObject,
-     UnexpectedExceptionsHelper, LazFileUtils, autoassembler, Clipbrd, mainunit2, cpuidUnit;
+     UnexpectedExceptionsHelper, LazFileUtils, autoassembler, Clipbrd, mainunit2, cpuidUnit, OpenSave;
 
 
 resourcestring
@@ -418,6 +422,8 @@ resourcestring
   rsPosition = ' Position';
   rsThisCanTakeSomeTime = 'This can take some time if you are missing the '
     +'PDB''s and CE will look frozen. Are you sure?';
+  rsAskToRestartForAdmin = '%s requires administrator rights. '
+    +'Relaunch CE using admin rights?';
 
 function ProcessID: dword;
 begin
@@ -3861,13 +3867,99 @@ begin
 
 end;
 
+function relaunchAsAdmin(params: widestring): boolean;
+var wd: widestring;
+  path: widestring;
+begin
+
+  {$ifdef windows}
+  wd:=GetCurrentDir;
+  path:= Application.ExeName;
+  result:=ShellExecute(0,'runas',pwidechar(path),pwidechar(params),pwidechar(wd),SW_SHOW)<>5;
+  {$endif}
+end;
+
+type
+  TRequireAdminDialog=class
+  private
+  public
+    feature: string;
+    result: boolean;
+    procedure showDialog;
+  end;
+
+procedure TRequireAdminDialog.showDialog;
+var i: integer;
+begin
+  result:=false;
+  {$ifdef windows}
+  for i:=1 to ParamCount do
+    if ParamStr(i)='relaunchAsAdmin' then exit; //weird, but should prevent infinite loops in case this happens
+
+  if askAboutRunningAsAdmin then
+  begin
+    if feature<>'' then
+    begin
+      if MessageDlg(format(rsAskToRestartForAdmin, [feature]), mtConfirmation, [mbYes, mbNo], 0)<>mryes then exit;
+    end
+    else
+    begin
+      if MessageDlg(format(rsAskToRestartForAdmin, ['This function']), mtConfirmation, [mbYes, mbNo], 0)<>mryes then exit;
+    end;
+  end;
+
+
+  result:=relaunchAsAdmin('relaunchAsAdmin');
+  if result then
+  begin
+    if askAboutRunningAsAdmin=false then
+    begin
+      application.Terminate; //old one can be canceled
+      ExitProcess(0);
+    end;
+
+  end;
+  {$endif}
+end;
+
+function requiresAdmin(featurename: string=''): boolean;
+var d: TRequireAdminDialog;
+begin
+  result:=runningAsAdmin;
+
+  if not result then
+  begin
+    d:=TRequireAdminDialog.Create;
+    d.feature:=featurename;
+    if MainThreadID=GetCurrentThreadId then
+      d.showDialog
+    else
+      tthread.Synchronize(nil, d.showDialog);
+
+    d.free;
+  end;
+end;
+
 var r: TCPUIDResult;
+  h: thandle;
 
 initialization
   StackStartCache:=tmap.Create(itu4,sizeof(ptruint));
   StackStartCachePID:=0;
   StackStartCacheCS:=TCriticalSection.Create;
 
+  askAboutRunningAsAdmin:=false;
+  {$ifdef windows}
+  runningAsAdmin:=IsWindowsAdmin;
+  if runningAsAdmin then
+  begin
+    h:=OpenSCManager(nil,nil,GENERIC_READ or GENERIC_WRITE);
+    if h=0 then
+      runningAsAdmin:=false
+    else
+      CloseServiceHandle(h);
+  end;
+  {$endif}
 
   if not assigned(OpenProcess) then
   begin

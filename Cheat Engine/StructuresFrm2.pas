@@ -1710,6 +1710,9 @@ begin
   if MainThreadID<>GetCurrentThreadId then
     raise EStructureException.create(rsStructureAccessOutsideMainThread);
 
+  if self=nil then
+    raise EStructureException.create('Nil structure getting an update');
+
   inc(fUpdateCounter);
   updatecalledSort:=false;
   updateChangedInformation:=false;
@@ -2017,15 +2020,39 @@ var
   s: boolean;
   isclasspointer: boolean;
   classname: string;
+  reg: tregistry;
+  useCustomTypes: boolean;
 begin
   if MainThreadID<>GetCurrentThreadId then
     raise EStructureException.create(rsStructureAccessOutsideMainThread);
 
-
-  if frmStructuresConfig.cbAutoGuessCustomTypes.checked then
-    ctp:=@customtype
+  ctp:=nil;
+  useCustomTypes:=false;
+  if frmStructuresConfig<>nil then
+  begin
+    useCustomTypes:=frmStructuresConfig.cbAutoGuessCustomTypes.checked;
+  end
   else
-    ctp:=nil;
+  begin
+    //no config form yet
+    reg:=tregistry.create;
+    try
+     Reg.RootKey := HKEY_CURRENT_USER;
+     if Reg.OpenKey('\Software\'+strCheatEngine+'\DissectData',true) then
+     begin
+       if reg.ValueExists('Autoguess Custom Types') then
+         useCustomTypes:=reg.readBool('Autoguess Custom Types');
+
+       ctp:=nil;
+     end;
+
+    finally
+      reg.free;
+    end;
+  end;
+
+  if useCustomTypes then
+    ctp:=@customtype;
 
   //figure out the structure for this base address
   getmem(buf, bytesize);
@@ -4884,6 +4911,7 @@ end;
 function TfrmStructures2.getStructElementFromNode(node: TStructureTreeNode): TStructelement;
 begin
   if node=nil then exit(nil);
+  if node.level=0 then exit(nil);
   result:=node.element;
 end;
 

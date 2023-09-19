@@ -93,6 +93,8 @@ int _ZN3art9ArtMethod18HasAnyCompiledCodeEv(void* ArtMethod);
 #define JAVACMD_FINDMETHODS 40
 #define JAVAVMD_GETOBJECTCLASSNAME 41
 #define JAVACMD_SETFIELDVALUES 42
+#define JAVACMD_GETOBJECTCLASSNAMES 43
+#define JAVACMD_GETFIELDSIGNATUREBYOBJECT 44
 
 
 
@@ -200,9 +202,14 @@ void js_startscan(PCEJVMTIAgent agent)
   ScanData sd;
   uint64_t resultcount;
   
+  debug_log("js_startscan. Reading scandata object. (%d bytes)", sizeof(sd));
+  
   ps_read(agent->pipe, &sd, sizeof(sd));
   
-  resultcount=jvarscan_StartScan(agent->jvmti, sd);
+  debug_log("received scandata. Doing a scan");  
+  resultcount=jvarscan_StartScan(agent->jvmti, agent->env, sd);
+  
+  debug_log("jvarscan_StartScan returned %d", resultcount);
   
   ps_writeQword(agent->pipe, resultcount);
   
@@ -214,11 +221,187 @@ void js_refinescanresults(PCEJVMTIAgent agent)
   uint64_t resultcount;
   jvalue value;
   
+  debug_log("js_refinescanresults");
+  
   ps_read(agent->pipe, &sd, sizeof(sd));
   
-  jvarscan_refineScanResults(agent->jvmti, agent->env, sd);//
+  debug_log("scandata received:");
+  debug_log("scantype=%d", sd.scantype);
+  debug_log("booleanScan=%d", sd.booleanScan);
+  debug_log("zValue=%d", sd.zValue);
+  debug_log("bValue=%d", sd.bValue);
+  debug_log("cValue=%d", sd.cValue);
+  debug_log("sValue=%d", sd.sValue);
+  debug_log("iValue=%d", sd.iValue);
+  debug_log("jValue=%p", sd.jValue);
+  debug_log("fMinValue=%f", sd.fMinValue);
+  debug_log("fMaxValue=%f", sd.fMaxValue);
+  debug_log("dMinValue=%f", sd.dMinValue);
+  debug_log("dMaxValue=%f", sd.dMaxValue);
+  
+  resultcount=jvarscan_refineScanResults(agent->jvmti, agent->env, sd);//
   
   ps_writeQword(agent->pipe, resultcount);
+}
+
+void js_getscanresults(PCEJVMTIAgent agent)
+{
+  int maxcount;
+  maxcount=ps_readDword(agent->pipe);
+  if (maxcount>=ScanResultsPos)
+    maxcount=ScanResultsPos;
+  
+  debug_log("Fetching %d of %d results", maxcount, ScanResultsPos);
+ 
+  int i;
+  
+  
+  
+  PMemoryStream ms=ms_create(maxcount*(8+128));
+  ms_writeDword(ms, maxcount);
+ 
+  for (i=0; i<maxcount; i++)
+  {
+    if ((ScanResults[i].object==NULL) && (ScanResults[i].objectTag)) //get the object from the tag
+      scanresult_initentry(agent->jvmti, agent->env, &ScanResults[i]); //sets the object and the fieldid
+   
+    debug_log("sending result %d with objectid %p", i, ScanResults[i].object);
+    ms_writeQword(ms, (uint64_t)ScanResults[i].object);
+    ms_writeQword(ms, (uint64_t)ScanResults[i].fieldID); 
+    ms_writeDword(ms, (uint32_t)ScanResults[i].fieldindex); 
+  }
+  
+  ps_writeMemStream(agent->pipe, ms);  
+  ms_destroy(ms);
+  
+  debug_log("Sent the results to the client");
+  
+}
+
+void js_getFieldSignature(PCEJVMTIAgent agent) 
+{
+  jclass c=(jclass)ps_readQword(agent->pipe);
+  jfieldID fid=(jfieldID)ps_readQword(agent->pipe);
+  
+  PMemoryStream ms=ms_create(512);
+  
+  jint error;
+  char *name=NULL, *sig=NULL, *gen=NULL;
+  int len;  
+
+  if (_jvmti->GetFieldName(agent->jvmti, c, fid, &name, &sig, &gen)==JVMTI_ERROR_NONE)
+  {
+    if (name)
+    {
+      len=(int)strlen(name);
+      ms_writeWord(ms, len);
+      ms_write(ms, name, len);		
+      _jvmti->Deallocate(agent->jvmti, (unsigned char *)name);
+    }
+    else
+      ms_writeWord(ms, 0);
+
+    if (sig)
+    {
+      len=(int)strlen(sig);
+      ms_writeWord(ms, len);
+      ms_write(ms, sig, len);				
+      _jvmti->Deallocate(agent->jvmti, (unsigned char *)sig);
+    }
+    else
+      ms_writeWord(ms, 0);
+
+    if (gen)
+    {
+      len=(int)strlen(gen);
+      ms_writeWord(ms, len);
+      ms_write(ms, gen, len);					
+      _jvmti->Deallocate(agent->jvmti,(unsigned char *)gen);
+    }
+    else
+      ms_writeWord(ms, 0);      
+    
+  }  
+  else
+  {
+    ms_writeWord(ms, 0);
+    ms_writeWord(ms, 0);
+    ms_writeWord(ms, 0);
+  }
+  
+  ps_writeMemStream(agent->pipe, ms);
+  ms_destroy(ms); 
+}
+
+void js_getFieldSignatureByObject(PCEJVMTIAgent agent) 
+{
+  debug_log("js_getFieldSignatureByObject");
+  jobject object=(jobject)ps_readQword(agent->pipe);
+  jfieldID fieldid=(jfieldID)ps_readQword(agent->pipe);
+
+  jclass klass=_env->GetObjectClass(agent->env, object);
+  
+  PMemoryStream ms=ms_create(512);
+  
+  if (klass)
+  {  
+    jint error;
+    char *name=NULL, *sig=NULL, *gen=NULL;
+    int len;  
+  
+    if (_jvmti->GetFieldName(agent->jvmti, klass, fieldid, &name, &sig, &gen)==JVMTI_ERROR_NONE)
+    {
+      if (name)
+      {
+        len=(int)strlen(name);
+        ms_writeWord(ms, len);
+        ms_write(ms, name, len);		
+        _jvmti->Deallocate(agent->jvmti, (unsigned char *)name);
+      }
+      else
+        ms_writeWord(ms, 0);
+
+      if (sig)
+      {
+        len=(int)strlen(sig);
+        ms_writeWord(ms, len);
+        ms_write(ms, sig, len);				
+        _jvmti->Deallocate(agent->jvmti, (unsigned char *)sig);
+      }
+      else
+        ms_writeWord(ms, 0);
+
+      if (gen)
+      {
+        len=(int)strlen(gen);
+        ms_writeWord(ms, len);
+        ms_write(ms, gen, len);					
+        _jvmti->Deallocate(agent->jvmti,(unsigned char *)gen);
+      }
+      else
+        ms_writeWord(ms, 0);      
+      
+    }  
+    else
+    {
+      debug_log("js_getFieldSignatureByObject: GetFieldName failed");
+      ms_writeWord(ms, 0);
+      ms_writeWord(ms, 0);
+      ms_writeWord(ms, 0);
+    }
+    
+    _env->DeleteLocalRef(agent->env, klass);  
+  } 
+  else
+  {
+    debug_log("js_getFieldSignatureByObject: invalid object");
+    ms_writeWord(ms, 0);
+    ms_writeWord(ms, 0);
+    ms_writeWord(ms, 0);    
+  }
+
+  ps_writeMemStream(agent->pipe, ms);
+  ms_destroy(ms); 
 }
 
 
@@ -427,17 +610,87 @@ void js_getClassMethods(PCEJVMTIAgent agent)
 		ps_writeDword(agent->pipe,0); //0 byte stream
 }
 
-
 jint fillClassList(PCEJVMTIAgent agent) 
 {
 	return (*(agent->jvmti))->GetLoadedClasses(agent->jvmti, &agent->classcount, &agent->classlist);	
+}
+
+void js_getObjectClass(PCEJVMTIAgent agent) 
+{
+  jobject o=(jobject)ps_readQword(agent->pipe);
+  jclass oc=_env->GetObjectClass(agent->env, o);
+  
+  jclass goc=_env->NewGlobalRef(agent->env, oc);
+  _env->DeleteLocalRef(agent->env, oc);    
+  
+  ps_writeQword(agent->pipe, goc);  
+}
+
+void js_getObjectClassNames(PCEJVMTIAgent agent) 
+{
+  debug_log("js_getObjectClassNames");
+  int count=ps_readDword(agent->pipe);
+  int i;
+  
+  PMemoryStream ms=ms_create(count*128);
+  ms_writeDword(ms, count); 
+  for (i=0; i<count; i++)
+  {
+    jobject o=(jobject)ps_readQword(agent->pipe);
+    jclass oc=_env->GetObjectClass(agent->env, o);
+    
+    if (oc)  
+    {
+      char *sig;
+      char *gen;
+      if (_jvmti->GetClassSignature(agent->jvmti, oc, &sig, &gen)==JVMTI_ERROR_NONE)
+      {
+        if (sig)
+        {
+          int sl=strlen(sig);
+          ms_writeWord(ms, sl);
+          ms_write(ms, sig, sl);
+          
+          _jvmti->Deallocate(agent->jvmti, (unsigned char *)sig);              
+        }
+        else
+          ms_writeWord(ms,0);  
+        
+        if (gen)
+          _jvmti->Deallocate(agent->jvmti, (unsigned char *)gen);      
+    
+      }
+      else
+        ms_writeWord(ms,0); //empty string
+        
+      _env->DeleteLocalRef(agent->env, oc);    
+    }
+    else
+    {
+      ms_writeWord(ms, 0); //empty string      
+    }
+  }
+
+  ps_writeMemStream(agent->pipe,ms);    
+  ms_destroy(ms);
+  
 }
 
 void js_getObjectClassName(PCEJVMTIAgent agent) 
 {
   debug_log("js_getObjectClassName");
   jobject o=(jobject)ps_readQword(agent->pipe);
-  jclass oc=_env->GetObjectClass(agent->env, o);
+  jclass oc;
+  
+  
+  debug_log("o=%p",o);  
+  
+  if (o==NULL)
+    oc=NULL;
+  else
+    oc=_env->GetObjectClass(agent->env, o);
+  
+  debug_log("oc=%p",oc);
   if (oc)  
   {
     char *sig;
@@ -460,7 +713,10 @@ void js_getObjectClassName(PCEJVMTIAgent agent)
   
     }
     else
+    {
+      debug_log("GetClassSignature failed");
       ps_writeWord(agent->pipe,0);
+    }
       
     _env->DeleteLocalRef(agent->env, oc);    
   }
@@ -1495,7 +1751,7 @@ void js_invokeMethod(PCEJVMTIAgent agent)
     else
     {
       debug_log("nil string");
-      ms_writeByte(agent->pipe, 0); //is nil      
+      ms_writeByte(ms, 0); //is nil      
     }
     
     ps_writeMemStream(agent->pipe, ms);
@@ -1999,7 +2255,11 @@ void launchCEJVMTIServer(JNIEnv *env, jvmtiEnv *jvmti, void* soa)
             
           case JAVACMD_FINDMETHODS:
             js_findMethods(agent);
-            break;            
+            break;  
+
+          case JAVACMD_GETOBJECTCLASS:
+            js_getObjectClass(agent);
+            break;
             
           case JAVAVMD_GETOBJECTCLASSNAME:
             js_getObjectClassName(agent);
@@ -2011,6 +2271,28 @@ void launchCEJVMTIServer(JNIEnv *env, jvmtiEnv *jvmti, void* soa)
 
           case JAVACMD_STARTSCAN:
             js_startscan(agent);
+            break;
+            
+          case JAVACMD_REFINESCANRESULTS:
+            debug_log("JAVACMD_REFINESCANRESULTS");
+            js_refinescanresults(agent);
+            break;  
+
+          case JAVACMD_GETSCANRESULTS:    
+            js_getscanresults(agent);
+          
+            break;
+            
+          case JAVACMD_GETOBJECTCLASSNAMES:
+            js_getObjectClassNames(agent);
+            break;
+            
+          case JAVACMD_GETFIELDSIGNATURE:
+            js_getFieldSignature(agent);
+            break;
+            
+          case JAVACMD_GETFIELDSIGNATUREBYOBJECT:
+            js_getFieldSignatureByObject(agent);
             break;
             
           default: 

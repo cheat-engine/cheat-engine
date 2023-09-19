@@ -168,6 +168,10 @@ type
 
   procedure initializeLuaPointerValueList;
 
+var
+  OnPointerMapGenerationStart: TNotifyEvent;
+  OnPointerMapGenerationFinish: TNotifyEvent;
+
 implementation
 
 uses ProcessHandlerUnit, globals, DBK32functions;
@@ -1061,10 +1065,13 @@ var bytepointer: PByte;
 
     regionfile: TFilestream;
     prangelist: TPRangeDynArray;
-
+    {$ifdef windows}
     wsisize: dword;
     wsi: PPSAPI_WORKING_SET_INFORMATION;
+    {$endif}
 begin
+  LUA_functioncall('onPointerMapGenerationStart', [self]);
+
   self.progressbar:=_progressbar;
   OutputDebugString('TReversePointerListHandler.create');
   try
@@ -1609,6 +1616,8 @@ begin
       raise Exception.Create(e.message);
     end;
   end;
+
+  LUA_functioncall('onPointerMapGenerationFinish', [self]);
 end;
 
 //Lua support/testing
