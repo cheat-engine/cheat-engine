@@ -20,7 +20,7 @@ jobs:
           ndk-version: r25c
 
       - name: Build ceserver
-        working-directory: Cheat Engine/ceserver/ndk-build/EXECUTABLE/jni
+        working-directory: Cheat Engine/ceserver/ndk-build/EXECUTABLE
         run: |
           tree
           ndk-build NDK_PROJECT_PATH="."
