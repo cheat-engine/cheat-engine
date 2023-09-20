@@ -28,4 +28,4 @@ jobs:
 
         with:
           name: android-ceserver
-          path: Cheat Engine/ceserver/ndk-build/EXECUTABLE/lib/
+          path: Cheat Engine/ceserver/ndk-build/EXECUTABLE/libs/
