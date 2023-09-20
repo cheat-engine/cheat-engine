@@ -22,5 +22,6 @@ jobs:
       - name: Build ceserver
         working-directory: Cheat Engine/ceserver/ndk-build
         run: |
-          ndk-build NDK_PROJECT_PATH="EXECUTABLE" APP_BUILD_SCRIPT="EXECUTABLE/Android.mk" NDK_APPLICATION_MK="EXECUTABLE/Application.mk"
+          tree
+          ndk-build NDK_PROJECT_PATH="./EXECUTABLE" APP_BUILD_SCRIPT="./EXECUTABLE/Android.mk" NDK_APPLICATION_MK="./EXECUTABLE/Application.mk"
           tree
