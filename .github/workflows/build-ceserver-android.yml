@@ -18,4 +18,9 @@ jobs:
       - uses: nttld/setup-ndk@v1
         with:
           ndk-version: r25c
-      - run: ndk-build NDK_PROJECT_PATH="Cheat Engine/ceserver/ndk-build/EXECUTABLE" APP_BUILD_SCRIPT="Cheat Engine/ceserver/ndk-build/EXECUTABLE/Android.mk" NDK_APPLICATION_MK="Cheat Engine/ceserver/ndk-build/EXECUTABLE/Application.mk"
+
+      - name: Build ceserver
+        working-directory: Cheat Engine/ceserver/ndk-build
+        run: |
+          ndk-build NDK_PROJECT_PATH="EXECUTABLE" APP_BUILD_SCRIPT="EXECUTABLE/Android.mk" NDK_APPLICATION_MK="EXECUTABLE/Application.mk"
+          tree
