@@ -1,0 +1,20 @@
+name: Build CheatEngine server for linux
+
+on:
+  push:
+    branches: '*'
+  pull_request:
+    branches: '*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Build
+      run: |
+        - cd 'Cheat Engine/ceserver/gcc'
+        - make
+        - find
