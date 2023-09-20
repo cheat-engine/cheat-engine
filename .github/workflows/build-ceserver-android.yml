@@ -23,5 +23,5 @@ jobs:
         working-directory: Cheat Engine/ceserver/ndk-build/EXECUTABLE/jni
         run: |
           tree
-          ndk-build
+          ndk-build NDK_PROJECT_PATH="."
           tree
