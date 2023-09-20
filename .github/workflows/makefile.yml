@@ -15,6 +15,6 @@ jobs:
 
     - name: Build
       run: |
-        - cd 'Cheat Engine/ceserver/gcc'
-        - make
-        - find
+        cd 'Cheat Engine/ceserver/gcc'
+        make
+        find
