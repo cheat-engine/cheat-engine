@@ -26,7 +26,7 @@ jobs:
 
       - name: Build ceserver
         working-directory: Cheat Engine/ceserver/ndk-build/${{ matrix.artifact-mode }}
-        run: ndk-build NDK_PROJECT_PATH="."
+        run: ndk-build APP_ABI=${{ matrix.android-abi }} NDK_PROJECT_PATH="."
 
       - name: Upload ceserver
         uses: actions/upload-artifact@v3.1.2
