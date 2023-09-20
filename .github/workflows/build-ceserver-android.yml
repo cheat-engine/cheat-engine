@@ -23,5 +23,5 @@ jobs:
         working-directory: Cheat Engine/ceserver/ndk-build/EXECUTABLE/jni
         run: |
           tree
-          ndk-build NDK_PROJECT_PATH="." APP_BUILD_SCRIPT="./Android.mk" NDK_APPLICATION_MK="./Application.mk"
+          ndk-build
           tree
