@@ -21,7 +21,11 @@ jobs:
 
       - name: Build ceserver
         working-directory: Cheat Engine/ceserver/ndk-build/EXECUTABLE
-        run: |
-          tree
-          ndk-build NDK_PROJECT_PATH="."
-          tree
+        run: ndk-build NDK_PROJECT_PATH="."
+
+      - name: Upload ceserver
+        uses: actions/upload-artifact@v3.1.2
+
+        with:
+          name: android-ceserver
+          path: Cheat Engine/ceserver/ndk-build/EXECUTABLE/lib/
