@@ -13,8 +13,14 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Build
+    - name: Build ceserver
       run: |
         cd 'Cheat Engine/ceserver/gcc'
         make
-        find
+
+    - name: Upload ceserver
+      uses: actions/upload-artifact@v3.1.2
+
+      with:
+        name: linux-ceserver
+        path: 'Cheat Engine/ceserver/gcc/ceserver'
