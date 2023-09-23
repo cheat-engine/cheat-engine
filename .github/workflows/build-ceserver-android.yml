@@ -1,9 +1,6 @@
 name: Build CheatEngine server for android
 
-on:
-  push:
-    branches:
-      - '*'
+on: [push, pull_request]
 
 permissions:
   contents: read
