@@ -1927,7 +1927,7 @@ begin
 
         debugpart:=5;
 
-        zeromemory(@opcodeflags, sizeof(opcodeflags));
+
 
         RexPrefix:=0;
         if is64bit then
