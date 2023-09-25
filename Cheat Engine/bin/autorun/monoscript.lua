@@ -3002,7 +3002,7 @@ function mono_invoke_method_dialog(domain, method, address)
     paramstrings[i]=typenames[i]..' '..paramnames[i]
   end
   
-  mifinfo=createMethodInvokedialog(classname..mono_method_getName(method), paramstrings, function()
+  mifinfo=createMethodInvokeDialog(classname..mono_method_getName(method), paramstrings, function()
     --ok button click
     local instance=getAddressSafe(mifinfo.cbInstance.Text)
     
@@ -3050,6 +3050,8 @@ function mono_invoke_method_dialog(domain, method, address)
     end    
   end, true)
   
+  if mifinfo.mid==nil then return nil,'mif form missing' end
+  
   --start a scan to fill the combobox with results
   if (address==nil) then
     mifinfo.cbInstance.Items.add(translate('<Please wait...>'))
@@ -3076,7 +3078,7 @@ function mono_invoke_method_dialog(domain, method, address)
     mifinfo.cbInstance.Text=string.format('%x',address)
   end
   
-  mifinfo.mif.show()
+  mifinfo.mid.show()
 end
 
 
