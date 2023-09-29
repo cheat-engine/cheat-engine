@@ -1886,6 +1886,7 @@ local function btnLookupInstancesClick(frmDotNetInfo, sender)
   --create the thread that will do the scan
   --it's possible the thread finishes before showmodal is called, but thanks to synchronize that won't happen
   frmDotNetInfo.scannerThread=createThread(function(t)
+    local results={}
     if debugInstanceLookup then print("scannerThread start") end
     t.Name='Instance Scanner'
     

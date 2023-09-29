@@ -2301,6 +2301,7 @@ properties
   SelCount: integer- The number of records that are selected
   SelectedRecord: MemoryRecord - The main selected record
   MemoryRecord[]: MemoryRecord - Array to access the individial memory records
+  List: The internal Treeview control of the addresslist
   [] = MemoryRecord - Default accessor
 
   CheckboxActiveSelectedColor: color
@@ -2492,9 +2493,9 @@ createFoundList(memscan)
 
 properties
   Count: integer - Number of results found
-  Address[index] : string - Returns the address as a string at the given index
-  Value[index]: string - Returns the value as a string at the given index
-  [index]: string - Same as Address
+  Address[index] : string - Returns the address as a string at the given index (index starts at 0)
+  Value[index]: string - Returns the value as a string at the given index (index starts at 0)
+  [index]: string - Same as Address (index starts at 0)
 
 methods
   initialize() : Call this when a memscan has finished scanning. This will open the results for reading
