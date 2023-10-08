@@ -1255,7 +1255,7 @@ begin
             //add the code that runs and configures the luaserver
             script.insert(1,'CELUA_ServerName:');
             script.insert(2,'db ''CELUASERVER'+inttostr(getcurrentprocessid)+''',0');
-            inc(i,3);
+            inc(i,2);
 
             hasAddedLuaServerCode:=true;
 
