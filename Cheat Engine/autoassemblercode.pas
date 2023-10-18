@@ -946,6 +946,8 @@ begin
   linenr:=ptruint(script.Objects[i]);
   scriptstart:=i;
 
+
+
   j:=i+1;
   while j<script.Count do
   begin
@@ -1250,6 +1252,8 @@ begin
                 script.insert(0,'loadlibrary(luaclient-x86_64.dll)')
               else
                 script.insert(0,'loadlibrary(luaclient-i386.dll)');
+
+              inc(i,1);
             end;
 
             //add the code that runs and configures the luaserver
