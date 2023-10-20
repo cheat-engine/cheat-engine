@@ -1541,7 +1541,7 @@ begin
     bp:=debuggerthread.isBreakpoint(address);
     if bp<>nil then
     begin
-      if bp.breakpointMethod=bpmInt3 then
+      if (bp.breakpointTrigger=bptExecute) and (bp.breakpointMethod in [bpmInt3, bpmGDB]) then
         b:=bp.originalbyte;
     end;
     debuggerthread.unlockbplist;
@@ -1860,11 +1860,7 @@ begin
         if debuggerthread<>nil then
           for i:=0 to actualread-1 do
             if memory[i]=$cc then
-            begin
-              //memory[i]:=debuggerthread.getrealbyte(offset+i);
-
               repairbreakbyte(offset+i, memory[i]);
-            end;
         {$endif}
 
         debugpart:=4;

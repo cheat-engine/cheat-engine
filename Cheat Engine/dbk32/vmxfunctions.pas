@@ -119,7 +119,7 @@ const
 
 
   //new debuger flags
-  DBG_CONTINUE_SINGLESTEP = $00010003; //continueDebugEvent continuestatus only for DBVM BP's
+
   EXCEPTION_DBVM_BREAKPOINT = $CEDB0001;
 
 type

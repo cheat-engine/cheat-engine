@@ -85,7 +85,8 @@ uses strutils, memscan, disassembler, networkInterface, networkInterfaceApi,
 uses simpleaobscanner, StrUtils, LuaHandler, memscan, disassembler, networkInterface,
      networkInterfaceApi, LuaCaller, SynHighlighterAA, Parsers, Globals, memoryQuery,
      MemoryBrowserFormUnit, MemoryRecordUnit{$ifdef windows}, vmxfunctions{$endif}, autoassemblerexeptionhandler,
-     UnexpectedExceptionsHelper, types, autoassemblercode, System.UITypes, frmautoinjectunit;
+     UnexpectedExceptionsHelper, types, autoassemblercode, System.UITypes,
+     frmautoinjectunit, DebuggerInterfaceAPIWrapper, GDBServerDebuggerInterface;
 {$endif}
 
 
@@ -3941,7 +3942,10 @@ begin
           binaryfile:=tmemorystream.Create;
           try
             binaryfile.LoadFromFile(loadbinary[i].filename);
-            ok2:=writeprocessmemory(processhandle,pointer(testptr),binaryfile.Memory,binaryfile.Size,x);
+            if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) and GDBWriteProcessMemoryCodeOnly then
+              ok2:=TGDBServerDebuggerInterface(CurrentDebuggerInterface).writeBytes(testptr, binaryfile.Memory, binaryfile.size)
+            else
+              ok2:=writeprocessmemory(processhandle,pointer(testptr),binaryfile.Memory,binaryfile.Size,x);
           finally
             binaryfile.free;
           end;
@@ -4120,7 +4124,12 @@ begin
       else
         vpe:=(SkipVirtualProtectEx=false) and virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),PAGE_READWRITE,op);
 
-      ok1:={$ifdef windows}WriteProcessMemoryWithCloakSupport{$else}WriteProcessMemory{$endif}(processhandle, pointer(testptr),@assembled[i].bytes[0],length(assembled[i].bytes),x);
+
+      if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) and GDBWriteProcessMemoryCodeOnly then
+        ok1:=TGDBServerDebuggerInterface(CurrentDebuggerInterface).writeBytes(testptr, @assembled[i].bytes[0], length(assembled[i].bytes))
+      else
+        ok1:={$ifdef windows}WriteProcessMemoryWithCloakSupport{$else}WriteProcessMemory{$endif}(processhandle, pointer(testptr),@assembled[i].bytes[0],length(assembled[i].bytes),x);
+
       if vpe then
         virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),op,op2);
 

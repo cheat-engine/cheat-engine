@@ -64,7 +64,7 @@ var
 implementation
 
 uses debugeventhandler, frmstacktraceunit, DebuggerInterfaceAPIWrapper,
-  ProcessHandlerUnit, Parsers, symbolhandler, Clipbrd;
+  ProcessHandlerUnit, Parsers, symbolhandler, Clipbrd, GDBServerDebuggerInterface;
 
 resourcestring
   rsPleaseFirstAttachTheDebuggerToThisProcess = 'Please first attach the debugger to this process';
@@ -146,6 +146,7 @@ begin
     if debuggerthread<>nil then
     begin
       threadlist:=debuggerthread.lockThreadlist;
+
       try
         for i:=0 to threadlist.Count-1 do
         begin

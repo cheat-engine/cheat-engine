@@ -1,0 +1,74 @@
+object frmGDBServerConnectDialog: TfrmGDBServerConnectDialog
+  Left = 375
+  Height = 93
+  Top = 313
+  Width = 320
+  AutoSize = True
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsDialog
+  Caption = 'GDB Server connect'
+  ClientHeight = 93
+  ClientWidth = 320
+  Position = poScreenCenter
+  LCLVersion = '2.2.2.0'
+  object Label1: TLabel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    Left = 4
+    Height = 15
+    Top = 4
+    Width = 55
+    BorderSpacing.Left = 4
+    BorderSpacing.Top = 4
+    Caption = 'Hostname'
+    ParentColor = False
+  end
+  object Edit1: TEdit
+    AnchorSideLeft.Control = Label1
+    AnchorSideTop.Control = Label1
+    AnchorSideTop.Side = asrBottom
+    Left = 4
+    Height = 23
+    Top = 19
+    Width = 186
+    TabOrder = 0
+    Text = 'localhost'
+  end
+  object Label2: TLabel
+    AnchorSideLeft.Control = Edit2
+    AnchorSideTop.Control = Label1
+    Left = 200
+    Height = 15
+    Top = 4
+    Width = 22
+    Caption = 'Port'
+    ParentColor = False
+  end
+  object Edit2: TEdit
+    AnchorSideLeft.Control = Edit1
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = Label2
+    AnchorSideTop.Side = asrBottom
+    Left = 200
+    Height = 23
+    Top = 19
+    Width = 80
+    BorderSpacing.Left = 10
+    BorderSpacing.Right = 4
+    TabOrder = 1
+    Text = '33453'
+  end
+  object Button1: TButton
+    AnchorSideTop.Control = Edit2
+    AnchorSideTop.Side = asrBottom
+    Left = 104
+    Height = 25
+    Top = 50
+    Width = 75
+    BorderSpacing.Top = 8
+    BorderSpacing.Bottom = 10
+    Caption = 'Connect'
+    OnClick = Button1Click
+    TabOrder = 2
+  end
+end

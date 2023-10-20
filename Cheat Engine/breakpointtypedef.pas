@@ -45,7 +45,7 @@ type
     breakpointTrigger: TBreakpointTrigger;
     debugRegister: integer;  //if debugRegister bp this will hold which debug register is used for it
 
-    dbvmwatchid: integer; //DBVM watch id in case of a bpmDBVM
+    debuggerinterfacewatchid: integer; //watch id in case of a bpmDBVM or bpmGDB
 
 
 

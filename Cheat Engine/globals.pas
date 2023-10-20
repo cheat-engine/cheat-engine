@@ -203,6 +203,12 @@ var
   symsync_DontDeleteSymbolsWhenSynchronizing: boolean;
   symsync_Interval: integer;
 
+  GDBReadProcessMemory: boolean;
+  GDBWriteProcessMemory: boolean;
+  GDBWriteProcessMemoryCodeOnly: boolean;
+
+  cedebugsymbolspresent: boolean;
+
 implementation
 
 

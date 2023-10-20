@@ -27,7 +27,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="7"/>
       <MinorVersionNr Value="5"/>
-      <BuildNr Value="7587"/>
+      <BuildNr Value="7671"/>
       <Language Value="041C"/>
       <CharSet Value="04B0"/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.5"/>
@@ -824,7 +824,7 @@
         <PackageName Value="LCL"/>
       </Item9>
     </RequiredPackages>
-    <Units Count="422">
+    <Units Count="424">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -3051,6 +3051,17 @@
         <Filename Value="libcepack.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit421>
+      <Unit422>
+        <Filename Value="gdbserverdebuggerinterface.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="GDBServerDebuggerInterface"/>
+      </Unit422>
+      <Unit423>
+        <Filename Value="gdbserverconnectdialog.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmGDBServerConnectDialog"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit423>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

@@ -2462,7 +2462,8 @@ var
   op: string;
 begin
   //unhandled exeption. Also clean lua stack
-  s:={$ifdef THREADNAMESUPPORT}GetThreadName+': '+{$endif}'Unhandled exception: '+e.message;
+  s:={$ifdef THREADNAMESUPPORT}GetThreadName+': '+{$endif}'Unhandled exception: '+e.message+' (Exception class '+ e.ClassName+')';
+
 
   {$ifdef windows}
   if e is EAccessViolation then
@@ -3002,6 +3003,13 @@ var
   DoNotOpenAssociatedTable: boolean;
   //set to true if the table had AA scripts enabled or the code list had nopped instruction
 begin
+  if MainThreadID <> GetCurrentThreadId then
+  begin
+    currentexceptionerror:='openProcessEpilogue wasn''t called from the main GUI thread. Do not do this!';
+    tthread.Synchronize(nil, ShowError);
+    exit;
+  end;
+
   if getConnection<>nil then
     updateNetworkOptions;
 
@@ -3140,7 +3148,7 @@ begin
   begin
     if (addresslist.Count > 0) or (AdvancedOptions.count > 0) then
     begin
-      if (messagedlg(strKeepList, mtConfirmation, [mbYes, mbNo], 0) = mrNo) then
+      if formsettings.cbAskToClearListOnOpen.checked and (messagedlg(strKeepList, mtConfirmation, [mbYes, mbNo], 0) = mrNo) then
       begin
         UserDefinedTableName:='';
         ClearList;
@@ -6000,7 +6008,10 @@ begin
 //  if FileExists();
   s:=ChangeFileExt(application.exename,'.DBG');
   if FileExists(s) then
-    createlog:=true
+  begin
+    createlog:=true;
+    cedebugsymbolspresent:=true;
+  end
   else
     createlog:=false;
 
@@ -7928,7 +7939,7 @@ begin
           //spawn a foundcodedialog
           fcd:=TFoundCodeDialog.Create(self);
           fcd.multipleRip:=frmDBVMWatchConfig.cbMultipleRIP.Checked;
-          fcd.dbvmwatchid:=id;
+          fcd.debuggerinterfacewatchid:=id;
           fcd.dbvmwatch_unlock:=unlockaddress;
           case frmDBVMWatchConfig.watchtype of
             0: fcd.caption:=Format(rsTheFollowingOpcodesAccessed, [inttohex(address, 8)]);

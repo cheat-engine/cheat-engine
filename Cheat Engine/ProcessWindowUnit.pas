@@ -163,7 +163,9 @@ implementation
 
 uses MainUnit, formsettingsunit, advancedoptionsunit,frmProcessWatcherUnit,
   memorybrowserformunit, networkConfig, ProcessHandlerUnit, processlist, globals,
-  registry, fontSaveLoadRegistry, frmOpenFileAsProcessDialogUnit, networkInterfaceApi, MainUnit2;
+  registry, fontSaveLoadRegistry, frmOpenFileAsProcessDialogUnit,
+  networkInterfaceApi, MainUnit2, DebuggerInterfaceAPIWrapper, gdbserverconnectdialog,
+  GDBServerDebuggerInterface, plugin;
 
 resourcestring
   rsIsnTAValidProcessID = '%s isn''t a valid processID';
@@ -627,6 +629,9 @@ begin
     reg.free;
   end;
 
+  if formSettings.cbUseGDBServer.checked then
+    btnNetwork.Caption:='Connect to GDB';
+
 end;
 
 procedure TProcessWindow.FormDestroy(Sender: TObject);
@@ -687,24 +692,81 @@ begin
 end;
 
 procedure TProcessWindow.btnNetworkClick(Sender: TObject);
+var
+  host: string;
+  port: word;
 begin
-  if frmNetworkConfig=nil then
-    frmNetworkConfig:=tfrmNetworkConfig.create(self);
-
-  if frmNetworkConfig.ShowModal=mrok then
+  if formsettings.cbUseGDBServer.checked then
   begin
-    tabheader.ShowTabs:=false;
-    TabHeaderResize(nil);
+    if MessageDlg('Connecting to GDB using this option instead of attaching the debugger to the native process will force the use of GDB read and write memory functions which is a lot slower, and you will not have access to local symbol info and some other tools you may be used to.  Are you sure?', mtWarning, [mbyes, mbno],0)<>mryes then exit;
 
-    if TabHeader.TabIndex=1 then
-      refreshlist
+    GDBReadProcessMemory:=true;
+    GDBWriteProcessMemory:=true;
+
+    outputdebugstring('Using GDBServer debugger interface');
+    if CurrentDebuggerInterface<>nil then
+      freeandnil(CurrentDebuggerInterface);
+
+    if formsettings.cbLaunchGDBServer.Checked then
+    begin
+      port:=strtoint(formsettings.edtGDBPort.Text);
+      CurrentDebuggerInterface:=TGDBServerDebuggerInterface.createAndConnect(formsettings.edtGDBServerCommand.Text, 'localhost', port);
+    end
     else
     begin
-      TabHeader.Tabindex:=1;
-      refreshlist;
+      //spawn a dialog asking
+      if getGDBHostAndPort(host, port) then
+        CurrentDebuggerInterface:=TGDBServerDebuggerInterface.connectToExistingServer(host,port);
     end;
 
-    processlist.SetFocus;
+    if CurrentDebuggerInterface<>nil then
+    begin
+      tabheader.ShowTabs:=false;
+      TabHeaderResize(nil);
+
+      if TabHeader.TabIndex<>1 then
+        TabHeader.Tabindex:=1;
+
+      refreshlist;
+      processlist.SetFocus;
+
+      btnAttachDebugger.Visible:=false;
+
+      if processlist.Count=0 then
+      begin
+        //this is a processless system
+        MainForm.ProcessLabel.caption:='Remote System';
+        processhandler.processid:=$FFFFFFFE;
+        processhandler.processhandle:=-2;
+
+        startdebuggerifneeded(false);
+
+
+        onAPIPointerChange:=TGDBServerDebuggerInterface(currentdebuggerinterface).OnApiPointerChange;
+        onAPIPointerChange(nil);
+
+        modalresult:=mrok;
+      end;
+
+    end;
+  end
+  else
+  begin
+    if frmNetworkConfig=nil then
+      frmNetworkConfig:=tfrmNetworkConfig.create(self);
+
+    if frmNetworkConfig.ShowModal=mrok then
+    begin
+      tabheader.ShowTabs:=false;
+      TabHeaderResize(nil);
+
+      if TabHeader.TabIndex<>1 then
+        TabHeader.Tabindex:=1;
+
+      refreshlist;
+      processlist.SetFocus;
+    end;
+
   end;
 end;
 
@@ -762,13 +824,25 @@ begin
   end;
   {$endif}
 
-  Open_Process;
+  if (CurrentDebuggerInterface<>nil) and (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+  begin
+    //use the currently selected processid for startdebuggerifneeded (for the vAttach packet)
+    processhandler.processhandle:=-2;
+    startdebuggerifneeded(false);
+
+    onAPIPointerChange:=TGDBServerDebuggerInterface(currentdebuggerinterface).OnApiPointerChange;
+    onAPIPointerChange(nil);
+
+    processhandler.processid:=$fffffffe;  //the processid is not needed anymore
+
+  end
+  else
+    Open_Process;
 
   if ProcessHandle=0 then
   begin
     if not runningAsAdmin then
     begin
-      showmessage('error='+le.ToString);
       raise exception.Create('Failed opening process. Likely due to lack of admin rights');
     end;
   end;
@@ -807,9 +881,8 @@ begin
 
       ProcessIDString:=copy(ProcessList.Items[Processlist.ItemIndex], 1, pos('-',ProcessList.Items[Processlist.ItemIndex])-1);
 
-      Outputdebugstring('calling PWOD');
+      Outputdebugstring('calling PWOP');
       PWOP(ProcessIDString);
-
 
 
       if TabHeader.TabIndex=0 then

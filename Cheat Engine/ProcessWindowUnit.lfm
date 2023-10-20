@@ -32,6 +32,7 @@ object ProcessWindow: TProcessWindow
     object Panel5: TPanel
       AnchorSideLeft.Control = Panel1
       AnchorSideLeft.Side = asrCenter
+      AnchorSideRight.Side = asrBottom
       Left = 55
       Height = 98
       Top = 7
@@ -103,10 +104,13 @@ object ProcessWindow: TProcessWindow
         AnchorSideLeft.Control = Panel5
         AnchorSideTop.Control = Panel3
         AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = Panel5
+        AnchorSideRight.Side = asrBottom
         Left = 0
         Height = 25
         Top = 43
         Width = 175
+        Anchors = [akTop, akLeft, akRight]
         AutoSize = True
         BorderSpacing.Top = 9
         Caption = 'Attach debugger to process'
@@ -119,7 +123,7 @@ object ProcessWindow: TProcessWindow
         AnchorSideLeft.Control = btnAttachDebugger
         AnchorSideTop.Control = btnAttachDebugger
         AnchorSideTop.Side = asrBottom
-        AnchorSideRight.Control = btnAttachDebugger
+        AnchorSideRight.Control = Panel5
         AnchorSideRight.Side = asrBottom
         Left = 0
         Height = 25
