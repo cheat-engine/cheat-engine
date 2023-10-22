@@ -71,7 +71,8 @@ implementation
 uses {$ifdef windows}windows,{$endif}{$ifdef darwin}macport,macportdefines,math,{$endif}
   ProcessHandlerUnit, symbolhandler, luahandler, lua, lauxlib, lualib, StrUtils,
   Clipbrd, dialogs, lua_server, Assemblerunit, NewKernelHandler, DBK32functions,
-  StringHashList, globals, networkInterfaceApi;
+  StringHashList, globals, networkInterfaceApi, DebuggerInterfaceAPIWrapper,
+  GDBServerDebuggerInterface;
 
 
 type
@@ -545,7 +546,11 @@ begin
 
 
       OutputDebugString('Writing c-code to '+dataforpass2.cdata.address.ToHexString+' ( '+bytes.size.ToString+' bytes )');
-      writesuccess:=writeProcessMemory(phandle, pointer(dataforpass2.cdata.address),bytes.memory, bytes.size,bw);
+
+      if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) and GDBWriteProcessMemoryCodeOnly then
+        writesuccess:=TGDBServerDebuggerInterface(CurrentDebuggerInterface).writeBytes(dataforpass2.cdata.address, bytes.memory, bytes.size)
+      else
+        writesuccess:=writeProcessMemory(phandle, pointer(dataforpass2.cdata.address),bytes.memory, bytes.size,bw);
 
       {$ifdef darwin}
       if (writesuccess) then
@@ -578,7 +583,10 @@ begin
         end;
 
         a:=ptruint(tempsymbollist.Objects[k]);
-        writesuccess2:=writeProcessMemory(phandle, pointer(dataForPass2.cdata.references[j].address),@a,psize,bw);
+        if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) and GDBWriteProcessMemoryCodeOnly then
+          writesuccess2:=TGDBServerDebuggerInterface(CurrentDebuggerInterface).writeBytes(dataForPass2.cdata.references[j].address, @a, psize)
+        else
+          writesuccess2:=writeProcessMemory(phandle, pointer(dataForPass2.cdata.references[j].address),@a,psize,bw);
       end;
 
       //stdcall symbols: (32-bit)
@@ -946,6 +954,8 @@ begin
   linenr:=ptruint(script.Objects[i]);
   scriptstart:=i;
 
+
+
   j:=i+1;
   while j<script.Count do
   begin
@@ -1250,12 +1260,14 @@ begin
                 script.insert(0,'loadlibrary(luaclient-x86_64.dll)')
               else
                 script.insert(0,'loadlibrary(luaclient-i386.dll)');
+
+              inc(i,1);
             end;
 
             //add the code that runs and configures the luaserver
             script.insert(1,'CELUA_ServerName:');
             script.insert(2,'db ''CELUASERVER'+inttostr(getcurrentprocessid)+''',0');
-            inc(i,3);
+            inc(i,2);
 
             hasAddedLuaServerCode:=true;
 

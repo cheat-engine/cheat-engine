@@ -1436,7 +1436,7 @@ begin
 
   {$ifdef windows}
   {$ifdef cpu64}
-
+  {$ifndef STANDALONECH}
   if (((qword(lpBaseAddress) and (qword(1) shl 63))<>0) and //kernelmode access
       (@WriteProcessMemoryActual=defaultWPM) and
       isRunningDBVM) //but DBVM is loaded
@@ -1448,6 +1448,7 @@ begin
       result:=WriteProcessMemoryCR3(cr3, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesWritten);
   end
   else
+  {$endif}
   {$endif}
   {$endif}
   result:=WriteProcessMemoryActual(hProcess, lpBaseAddress, lpbuffer, nSize, lpNumberOfBytesWritten);
@@ -1477,6 +1478,7 @@ begin
 
   {$ifdef windows}
   {$ifdef cpu64}
+  {$ifndef STANDALONECH}
   if (((qword(lpBaseAddress) and (qword(1) shl 63))<>0) and //kernelmode access
      (defaultRPM=@ReadProcessMemoryActual) and
      isRunningDBVM) //but DBVM is loaded
@@ -1489,6 +1491,7 @@ begin
   end;
   {$endif}
   {$endif}
+  {$endif}
   result:=ReadProcessMemoryActual(hProcess,lpBaseAddress, lpBuffer, nsize, lpNumberOfBytesRead);
 end;
 
@@ -1497,11 +1500,13 @@ var cr3: ptruint;
 begin
   {$ifdef windows}
   {$ifdef cpu64}
+  {$ifndef STANDALONECH}
   if forceCR3VirtualQueryEx then
   begin
     if dbk32functions.GetCR3(hProcess, cr3) then
       exit(VirtualQueryExCR3(cr3, lpAddress, lpBuffer, dwLength));
   end;
+  {$endif}
   {$endif}
   {$endif}
   result:=VirtualQueryExActual(hProcess,lpAddress, lpBuffer, dwLength);

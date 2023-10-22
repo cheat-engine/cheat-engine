@@ -2673,7 +2673,7 @@ begin
 
   while (result<size) do
   begin
-    i:=fpsend(socket, pointer(ptruint(buffer)+result), size, 0);
+    i:=fpsend(socket, pointer(ptruint(buffer)+result), size-result, 0);
     if i<=0 then
     begin
       OutputDebugString('Error during send');

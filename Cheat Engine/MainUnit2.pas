@@ -751,6 +751,9 @@ begin
             cbProcessIcons.Checked:=reg.ReadBool('Get process icons');
           GetProcessIcons:=cbProcessIcons.Checked;
 
+          if reg.ValueExists('Ask to clear list on process opening') then
+            cbAskToClearListOnOpen.Checked:=reg.ReadBool('Ask to clear list on process opening');
+
           if reg.ValueExists('Pointer appending') then
             cbOldPointerAddMethod.checked:=reg.ReadBool('Pointer appending');
 
@@ -939,6 +942,19 @@ begin
 
           if reg.ValueExists('Use Kernel Debugger') then
             cbKdebug.checked:=reg.ReadBool('Use Kernel Debugger');
+
+          if reg.ValueExists('Use GDBServer Debugger') then
+            cbUseGDBServer.checked:=reg.ReadBool('Use GDBServer Debugger');
+
+          if reg.ValueExists('Launch GDB server') then
+            cbLaunchGDBServer.checked:=reg.ReadBool('Launch GDB server');
+
+          if reg.ValueExists('GDBServer launch command') then
+            edtGDBServerCommand.text:=reg.ReadString('GDBServer launch command');
+
+          if reg.ValueExists('GDBPort') then
+            edtGDBPort.text:=reg.ReadString('GDBPort');
+
 
           if reg.ValueExists('Use DBVM Debugger') then
             cbUseDBVMDebugger.checked:=reg.ReadBool('Use DBVM Debugger');

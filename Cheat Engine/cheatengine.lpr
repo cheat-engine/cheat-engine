@@ -120,9 +120,10 @@ uses
   autoassemblercode, CSharpCompiler, newhintwindow, memrecDataStructures,
   LuaCECustomButton, DBVMDebuggerInterface, frmCR3SwitcherUnit, tcclib,
   sourcecodehandler, frmSourceDisplayUnit, disassemblerarm64, contexthandler,
-  DisAssemblerARM32, frmAnchorEditor, disassemblerArm32Thumb, iptnative, 
-  iptlogdisplay, LuaVirtualStringTree, userbytedisassembler, 
-LuaNetworkInterface, libcepack, symbolsync;
+  DisAssemblerARM32, frmAnchorEditor, disassemblerArm32Thumb, iptnative,
+  iptlogdisplay, LuaVirtualStringTree, userbytedisassembler,
+  LuaNetworkInterface, libcepack, symbolsync, gdbserverconnectdialog,
+  GDBServerDebuggerInterface;
 
 {$R cheatengine.res}
 {$IFDEF windows}

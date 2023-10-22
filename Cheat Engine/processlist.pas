@@ -28,7 +28,8 @@ var
 
 implementation
 
-uses Globals, commonTypeDefs, networkInterfaceApi
+uses Globals, commonTypeDefs, DebuggerInterfaceAPIWrapper, networkInterfaceApi,
+  GDBServerDebuggerInterface
   {$ifdef darwin}
   , macportdefines //must be at the end
   {$endif}
@@ -114,6 +115,12 @@ var SNAPHandle: THandle;
 begin
   cleanProcessList(ProcessList);
 
+  if CurrentDebuggerInterface is TGDBServerDebuggerInterface then
+  begin
+    TGDBServerDebuggerInterface(CurrentDebuggerInterface).getProcessList(processlist);
+    if processlist.count<>0 then exit;
+  end;
+
   {$ifdef darwin}
   if getconnection=nil then
   begin
@@ -123,8 +130,6 @@ begin
   {$endif}
 
   {$ifdef windows}
-
-
   lwindir:=lowercase(windowsdir);
   ProcessListInfo:=nil;
   HI:=0;

@@ -56,12 +56,12 @@ procedure luaL_unref(L: Plua_State; t, ref: Integer); cdecl;
 
 
 procedure Lua_RegisterObject(name: string; o: TObject);
-function CheckIfConditionIsMetContext(threadid: dword; context: PContext; script: string): boolean;
+function CheckIfConditionIsMetContext(threadid: dword; context: pointer; script: string): boolean;
 procedure LUA_DoScript(s: string);
 function LUA_functioncall(routinetocall: string; parameters: array of const): integer;
 procedure LUA_memrec_callback(memrec: pointer; routine: string);
-procedure LUA_SetCurrentContextState(tid: dword; context: PContext; extraregs: boolean=false);
-procedure LUa_GetNewContextState(context: PContext; extraregs: boolean=false);
+procedure LUA_SetCurrentContextState(tid: dword; context: pointer; extraregs: boolean=false);
+procedure LUa_GetNewContextState(context: pointer; extraregs: boolean=false);
 
 function LUA_onBreakpoint(threadid: dword; context: PContext; functionAlreadyPushed: boolean=false): boolean;
 procedure LUA_onNotify(functionid: integer; sender: tobject);
@@ -130,7 +130,7 @@ uses autoassembler, MainUnit, MainUnit2, LuaClass, frmluaengineunit, plugin, plu
   rttihelper, LuaDotNetPipe, LuaRemoteExecutor, windows7taskbar, debugeventhandler,
   tcclib, dotnethost, CSharpCompiler, LuaCECustomButton, feces, process,
   networkInterface, networkInterfaceApi, LuaVirtualStringTree, userbytedisassembler,
-  parsers, LuaNetworkInterface, symbolsync;
+  parsers, LuaNetworkInterface, symbolsync, contexthandler;
 
   {$warn 5044 off}
 
@@ -367,6 +367,12 @@ begin
 
           printoutput:=frmLuaEngine.mOutput.Lines;
           usesluaengineform:=true;
+        end;
+
+        if printoutput=nil then  //e.g closing CE
+        begin
+          OutputDebugString('printoutput=nil');
+          exit;
         end;
 
         printoutput.AddText(rsError+error);
@@ -1154,300 +1160,102 @@ begin
 
 end;
 
-procedure LUA_SetCurrentContextState(tid: dword; context: PContext; extraregs: boolean=false);
+procedure LUA_SetCurrentContextState(tid: dword; context: pointer; extraregs: boolean=false);
 var i: integer;
+    ch: TContextInfo;
+    gpr: PContextElementRegisterList;
+
+    fpu,fpu2: PContextElementRegisterList;
 begin
   lua_pushinteger(luavm, tid);
   lua_setglobal(luavm, 'THREADID');
+  ch:=getBestContextHandler;
 
-  if processhandler.SystemArchitecture=archX86 then
+  gpr:=ch.getGeneralPurposeRegisters;
+  for i:=0 to length(gpr^)-1 do
   begin
-    {$ifdef cpu64}
-    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rax{$else}eax{$endif});
-    lua_setglobal(luavm, 'RAX');
-    {$endif}
-    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rax{$else}eax{$endif} and $ffffffff);
-    lua_setglobal(luavm, 'EAX');
+    lua_pushinteger(luavm, gpr^[i].getValue(context));
+    lua_setglobal(luavm, pchar(uppercase(gpr^[i].name)));
+  end;
 
-    {$ifdef cpu64}
-    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rbx{$else}ebx{$endif});
-    lua_setglobal(luavm, 'RBX');
-    {$endif}
-    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rbx{$else}ebx{$endif} and $ffffffff);
-    lua_setglobal(luavm, 'EBX');
-
-
-    {$ifdef cpu64}
-    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rcx{$else}ecx{$endif});
-    lua_setglobal(luavm, 'RCX');
-    {$endif}
-    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rcx{$else}ecx{$endif} and $ffffffff);
-    lua_setglobal(luavm, 'ECX');
-
-    {$ifdef cpu64}
-    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rdx{$else}edx{$endif});
-    lua_setglobal(luavm, 'RDX');
-    {$endif}
-    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rdx{$else}edx{$endif} and $ffffffff);
-    lua_setglobal(luavm, 'EDX');
-
-
-    {$ifdef cpu64}
-    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rsi{$else}esi{$endif});
-    lua_setglobal(luavm, 'RSI');
-    {$endif}
-    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rsi{$else}esi{$endif} and $ffffffff);
-    lua_setglobal(luavm, 'ESI');
-
-
-    {$ifdef cpu64}
-    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rdi{$else}edi{$endif});
-    lua_setglobal(luavm, 'RDI');
-    {$endif}
-    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rdi{$else}edi{$endif} and $ffffffff);
-    lua_setglobal(luavm, 'EDI');
-
-
-    {$ifdef cpu64}
-    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rbp{$else}ebp{$endif});
-    lua_setglobal(luavm, 'RBP');
-    {$endif}
-    lua_pushinteger(luavm, context^.{$ifdef cpu64}RBP{$else}eBP{$endif} and $ffffffff);
-    lua_setglobal(luavm, 'EBP');
-
-
-    {$ifdef cpu64}
-    lua_pushinteger(luavm, context^.{$ifdef cpu64}RSP{$else}eSP{$endif});
-    lua_setglobal(luavm, 'RSP');
-    {$endif}
-    lua_pushinteger(luavm, context^.{$ifdef cpu64}RSP{$else}eSP{$endif} and $ffffffff);
-    lua_setglobal(luavm, 'ESP');
-
-    {$ifdef cpu64}
-    lua_pushinteger(luavm, context^.{$ifdef cpu64}RIP{$else}eIP{$endif});
-    lua_setglobal(luavm, 'RIP');
-    {$endif}
-    lua_pushinteger(luavm, context^.{$ifdef cpu64}RIP{$else}eIP{$endif} and $ffffffff);
-    lua_setglobal(luavm, 'EIP');
-
-    lua_pushinteger(luavm, context^.EFlags);
+  if (processhandler.SystemArchitecture=archX86) and (ch.getGeneralPurposeFlags<>nil) then
+  begin
+    lua_pushinteger(luavm, pdword(ch.getGeneralPurposeFlags^[0].getPointer(context))^);
     lua_setglobal(luavm, 'EFLAGS');
+  end;
 
-
-
-    {$ifdef cpu64}
-    lua_pushinteger(luavm, context^.r8);
-    lua_setglobal(luavm, 'R8');
-
-    lua_pushinteger(luavm, context^.r9);
-    lua_setglobal(luavm, 'R9');
-
-    lua_pushinteger(luavm, context^.r10);
-    lua_setglobal(luavm, 'R10');
-
-    lua_pushinteger(luavm, context^.r11);
-    lua_setglobal(luavm, 'R11');
-
-    lua_pushinteger(luavm, context^.r12);
-    lua_setglobal(luavm, 'R12');
-
-    lua_pushinteger(luavm, context^.r13);
-    lua_setglobal(luavm, 'R13');
-
-    lua_pushinteger(luavm, context^.r14);
-    lua_setglobal(luavm, 'R14');
-
-    lua_pushinteger(luavm, context^.r15);
-    lua_setglobal(luavm, 'R15');
-    {$endif}
-
-    if extraregs then //default off as it's a bit slow
+  if extraregs then //default off as it's a bit slow
+  begin
+    fpu2:=ch.getAlternateFloatingPointRegisters;
+    if fpu2<>nil then
     begin
-      for i:=0 to 7 do
+      for i:=0 to length(fpu2^)-1 do
       begin
-        {$ifdef cpu32}
-        CreateByteTableFromPointer(luavm, @context^.FloatSave.RegisterArea[10*i], 10);
-        {$else}
-        CreateByteTableFromPointer(luavm, @context^.FltSave.FloatRegisters[i], 10);
-        {$endif}
-        lua_setglobal(luavm, pchar('FP'+inttostr(i)));
-      end;
-
-      //xmm regs
-
-      for i:=0 to 15 do
-      begin
-        if (i>=8) and (not processhandler.is64Bit) then break;
-
-        {$ifdef cpu32}
-        CreateByteTableFromPointer(luavm, @context^.ext.XMMRegisters[i], 16);
-        {$else}
-        CreateByteTableFromPointer(luavm, @context^.FltSave.XmmRegisters[i], 16);
-        {$endif}
-        lua_setglobal(luavm, pchar('XMM'+inttostr(i)));
+        CreateByteTableFromPointer(luavm, fpu2^[i].getPointer(context), fpu2^[i].size);
+        lua_setglobal(luavm, pchar(fpu2^[i].name));
       end;
     end;
-  end
-  else
-  begin
-    //todo: ARM
+    //xmm regs
+
+    fpu:=ch.getFloatingPointRegisters;
+    for i:=0 to length(fpu^)-1 do
+    begin
+      CreateByteTableFromPointer(luavm, fpu^[i].getPointer(context), fpu^[i].size);
+      lua_setglobal(luavm, pchar(fpu^[i].name));
+    end;
   end;
+
 end;
 
-procedure LUA_GetNewContextState(context: PContext; extraregs: boolean=false);
+procedure LUA_GetNewContextState(context: pointer; extraregs: boolean=false);
 var
   i: integer;
   t: integer;
+  ch: TContextInfo;
+  gpr: PContextElementRegisterList;
+  fpu,fpu2: PContextElementRegisterList;
 begin
-  lua_getglobal(luavm, 'EFLAGS');
-  context.EFLAGS:=lua_tointeger(luavm, -1);
-  lua_pop(luavm,1);
+  ch:=getBestContextHandler;
 
-  if not processhandler.is64bit then
+  if (processhandler.SystemArchitecture=archX86) and (ch.getGeneralPurposeFlags<>nil) then
   begin
-    lua_getglobal(luavm, 'EAX');
-    context.{$ifdef cpu64}rax{$else}eax{$endif}:=lua_tointeger(luavm, -1);
+    lua_getglobal(luavm, 'EFLAGS');
+    pdword(ch.getGeneralPurposeFlags^[0].getPointer(context))^:=lua_tointeger(luavm, -1);
     lua_pop(luavm,1);
+  end;
 
-    lua_getglobal(luavm, 'EBX');
-    context.{$ifdef cpu64}rbx{$else}ebx{$endif}:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'ECX');
-    context.{$ifdef cpu64}rcx{$else}ecx{$endif}:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'EDX');
-    context.{$ifdef cpu64}rdx{$else}edx{$endif}:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'ESI');
-    context.{$ifdef cpu64}rsi{$else}esi{$endif}:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'EDI');
-    context.{$ifdef cpu64}rdi{$else}edi{$endif}:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'EBP');
-    context.{$ifdef cpu64}rbp{$else}ebp{$endif}:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'ESP');
-    context.{$ifdef cpu64}rsp{$else}esp{$endif}:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-
-    lua_getglobal(luavm, 'EIP');
-    context.{$ifdef cpu64}rip{$else}eip{$endif}:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-  end
-  else
+  gpr:=ch.getGeneralPurposeRegisters;
+  for i:=0 to length(gpr^)-1 do
   begin
-  {$ifdef cpu64}
-    lua_getglobal(luavm, 'RAX');
-    context.RAX:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'RBX');
-    context.RBX:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'RCX');
-    context.RCX:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'RDX');
-    context.RDX:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'RSI');
-    context.RSI:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'RDI');
-    context.RDI:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'RBP');
-    context.RBP:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'RSP');
-    context.RSP:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'RIP');
-    context.RIP:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'R8');
-    context.R8:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'R9');
-    context.R9:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'R10');
-    context.R10:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'R11');
-    context.R11:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'R12');
-    context.R12:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'R13');
-    context.R13:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'R14');
-    context.R14:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'R15');
-    context.R15:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-  {$endif}
+    lua_getglobal(luavm, pchar(uppercase(gpr^[i].name)));
+    gpr^[i].setValue(context, lua_tointeger(luavm, -1));
   end;
 
   if extraregs then
   begin
-    for i:=0 to 7 do
+    fpu2:=ch.getAlternateFloatingPointRegisters;
+    for i:=0 to length(fpu2^)-1 do
     begin
-      lua_getglobal(luavm, pchar('FP'+inttostr(i)));
+      lua_getglobal(luavm, pchar(uppercase(fpu2^[i].name)));
       if not lua_isnil(luavm, -1) then
       begin
         t:=lua_gettop(LuaVM);
-        {$ifdef cpu32}
-        readBytesFromTable(luavm, t, @context.FloatSave.RegisterArea[10*i], 10);
-        {$else}
-        readBytesFromTable(luavm, t, @context.FltSave.FloatRegisters[i], 10);
-        {$endif}
+        readBytesFromTable(luavm, t, fpu2^[i].getPointer(context), fpu2^[i].size);
       end;
       lua_pop(luavm,1);
     end;
 
-    for i:=0 to 15 do
-    begin
-      if (i>=8) and (not processhandler.is64Bit) then break;
 
-      lua_getglobal(luavm, pchar('XMM'+inttostr(i)));
+    fpu:=ch.getFloatingPointRegisters;
+    for i:=0 to length(fpu^)-1 do
+    begin
+      lua_getglobal(luavm, pchar(uppercase(fpu^[i].name)));
       if not lua_isnil(luavm, -1) then
       begin
         t:=lua_gettop(LuaVM);
-        {$ifdef cpu32}
-        readBytesFromTable(luavm, t, @context.ext.XMMRegisters[i], 16);
-        {$else}
-        readBytesFromTable(luavm, t, @context.FltSave.XmmRegisters[i], 16);
-        {$endif}
+        readBytesFromTable(luavm, t, fpu^[i].getPointer(context), fpu^[i].size);
       end;
-
+      lua_pop(luavm,1);
     end;
   end;
 end;
@@ -1630,7 +1438,7 @@ begin
   end;
 end; }
 
-function CheckIfConditionIsMetContext(threadid: dword; context: PContext; script: string): boolean;
+function CheckIfConditionIsMetContext(threadid: dword; context: pointer; script: string): boolean;
 {
 precondition: script returns a value (so already has the 'return ' part appended for single line scripts)
 }

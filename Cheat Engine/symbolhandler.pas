@@ -517,7 +517,8 @@ uses Assemblerunit, DriverList, LuaHandler, lualib, lua, lauxlib,
   disassemblerComments, StructuresFrm2, networkInterface, networkInterfaceApi,
   ProcessHandlerUnit, Globals, Parsers, MemoryQuery, LuaCaller,
   UnexpectedExceptionsHelper, frmSymbolEventTakingLongUnit, MainUnit, addresslist,
-  MemoryRecordUnit, mainunit2, BetterDLLSearchPath;
+  MemoryRecordUnit, mainunit2, BetterDLLSearchPath, DebuggerInterfaceAPIWrapper,
+  GDBServerDebuggerInterface;
 {$endif}
 
 
@@ -3513,6 +3514,9 @@ var i,j: integer;
   s: string;
 begin
   Log('TSymhandler.reinitialize');
+
+  //if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) and GDBReadProcessMemory and GDBWriteProcessMemory then exit; //not supported atm
+
   if loadmodulelist or force then //if loadmodulelist returns true it has detected a change in the previous modulelist (baseaddresschange or new/deleted module)
   begin
     if force then
@@ -6623,7 +6627,7 @@ begin
 
   showmodules:=true;
   showsymbols:=true;
-  ExceptionOnLuaLookup:=true;
+  ExceptionOnLuaLookup:=FALSE;
 
  // log('TSymhandler.create 3');
   symbollist:=TSymbolListHandler.create;

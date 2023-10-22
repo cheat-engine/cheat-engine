@@ -26,7 +26,7 @@ object frmTracerConfig: TfrmTracerConfig
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Top = 1
     BorderSpacing.Right = 16
-    TabOrder = 2
+    TabOrder = 0
     Text = '1000'
   end
   object Label1: TLabel
@@ -70,7 +70,7 @@ object frmTracerConfig: TfrmTracerConfig
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Top = 1
     BorderSpacing.Right = 16
-    TabOrder = 4
+    TabOrder = 2
   end
   object cbDereferenceAddresses: TCheckBox
     AnchorSideLeft.Control = Label1
@@ -83,7 +83,7 @@ object frmTracerConfig: TfrmTracerConfig
     Caption = 'Dereference Addresses (Slows down)'
     Checked = True
     State = cbChecked
-    TabOrder = 5
+    TabOrder = 3
   end
   object cbSaveStack: TCheckBox
     AnchorSideLeft.Control = Label1
@@ -94,7 +94,7 @@ object frmTracerConfig: TfrmTracerConfig
     Top = 188
     Width = 210
     Caption = 'Save stack snapshots (Eats memory)'
-    TabOrder = 6
+    TabOrder = 4
   end
   object rbBreakOnAccess: TRadioButton
     AnchorSideLeft.Control = Label1
@@ -105,7 +105,7 @@ object frmTracerConfig: TfrmTracerConfig
     Top = 283
     Width = 105
     Caption = 'Break on Access'
-    TabOrder = 10
+    TabOrder = 9
     Visible = False
   end
   object rbBreakOnWrite: TRadioButton
@@ -120,7 +120,7 @@ object frmTracerConfig: TfrmTracerConfig
     BorderSpacing.Left = 3
     Caption = 'Break on Write'
     Checked = True
-    TabOrder = 11
+    TabOrder = 10
     TabStop = True
     Visible = False
   end
@@ -134,7 +134,7 @@ object frmTracerConfig: TfrmTracerConfig
     Width = 183
     Caption = 'Step over instead of single step'
     OnChange = cbStepOverChange
-    TabOrder = 7
+    TabOrder = 5
   end
   object cbSkipSystemModules: TCheckBox
     AnchorSideLeft.Control = Label1
@@ -145,7 +145,7 @@ object frmTracerConfig: TfrmTracerConfig
     Top = 264
     Width = 131
     Caption = 'Skip system modules'
-    TabOrder = 9
+    TabOrder = 8
   end
   object Panel1: TPanel
     AnchorSideLeft.Control = Owner
@@ -162,7 +162,7 @@ object frmTracerConfig: TfrmTracerConfig
     BevelOuter = bvNone
     ClientHeight = 30
     ClientWidth = 154
-    TabOrder = 13
+    TabOrder = 12
     object btnCancel: TButton
       AnchorSideLeft.Control = btnOK
       AnchorSideLeft.Side = asrBottom
@@ -219,7 +219,7 @@ object frmTracerConfig: TfrmTracerConfig
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Top = 1
     BorderSpacing.Right = 16
-    TabOrder = 3
+    TabOrder = 1
   end
   object GroupBox1: TGroupBox
     AnchorSideTop.Control = rbBreakOnAccess
@@ -234,7 +234,7 @@ object frmTracerConfig: TfrmTracerConfig
     ChildSizing.ControlsPerLine = 2
     ClientHeight = 38
     ClientWidth = 258
-    TabOrder = 12
+    TabOrder = 11
     object rbBPHardware: TRadioButton
       Left = 0
       Height = 19
@@ -283,7 +283,7 @@ object frmTracerConfig: TfrmTracerConfig
     OnChange = cbDBVMBreakAndTraceChange
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 0
+    TabOrder = 13
   end
   object cbDBVMTriggerCOW: TCheckBox
     AnchorSideLeft.Control = Label1
@@ -294,7 +294,7 @@ object frmTracerConfig: TfrmTracerConfig
     Top = 25
     Width = 136
     Caption = 'Trigger copy-on-write'
-    TabOrder = 1
+    TabOrder = 14
     Visible = False
   end
   object cbStayInsideInitialModule: TCheckBox
@@ -306,7 +306,7 @@ object frmTracerConfig: TfrmTracerConfig
     Top = 245
     Width = 152
     Caption = 'Stay inside initial module'
-    TabOrder = 8
+    TabOrder = 7
   end
   object cbStepOverRep: TCheckBox
     AnchorSideLeft.Control = cbStepOver
@@ -319,6 +319,6 @@ object frmTracerConfig: TfrmTracerConfig
     Caption = 'Step over rep instructions'
     Checked = True
     State = cbChecked
-    TabOrder = 14
+    TabOrder = 6
   end
 end

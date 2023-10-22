@@ -100,9 +100,14 @@ type
     cbDontDeleteSymbols: TCheckBox;
     cbSymbolSyncInterval: TCheckBox;
     cbAlwaysAttemptToLaunchAsAdmin: TCheckBox;
+    cbLaunchGDBServer: TCheckBox;
+    cbGDBWriteCode: TCheckBox;
+    cbAskToClearListOnOpen: TCheckBox;
     combothreadpriority: TComboBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
+    edtGDBServerCommand: TEdit;
+    edtGDBPort: TEdit;
     edtSymbolSyncTimer: TEdit;
     edtRepeatDelay: TEdit;
     edtLuaCollectTimer: TEdit;
@@ -133,6 +138,8 @@ type
     Label17: TLabel;
     Label20: TLabel;
     Label25: TLabel;
+    Label26: TLabel;
+    Label27: TLabel;
     lblMaxIPTSize: TLabel;
     lblRepeatDelay: TLabel;
     lblCurrentLanguage: TLabel;
@@ -167,6 +174,7 @@ type
     miUnexpectedBreakpointsBreak: TRadioButton;
     miUnexpectedBreakpointsBreakWhenInsideRegion: TRadioButton;
     cbUseDBVMDebugger: TRadioButton;
+    cbUseGDBServer: TRadioButton;
     rbMacDebugThreadLevel: TRadioButton;
     cbUseMacDebugger: TRadioButton;
     rbMacDebugTaskLevel: TRadioButton;
@@ -186,6 +194,7 @@ type
     spbUp: TSpeedButton;
     Languages: TTabSheet;
     TabSheet1: TTabSheet;
+    TabSheet2: TTabSheet;
     tsSymbols: TTabSheet;
     tsMacDebuggerInterface: TTabSheet;
     tsLua: TTabSheet;
@@ -254,6 +263,7 @@ type
     procedure cbDebuggerInterfaceChange(Sender: TObject);
     procedure cbKernelOpenProcessChange(Sender: TObject);
     procedure cbKernelQueryMemoryRegionChange(Sender: TObject);
+    procedure cbLaunchGDBServerChange(Sender: TObject);
     procedure cbOverrideDefaultFontChange(Sender: TObject);
     procedure cbProcessWatcherChange(Sender: TObject);
     procedure cbSynchronizeSymbolsChange(Sender: TObject);
@@ -693,6 +703,7 @@ begin
         reg.WriteBool('Get process icons',cbProcessIcons.Checked);
         GetProcessIcons:=cbProcessIcons.Checked;
 
+        reg.WriteBool('Ask to clear list on process opening',cbAskToClearListOnOpen.Checked);
         reg.WriteBool('Pointer appending', cbOldPointerAddMethod.checked);
 
         reg.writebool('skip PAGE_NOCACHE',cbSkip_PAGE_NOCACHE.Checked);
@@ -912,6 +923,12 @@ begin
         reg.WriteBool('Use Kernel Debugger',cbKdebug.checked);
         reg.WriteBool('Use Global Debug Routines',cbGlobalDebug.checked);
         reg.WriteBool('Use DBVM Debugger', cbUseDBVMDebugger.checked);
+        reg.WriteBool('Use GDBServer Debugger', cbUseGDBServer.checked);
+        reg.writebool('Launch GDB server', cbLaunchGDBServer.checked);
+        reg.WriteString('GDBServer launch command', edtGDBServerCommand.text);
+        reg.WriteString('GDBPort', edtGDBPort.text);
+        reg.writebool('GDBWriteCode', cbGDBWriteCode.checked);
+
 
         reg.writeBool('DBVMBP Trigger COW', cbDBVMDebugTriggerCOW.checked);
         reg.writeBool('DBVMBP This Process Only', cbDBVMDebugTargetedProcessOnly.checked);
@@ -1164,6 +1181,8 @@ end;
 procedure TformSettings.btnMakeKernelDebugPossibleClick(Sender: TObject);
 var reg: TRegistry;
 begin
+  if requiresAdmin('Registry access to system config data')=false then exit;
+
   if messagedlg(rsSpectreWarning,mtWarning,[mbYes,mbNo],0,mbNo)=mrYes then
   begin
     reg:=tregistry.create;
@@ -1194,6 +1213,9 @@ end;
 procedure TformSettings.btnRestoreKernelProtectionClick(Sender: TObject);
 var reg: TRegistry;
 begin
+  if requiresAdmin('Registry access to system config data')=false then exit;
+
+
   reg:=tregistry.create;
   try
     Reg.RootKey := HKEY_LOCAL_MACHINE;
@@ -1304,6 +1326,12 @@ begin
   begin
     pcDebugConfig.ActivePageIndex:=4;
     pcDebugConfig.TabIndex:=4;
+  end
+  else
+  if cbUseGDBServer.checked then
+  begin
+    pcDebugConfig.ActivePageIndex:=5;
+    pcDebugConfig.TabIndex:=5;
   end;
 
   rbPageExceptions.enabled:=not cbKDebug.checked; //currently the kerneldebugger doesn't handle pageexceptions yet (can be added, but not right now)
@@ -1319,6 +1347,14 @@ end;
 procedure TformSettings.cbKernelQueryMemoryRegionChange(Sender: TObject);
 begin
 
+end;
+
+procedure TformSettings.cbLaunchGDBServerChange(Sender: TObject);
+begin
+  Label26.enabled:=cbLaunchGDBServer.Checked;
+  edtGDBServerCommand.enabled:=cbLaunchGDBServer.Checked;
+  edtGDBPort.enabled:=cbLaunchGDBServer.Checked;
+  Label27.enabled:=cbLaunchGDBServer.Checked;
 end;
 
 procedure TformSettings.cbOverrideDefaultFontChange(Sender: TObject);

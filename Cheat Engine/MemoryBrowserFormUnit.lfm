@@ -771,6 +771,12 @@ object MemoryBrowser: TMemoryBrowser
     OnPopup = memorypopupPopup
     Left = 120
     Top = 368
+    object miClearCache: TMenuItem
+      Caption = 'Clear GDB cache for this page'
+      ImageIndex = 32
+      Visible = False
+      OnClick = miClearCacheClick
+    end
     object Change1: TMenuItem
       Caption = 'Edit'
       ImageIndex = 6

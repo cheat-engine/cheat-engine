@@ -79,6 +79,7 @@ type
     {$ifdef windows}
     usesipt: boolean;
     {$endif}
+    errormessage:string;
     procedure sync_FreeGUIObject;
     procedure vmwareRunningAskLaunch;
 
@@ -178,6 +179,8 @@ type
     procedure stopIntelPTTracing;
 
     function getLastIPT(var log: pointer; var size: integer): boolean;
+    {$else}
+    procedure showerror;
     {$endif}
     property CurrentThread: TDebugThreadHandler read getCurrentThread write setCurrentThread;
     property NeedsToSetEntryPointBreakpoint: boolean read fNeedsToSetEntryPointBreakpoint;
@@ -212,7 +215,8 @@ uses CEDebugger, KernelDebugger, formsettingsunit, FormDebugStringsUnit,
      frmBreakpointlistunit, plugin, memorybrowserformunit, autoassembler,
      pluginexports, networkInterfaceApi, ProcessHandlerUnit, Globals, LuaCaller,
      vmxfunctions, LuaHandler, frmDebuggerAttachTimeoutUnit, DBVMDebuggerInterface,
-     symbolhandlerstructs, contexthandler;
+     symbolhandlerstructs, contexthandler, GDBServerDebuggerInterface,
+     gdbserverconnectdialog, LazLogger;
 
 //-----------Inside thread code---------
 
@@ -277,6 +281,13 @@ resourcestring
     +' versions of vmware will cause a BSOD in combination with intel IPT. Do '
     +'you still want to use intel IPT?';
 
+{$ifndef windows}
+procedure TDebuggerthread.showerror;
+begin
+  showmessage(errormessage);
+end;
+{$endif}
+
 procedure TDebuggerthread.Execute;
 var
   debugEvent: _Debug_EVENT;
@@ -293,6 +304,7 @@ var
   code,data: ptrUint;
   s: tstringlist;
   allocs: TCEAllocarray;
+  hasSetAttached: boolean;
 
 begin
   self.NameThreadForDebugging('Debugger thread', GetCurrentThreadId);
@@ -372,14 +384,17 @@ begin
       {$ENDIF}
 
 
+      hasSetAttached:=false;
       while (not terminated) and debugging do
       begin
 
         execlocation:=1;
 
-        if CurrentDebuggerInterface.needsToAttach=false then
+        if (CurrentDebuggerInterface.needsToAttach=false) and (hasSetAttached=false) then
+        begin
           OnAttachEvent.SetEvent; //no need to wait if the debuggerinterface does not need to wait
-
+          hasSetAttached:=true;
+        end;
         {$IFDEF WINDOWS}
         fetchediptlog:=false;
         {$ENDIF}
@@ -425,7 +440,24 @@ begin
 
     except
       on e: exception do
-        messagebox(0, pchar(utf8toansi(rsDebuggerCrash)+':'+e.message+rsLastLocation+inttostr(execlocation)+')'), '', 0);
+      begin
+        errormessage:=utf8toansi(rsDebuggerCrash)+':'+e.message+rsLastLocation+inttostr(execlocation)+')';
+        if cedebugsymbolspresent then
+        begin
+          DebugLn('-----------------');
+          DebugLn(errormessage);
+          lazlogger.DumpExceptionBackTrace;
+
+          errormessage:=errormessage+#13#10'Please send the cedebug.txt file to Dark Byte. Thanks';
+        end;
+
+        {$ifdef windows}
+        messagebox(0, pchar(errormessage), '', 0);
+        {$else}
+        errormessage:=utf8toansi(rsDebuggerCrash)+':'+e.message+rsLastLocation+inttostr(execlocation)+')';
+        synchronize(showerror);
+        {$endif}
+      end;
     end;
 
   finally
@@ -858,6 +890,9 @@ begin
   if CurrentDebuggerInterface is TDBVMDebugInterface then
     breakpoint^.breakpointMethod:=bpmDBVMNative;
 
+  if CurrentDebuggerInterface is TGDBServerDebuggerInterface then
+    breakpoint^.breakpointMethod:=bpmGDB;
+
   AllThreadsAreSet:=true;
 
   //debug code to find out why this one gets reactivated
@@ -1191,12 +1226,12 @@ begin
       if GetPhysicalAddress(processhandle,pointer(breakpoint^.address),pa) then
       begin
         case breakpoint^.breakpointTrigger of
-          bptExecute: breakpoint^.dbvmwatchid:=dbvm_watch_executes(PA,1,EPTO_INTERRUPT,0);
-          bptAccess: breakpoint^.dbvmwatchid:=dbvm_watch_reads(PA,1,EPTO_INTERRUPT,0);
-          bptWrite: breakpoint^.dbvmwatchid:=dbvm_watch_writes(PA,1,EPTO_INTERRUPT,0);
+          bptExecute: breakpoint^.debuggerinterfacewatchid:=dbvm_watch_executes(PA,1,EPTO_INTERRUPT,0);
+          bptAccess: breakpoint^.debuggerinterfacewatchid:=dbvm_watch_reads(PA,1,EPTO_INTERRUPT,0);
+          bptWrite: breakpoint^.debuggerinterfacewatchid:=dbvm_watch_writes(PA,1,EPTO_INTERRUPT,0);
         end;
 
-        if breakpoint^.dbvmwatchid=-1 then
+        if breakpoint^.debuggerinterfacewatchid=-1 then
           raise exception.create('Failure setting a memory watch')
         else
           breakpoint^.active:=true;
@@ -1219,10 +1254,10 @@ begin
         //trigger COW before placing the bp
         if ReadProcessMemory(processhandle, pointer(breakpoint^.address), @old,1,bw) then
         begin
-          vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle, pointer(breakpoint.address), 1, PAGE_EXECUTE_READWRITE, oldprotect);
-          WriteProcessMemoryActual(processhandle, pointer(breakpoint.address), @old, 1, bw); //skip the DBVM version and use the native kernelmode/winapi one
+          vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle, pointer(breakpoint^.address), 1, PAGE_EXECUTE_READWRITE, oldprotect);
+          WriteProcessMemoryActual(processhandle, pointer(breakpoint^.address), @old, 1, bw); //skip the DBVM version and use the native kernelmode/winapi one
           if vpe then
-            VirtualProtectEx(processhandle, pointer(breakpoint.address), 1, oldprotect, oldprotect);
+            VirtualProtectEx(processhandle, pointer(breakpoint^.address), 1, oldprotect, oldprotect);
         end;
       end;
 
@@ -1231,12 +1266,12 @@ begin
         DBVMWatchBPActive:=true;
 
         case breakpoint^.breakpointTrigger of
-          bptExecute:breakpoint^.dbvmwatchid:=dbvm_watch_executes(PA,breakpoint^.size,EPTO_DBVMBP,0, TDBVMDebugInterface(currentdebuggerinterface).usermodeloopint3, TDBVMDebugInterface(currentdebuggerinterface).kernelmodeloopint3);
-          bptAccess: breakpoint^.dbvmwatchid:=dbvm_watch_reads(PA,breakpoint^.size,EPTO_DBVMBP,0, TDBVMDebugInterface(currentdebuggerinterface).usermodeloopint3, TDBVMDebugInterface(currentdebuggerinterface).kernelmodeloopint3);
-          bptWrite: breakpoint^.dbvmwatchid:=dbvm_watch_writes(PA,breakpoint^.size,EPTO_DBVMBP,0, TDBVMDebugInterface(currentdebuggerinterface).usermodeloopint3, TDBVMDebugInterface(currentdebuggerinterface).kernelmodeloopint3);
+          bptExecute:breakpoint^.debuggerinterfacewatchid:=dbvm_watch_executes(PA,breakpoint^.size,EPTO_DBVMBP,0, TDBVMDebugInterface(currentdebuggerinterface).usermodeloopint3, TDBVMDebugInterface(currentdebuggerinterface).kernelmodeloopint3);
+          bptAccess: breakpoint^.debuggerinterfacewatchid:=dbvm_watch_reads(PA,breakpoint^.size,EPTO_DBVMBP,0, TDBVMDebugInterface(currentdebuggerinterface).usermodeloopint3, TDBVMDebugInterface(currentdebuggerinterface).kernelmodeloopint3);
+          bptWrite: breakpoint^.debuggerinterfacewatchid:=dbvm_watch_writes(PA,breakpoint^.size,EPTO_DBVMBP,0, TDBVMDebugInterface(currentdebuggerinterface).usermodeloopint3, TDBVMDebugInterface(currentdebuggerinterface).kernelmodeloopint3);
         end;
 
-        if breakpoint^.dbvmwatchid=-1 then
+        if breakpoint^.debuggerinterfacewatchid=-1 then
           raise exception.create('Failure setting a memory watch')
         else
           breakpoint^.active:=true;
@@ -1244,6 +1279,21 @@ begin
       else
         raise exception.create(format('Failure obtaining physical address for %8x',[breakpoint^.address]));
       {$endif}
+    end;
+
+    bpmGDB:
+    begin
+      Log('Setting GDB Breakpoint');
+      if not (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then raise exception.create('Only the GDB server debugger can set GDB breakpoints');
+
+      case breakpoint^.breakpointTrigger of
+        bptExecute:breakpoint^.debuggerinterfacewatchid:=TGDBServerDebuggerInterface(CurrentDebuggerInterface).setExecuteBP(breakpoint^.address, 0);
+        bptAccess: breakpoint^.debuggerinterfacewatchid:=TGDBServerDebuggerInterface(CurrentDebuggerInterface).setAccessBP(breakpoint^.address, breakpoint^.size);
+        bptWrite:  breakpoint^.debuggerinterfacewatchid:=TGDBServerDebuggerInterface(CurrentDebuggerInterface).setWriteBP(breakpoint^.address, breakpoint^.size);
+      end;
+
+      if breakpoint^.debuggerinterfacewatchid<>-1 then
+        breakpoint^.active:=true;
     end;
   end;
 
@@ -1509,7 +1559,10 @@ begin
   end
   else
   if (breakpoint^.breakpointMethod=bpmDBVM) or (breakpoint^.breakpointMethod=bpmDBVMNative) then
-    dbvm_watch_delete(breakpoint^.dbvmwatchid);
+    dbvm_watch_delete(breakpoint^.debuggerinterfacewatchid)
+  else
+  if breakpoint^.breakpointMethod=bpmGDB then
+    TGDBServerDebuggerInterface(CurrentDebuggerInterface).deleteBreakpoint(breakpoint^.debuggerinterfacewatchid);
 
   breakpoint^.active := false;
 
@@ -1591,19 +1644,22 @@ var
   i: integer;
   count: integer;
 begin
+  originalbyte:=0;
   if CurrentDebuggerInterface is TDBVMDebugInterface then
     bpm:=bpmDBVMNative;
 
+  if CurrentDebuggerInterface is TGDBServerDebuggerInterface then
+    bpm:=bpmGDB;
 
-  if bpm=bpmInt3 then
+  if (bpm in [bpmInt3,bpmGDB]) and (bpt=bptExecute) then
   begin
     if dbcSoftwareBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities then
     begin
-      if not ReadProcessMemory(processhandle, pointer(address), @originalbyte,
-        1, x) then raise exception.create(rsUnreadableAddress);
-    end else raise exception.create(Format(
-      rsDebuggerInterfaceDoesNotSupportSoftwareBreakpoints, [
-      CurrentDebuggerInterface.name]));
+      if not ReadProcessMemory(processhandle, pointer(address), @originalbyte, 1, x) then
+        raise exception.create(rsUnreadableAddress);
+    end
+    else
+      raise exception.create(Format(rsDebuggerInterfaceDoesNotSupportSoftwareBreakpoints, [CurrentDebuggerInterface.name]));
 
   end
   else
@@ -1648,7 +1704,7 @@ begin
       newbp^.changereg:=pregistermodificationBP(changereg)^
     else
     begin
-      //copy the proved contexts to the breakpoint (caller can free it's copy)
+      //copy the proved contexts to the breakpoint . caller can free it's copy
       i:=getBestContextHandler.ContextSize;
       newbp^.changeregEx.context:=getmem(i);
       newbp^.changeregEx.mask:=getmem(i);
@@ -1903,14 +1959,14 @@ begin
   if CurrentDebuggerInterface is TDBVMDebugInterface then
     breakpointmethod:=bpmDBVMNative;  //memory watch bp's all the way
 
-
+  if CurrentDebuggerInterface is TGDBServerDebuggerInterface then
+    breakpointmethod:=bpmGDB;
 
   if breakpointmethod=bpmint3 then //not possible for this
     breakpointmethod:=bpmDebugRegister;
 
   //split up address and size into memory alligned sections
-
-  setlength(bplist, 0);
+  bplist:=[];
   usedDebugRegister:=-1;
   if breakpointmethod=bpmDebugRegister then
   begin
@@ -1933,6 +1989,7 @@ begin
     bptAccess : foundcodedialog.Caption:=Format(rsTheFollowingOpcodesAccessed, [inttohex(address, 8)]);
     bptWrite : foundcodedialog.Caption:=Format(rsTheFollowingOpcodesWriteTo, [inttohex(address, 8)]);
   end;
+
   foundcodedialog.addresswatched:=address;
   foundcodedialog.Show;
 
@@ -1942,7 +1999,6 @@ begin
 
   foundcodedialog.breakpoint:=newbp;
   inc(newbp.referencecount);
-
 
   if length(bplist) > 1 then
   begin
@@ -2327,6 +2383,9 @@ begin
   try
     setlength(bplist,0);
 
+    if CurrentDebuggerInterface is TGDBServerDebuggerInterface then
+      breakpointmethod:=bpmGDB;
+
     if breakpointmethod=bpmDebugRegister then
     begin
       GetBreakpointList(address, bpsize, bplist);
@@ -2448,6 +2507,9 @@ begin
   if CurrentDebuggerInterface is TDBVMDebugInterface then
     method:=bpmDBVMNative;
 
+  if CurrentDebuggerInterface is TGDBServerDebuggerInterface then
+    method:=bpmGDB;
+
   usedDebugRegister:=-1;
   if method=bpmDebugRegister then
   begin
@@ -2460,7 +2522,6 @@ begin
         method := bpmInt3
       else
         exit;
-
     end;
   end;
 
@@ -2966,6 +3027,9 @@ begin
   if CurrentDebuggerInterface is TDBVMDebugInterface then
     breakpointmethod:=bpmDBVMNative;
 
+  if CurrentDebuggerInterface is TGDBServerDebuggerInterface then
+    breakpointmethod:=bpmGDB;
+
   //find the breakpoint if it is already assigned and then remove it, else add the breakpoint
   found := False;
 
@@ -3294,6 +3358,9 @@ begin
 end;
 
 procedure TDebuggerthread.defaultConstructorcode;
+//still executes inside the main thread
+var host:string;
+  port: word;
 begin
   debuggerCS := TGuiSafeCriticalSection.Create;
   OnAttachEvent := TEvent.Create(nil, True, False, '');
@@ -3314,6 +3381,7 @@ begin
       CurrentDebuggerInterface:=TNetworkDebuggerInterface.create
     else
     begin
+
       {$ifdef windows}
       if formsettings.cbUseWindowsDebugger.checked then
         CurrentDebuggerInterface:=TWindowsDebuggerInterface.create
@@ -3330,11 +3398,36 @@ begin
         TDBVMDebugInterface(CurrentDebuggerInterface).OnSteppingthreadLoss:=DBVMSteppingLost;
 
       end
+      else
       {$endif}
+      if formsettings.cbUseGDBServer.checked then
+      begin
+        //could already have been created earlier for the processlist
+        if (CurrentDebuggerInterface=nil) or (not (CurrentDebuggerInterface is TGDBServerDebuggerInterface)) then
+        begin
+          outputdebugstring('Using GDBServer debugger interface');
+          if formsettings.cbLaunchGDBServer.Checked then
+          begin
+            port:=strtoint(formsettings.edtGDBPort.Text);
+            CurrentDebuggerInterface:=TGDBServerDebuggerInterface.createAndConnect(formsettings.edtGDBServerCommand.Text, 'localhost', port);
+          end
+          else
+          begin
+            //spawn a dialog asking
+            if getGDBHostAndPort(host, port) then
+              CurrentDebuggerInterface:=TGDBServerDebuggerInterface.connectToExistingServer(host,port)
+            else
+              raise exception.create('Connect canceled');
 
+          end;
+        end;
+      end
       {$ifdef darwin}
-      outputdebugstring('Setting the CurrentDebuggerInterface to the MacException Debug interface');
-      CurrentDebuggerInterface:=TMacExceptionDebugInterface.create;
+      else
+      begin
+        outputdebugstring('Setting the CurrentDebuggerInterface to the MacException Debug interface');
+        CurrentDebuggerInterface:=TMacExceptionDebugInterface.create;
+      end;
       {$endif}
     end;
   except

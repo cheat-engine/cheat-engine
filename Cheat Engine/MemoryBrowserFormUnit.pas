@@ -48,6 +48,7 @@ type
     ESPlabel: TLabel;
     FSlabel: TLabel;
     GSlabel: TLabel;
+    miClearCache: TMenuItem;
     miIPTLog: TMenuItem;
     miShowRelativeDisassembler: TMenuItem;
     miArchX86: TMenuItem;
@@ -351,6 +352,7 @@ type
     procedure Makepagewritable1Click(Sender: TObject);
     procedure memorypopupPopup(Sender: TObject);
     procedure MenuItem10Click(Sender: TObject);
+    procedure miClearCacheClick(Sender: TObject);
     procedure miSearchForAccessibleStringsClick(Sender: TObject);
     procedure MenuItem12Click(Sender: TObject);
     procedure MenuItem14Click(Sender: TObject);
@@ -763,7 +765,7 @@ uses Valuechange, MainUnit, debugeventhandler, findwindowunit,
   frmExceptionRegionListUnit, frmExceptionIgnoreListUnit, frmcodefilterunit,
   frmDBVMWatchConfigUnit, DBK32functions, DPIHelper, DebuggerInterface,
   DebuggerInterfaceAPIWrapper, BreakpointTypeDef, CustomTypeHandler,
-  frmSourceDisplayUnit, sourcecodehandler, tcclib, mainunit2
+  frmSourceDisplayUnit, sourcecodehandler, tcclib, mainunit2, GDBServerDebuggerInterface
   {$ifdef ONEBYTEJUMPS}, autoassemblerexeptionhandler{$endif};
 
 
@@ -1101,7 +1103,7 @@ end;
 procedure TMemoryBrowser.memorypopupPopup(Sender: TObject);
 var
   m: TMemorybrowser;
-  mi: Menus.TMenuItem;
+  miClearCache: Menus.TMenuItem;
   i,j: integer;
 
   islocked: boolean;
@@ -1119,19 +1121,19 @@ begin
   begin
     j:=dispDouble.MenuIndex+1+i;
     if j<DisplayType1.Count then
-      mi:=displayType1.Items[j]
+      miClearCache:=displayType1.Items[j]
     else
     begin
-      mi:=tmenuitem.create(memorypopup);
-      mi.OnClick:=DisplayTypeClick;
-      mi.AutoCheck:=true;
-      mi.RadioItem:=true;
-      mi.GroupIndex:=3;
-      DisplayType1.Add(mi);
+      miClearCache:=tmenuitem.create(memorypopup);
+      miClearCache.OnClick:=DisplayTypeClick;
+      miClearCache.AutoCheck:=true;
+      miClearCache.RadioItem:=true;
+      miClearCache.GroupIndex:=3;
+      DisplayType1.Add(miClearCache);
     end;
 
-    mi.caption:=TCustomType(customtypes[i]).name;
-    mi.tag:=$1000+i;
+    miClearCache.caption:=TCustomType(customtypes[i]).name;
+    miClearCache.tag:=$1000+i;
   end;
 
   //delete the entries that are too many
@@ -1174,20 +1176,20 @@ begin
     begin
       if not hexview.isShowingDifference then
       begin
-        mi:=TMenuItem.Create(miShowDifference);
-        mi.Caption:=Format(rsBetween, [m.Caption]);
-        mi.OnClick:=miDifferenceClick;
-        mi.tag:=i;
-        miShowDifference.Add(mi);
+        miClearCache:=TMenuItem.Create(miShowDifference);
+        miClearCache.Caption:=Format(rsBetween, [m.Caption]);
+        miClearCache.OnClick:=miDifferenceClick;
+        miClearCache.tag:=i;
+        miShowDifference.Add(miClearCache);
       end;
 
       if not islocked then
       begin
-        mi:=TMenuItem.Create(miLock);
-        mi.caption:=m.caption;
-        mi.OnClick:=miLockMemviewClick;
-        mi.tag:=i;
-        miLock.add(mi);
+        miClearCache:=TMenuItem.Create(miLock);
+        miClearCache.caption:=m.caption;
+        miClearCache.OnClick:=miLockMemviewClick;
+        miClearCache.tag:=i;
+        miLock.add(miClearCache);
       end;
     end;
 
@@ -1249,6 +1251,8 @@ begin
   else
     miLockRowsize.caption:=rsSetCustomAlignment;
 
+  miClearCache.visible:=(CurrentDebuggerInterface is TGDBServerDebuggerInterface) and GDBReadProcessMemory;
+
 end;
 
 
@@ -1258,6 +1262,12 @@ begin
     frmStringMap:=TfrmStringMap.Create(application);
 
   frmStringMap.show;
+end;
+
+procedure TMemoryBrowser.miClearCacheClick(Sender: TObject);
+begin
+  if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+    TGDBServerDebuggerInterface(CurrentDebuggerInterface).ClearRPMCachePage(hexview.Address);
 end;
 
 procedure TMemoryBrowser.miSearchForAccessibleStringsClick(Sender: TObject);
@@ -5061,7 +5071,7 @@ begin
 
         frmchangedaddresses.address:=address;
 
-        frmchangedaddresses.dbvmwatchid:=id;
+        frmchangedaddresses.debuggerinterfacewatchid:=id;
         frmchangedaddresses.dbvmwatch_unlock:=unlockaddress;
         if defaultDisassembler.LastDisassembleData.isfloat then
           frmchangedaddresses.cbDisplayType.ItemIndex:=3;
