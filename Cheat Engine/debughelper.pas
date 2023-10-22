@@ -6,7 +6,7 @@ interface
 
 uses
   {$ifdef darwin}
-  macport,macexceptiondebuggerinterface, LCLIntf,LCLType,
+  macport, macexceptiondebuggerinterface, LCLIntf,LCLType,
   {$endif}
   {$ifdef windows}
   Windows,  KernelDebuggerInterface, WindowsDebugger,

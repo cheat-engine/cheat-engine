@@ -8,16 +8,12 @@ This unit will keep two trees that link to a list of string to address informati
 
 interface
 
-{$ifdef windows}
-uses
-  windows, Classes, SysUtils, AvgLvlTree, laz_avl_Tree, math, fgl, cvconst,
-  syncobjs, symbolhandlerstructs, DOM;
-{$endif}
 
-{$ifdef darwin}
 uses
-  macport, Classes, SysUtils, AvgLvlTree, math, fgl, cvconst, syncobjs, symbolhandlerstructs;
-{$endif}
+  {$ifdef windows}windows, {$endif}
+  {$ifdef darwin}macport, {$endif}
+  Classes, SysUtils, AvgLvlTree, laz_avl_Tree, math, fgl, cvconst,
+  syncobjs, symbolhandlerstructs, DOM;
 
 type
   PSYMBOL_INFO = ^TSYMBOL_INFO;

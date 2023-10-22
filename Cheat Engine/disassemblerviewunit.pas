@@ -220,7 +220,7 @@ end;
 
 implementation
 
-uses processhandlerunit, parsers, Clipbrd, Globals;
+uses ProcessHandlerUnit, Parsers, Clipbrd, Globals;
 
 resourcestring
   rsDebugSymbolsAreBeingLoaded = 'Debug symbols are being loaded (%d %% (%s))';
@@ -733,6 +733,11 @@ begin
   fCurrentDisassembler.showsymbols:=symhandler.showsymbols;
   fCurrentDisassembler.showsections:=symhandler.showsections;
   fCurrentDisassembler.is64bitOverride:=visibleDisassembler.is64bitOverride;
+
+  if visibleDisassembler.architecture<>fCurrentDisassembler.architecture then
+    OutputDebugString('Architecture changed');
+
+  fCurrentDisassembler.architecture:=visibleDisassembler.architecture;
 end;
 
 procedure TDisassemblerview.StatusInfoLabelCopy(sender: TObject);

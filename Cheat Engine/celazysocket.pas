@@ -12,7 +12,7 @@ uses
   windows, Classes, SysUtils, Sockets, winsock, ssockets, NewKernelHandler, syncobjs2;
   {$endif}
   {$ifdef darwin}
-  Classes, SysUtils, Sockets, ssockets, NewKernelHandler, ctypes, baseunix, macport;
+  Classes, SysUtils, Sockets, ssockets, NewKernelHandler, SyncObjs2, ctypes, baseunix, macport;
   {$endif}
 
 type
