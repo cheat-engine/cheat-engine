@@ -1753,7 +1753,7 @@ begin
       end;
 
 
-      if (processhandler.SystemArchitecture=archarm) or (architecture=darchARM) then
+      if  (architecture=darchARM) or ((processhandler.SystemArchitecture=archarm) and (architecture=darchAutoDetect) ) then  //todo: look at the module info
       begin
 
 
