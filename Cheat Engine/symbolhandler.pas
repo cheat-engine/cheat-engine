@@ -6069,7 +6069,7 @@ begin
 
 
                   if processhandler.is64Bit<>newmodulelist[newmodulelistpos].is64bitmodule then
-                    newmodulelist[newmodulelistpos].modulename:='_'+newmodulelist[newmodulelistpos].modulename;
+                    newmodulelist[newmodulelistpos].modulename:=newmodulelist[newmodulelistpos].modulename;
 
                 end
                 else
