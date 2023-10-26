@@ -16,7 +16,7 @@ uses
      {$endif}
      dialogs,forms,classes,LCLIntf, LCLProc, sysutils,registry,ComCtrls, menus,
      formsettingsunit, cefuncproc,AdvancedOptionsUnit, MemoryBrowserFormUnit,
-     memscan,plugin, hotkeyhandler,frmProcessWatcherUnit, newkernelhandler,
+     memscan,plugin, hotkeyhandler,frmProcessWatcherUnit, NewKernelHandler,
      debuggertypedefinitions, commonTypeDefs, betterControls;
 
 const
@@ -942,6 +942,7 @@ begin
 
           if reg.ValueExists('Use Kernel Debugger') then
             cbKdebug.checked:=reg.ReadBool('Use Kernel Debugger');
+          {$endif}
 
           if reg.ValueExists('Use GDBServer Debugger') then
             cbUseGDBServer.checked:=reg.ReadBool('Use GDBServer Debugger');
@@ -955,6 +956,11 @@ begin
           if reg.ValueExists('GDBPort') then
             edtGDBPort.text:=reg.ReadString('GDBPort');
 
+          if reg.ValueExists('GDBWriteCode') then
+            cbGDBWriteCode.checked:=reg.ReadBool('GDBWriteCode');
+
+
+          {$ifdef windows}
 
           if reg.ValueExists('Use DBVM Debugger') then
             cbUseDBVMDebugger.checked:=reg.ReadBool('Use DBVM Debugger');
@@ -984,12 +990,32 @@ begin
             waitafterguiupdate:=reg.ReadBool('Wait After Gui Update');
           cbWaitAfterGuiUpdate.checked:=waitafterguiupdate;
 
+
           {$ifdef darwin}
-          cbUseMacDebugger.checked:=true;
+          if reg.ValueExists('UseMacDebugger') then
+            cbUseMacDebugger.checked:=reg.readBool('UseMacDebugger');;
+
+          if reg.ValueExists('AttachDebuggerToRosettaOnProcessOpen') then
+            cbAttachDebuggerToRosettaOnProcessOpen.checked:=reg.ReadBool('AttachDebuggerToRosettaOnProcessOpen');
+
+          if reg.ValueExists('AskToAttachToRosetta') then
+            cbAskToAttachToRosetta.checked:=reg.ReadBool('AskToAttachToRosetta');
+
+          if reg.ValueExists('RosettaDebugserverLaunchCommand') then
+            edtRosettaDebugserverLaunchCommand.text:=reg.ReadString('RosettaDebugserverLaunchCommand');
+
+          if reg.ValueExists('RosettaDebugserverPort') then
+            edtRosettaDebugserverPort.text:=reg.ReadString('RosettaDebugserverPort');
+
+
+
 
           if reg.ValueExists('Use TaskLevel debugger') then
             useTaskLevelDebug:=reg.ReadBool('Use TaskLevel debugger');
 
+
+          if not (cbUseMacDebugger.checked or cbUseGDBServer.checked) then
+            cbUseMacDebugger.checked:=true;
           {$endif}
 
 

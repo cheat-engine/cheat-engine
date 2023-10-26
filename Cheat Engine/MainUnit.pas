@@ -3252,6 +3252,15 @@ begin
       SaveCurrentState(PScanState(scantablist.TabData[i]),true);
 
 
+  {$ifdef darwin}
+  if formsettings.cbAttachDebuggerToRosettaOnProcessOpen.checked and isProcessTranslated(processid) then
+  begin
+    if (formsettings.cbaskToAttachToRosetta.Checked=false) or (MessageDlg('The selected process is running under Rosetta. To be able to edit programcode the debugger needs to be attached. Attach the debugger now?', mtConfirmation, [mbyes,mbno],0)=mryes) then
+      startdebuggerifneeded(false);
+  end;
+  {$endif}
+
+
   outputdebugstring('openProcessEpilogue exit');
 
  // miDotNET.visible:=symhandler.hasDotNetAccess; //too slow to use. You're free to uncomment it but don't bitch about having to wait 2 and a half hour

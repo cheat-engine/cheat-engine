@@ -3770,7 +3770,11 @@ begin
               ntsuspendProcess(processhandle);
             vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle,  pointer(Address),bytelength,PAGE_READWRITE,p)
           end;
-          WriteProcessMemoryWithCloakSupport(processhandle,pointer(Address),@bytes[0],bytelength,a);
+
+          if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) and GDBWriteProcessMemoryCodeOnly then
+            TGDBServerDebuggerInterface(CurrentDebuggerInterface).writeBytes(address, @bytes[0],bytelength)
+          else
+            WriteProcessMemoryWithCloakSupport(processhandle,pointer(Address),@bytes[0],bytelength,a);
 
           if vpe then
           begin

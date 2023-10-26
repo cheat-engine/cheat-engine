@@ -40,6 +40,7 @@ type
     cbDontOpenHandle: TCheckBox;
     cbDontusetempdir: TCheckBox;
     cbFastscan: TCheckBox;
+    cbGDBWriteCode2: TCheckBox;
     cbGlobalDebug: TCheckBox;
     cbKDebug: TRadioButton;
     cbMemImage: TCheckBox;
@@ -103,9 +104,13 @@ type
     cbLaunchGDBServer: TCheckBox;
     cbGDBWriteCode: TCheckBox;
     cbAskToClearListOnOpen: TCheckBox;
+    cbAttachDebuggerToRosettaOnProcessOpen: TCheckBox;
+    cbAskToAttachToRosetta: TCheckBox;
     combothreadpriority: TComboBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
+    edtRosettaDebugserverPort: TEdit;
+    edtRosettaDebugserverLaunchCommand: TEdit;
     edtGDBServerCommand: TEdit;
     edtGDBPort: TEdit;
     edtSymbolSyncTimer: TEdit;
@@ -140,6 +145,8 @@ type
     Label25: TLabel;
     Label26: TLabel;
     Label27: TLabel;
+    lblRosettaPort: TLabel;
+    lblRosettaLaunchCommand: TLabel;
     lblMaxIPTSize: TLabel;
     lblRepeatDelay: TLabel;
     lblCurrentLanguage: TLabel;
@@ -194,7 +201,7 @@ type
     spbUp: TSpeedButton;
     Languages: TTabSheet;
     TabSheet1: TTabSheet;
-    TabSheet2: TTabSheet;
+    tsGDBDebug: TTabSheet;
     tsSymbols: TTabSheet;
     tsMacDebuggerInterface: TTabSheet;
     tsLua: TTabSheet;
@@ -259,8 +266,11 @@ type
     procedure btnSetFontClick(Sender: TObject);
     procedure btnSelectLanguageClick(Sender: TObject);
     procedure cbAskIfTableHasLuascriptChange(Sender: TObject);
+    procedure cbAttachDebuggerToRosettaOnProcessOpenChange(Sender: TObject);
     procedure cbDontusetempdirChange(Sender: TObject);
     procedure cbDebuggerInterfaceChange(Sender: TObject);
+    procedure cbGDBWriteCode2Change(Sender: TObject);
+    procedure cbGDBWriteCodeChange(Sender: TObject);
     procedure cbKernelOpenProcessChange(Sender: TObject);
     procedure cbKernelQueryMemoryRegionChange(Sender: TObject);
     procedure cbLaunchGDBServerChange(Sender: TObject);
@@ -268,6 +278,7 @@ type
     procedure cbProcessWatcherChange(Sender: TObject);
     procedure cbSynchronizeSymbolsChange(Sender: TObject);
     procedure cbUseIntelPTChange(Sender: TObject);
+    procedure cbUseLLDBForMacChange(Sender: TObject);
     procedure cbWriteLoggingOnChange(Sender: TObject);
     procedure CheckBox1Change(Sender: TObject);
     procedure cbRecordIPTForFindWhatRoutinesChange(Sender: TObject);
@@ -929,6 +940,13 @@ begin
         reg.WriteString('GDBPort', edtGDBPort.text);
         reg.writebool('GDBWriteCode', cbGDBWriteCode.checked);
 
+        {$ifdef darwin}
+        reg.writeBool('AttachDebuggerToRosettaOnProcessOpen', cbAttachDebuggerToRosettaOnProcessOpen.checked);
+        reg.writeBool('AskToAttachToRosetta', cbAskToAttachToRosetta.checked);
+        reg.WriteString('RosettaDebugserverLaunchCommand',edtRosettaDebugserverLaunchCommand.text);
+        reg.WriteString('RosettaDebugserverPort',edtRosettaDebugserverPort.text);
+        {$endif}
+
 
         reg.writeBool('DBVMBP Trigger COW', cbDBVMDebugTriggerCOW.checked);
         reg.writeBool('DBVMBP This Process Only', cbDBVMDebugTargetedProcessOnly.checked);
@@ -1293,6 +1311,12 @@ begin
 
 end;
 
+procedure TformSettings.cbAttachDebuggerToRosettaOnProcessOpenChange(
+  Sender: TObject);
+begin
+  cbAskToAttachToRosetta.enabled:=cbAttachDebuggerToRosettaOnProcessOpen.checked;
+end;
+
 procedure TformSettings.cbDontusetempdirChange(Sender: TObject);
 begin
   label2.enabled:=cbDontusetempdir.checked;
@@ -1339,6 +1363,20 @@ begin
     rbDebugAsBreakpoint.checked:=true;
 end;
 
+procedure TformSettings.cbGDBWriteCode2Change(Sender: TObject);
+begin
+  cbGDBWriteCode.OnChange:=nil;
+  cbGDBWriteCode.Checked:=cbGDBWriteCode2.checked;
+  cbGDBWriteCode.OnChange:=cbGDBWriteCodeChange;
+end;
+
+procedure TformSettings.cbGDBWriteCodeChange(Sender: TObject);
+begin
+  cbGDBWriteCode2.OnChange:=nil;
+  cbGDBWriteCode2.Checked:=cbGDBWriteCode.checked;
+  cbGDBWriteCode2.OnChange:=cbGDBWriteCode2Change;
+end;
+
 procedure TformSettings.cbKernelOpenProcessChange(Sender: TObject);
 begin
   cbDontOpenHandle.enabled:=cbKernelOpenProcess.Checked;
@@ -1381,6 +1419,11 @@ begin
   cbIPTTraceSize.visible:=cbUseIntelPT.checked;
 
   cbHideIPTCapability.visible:=not cbUseIntelPT.checked;
+end;
+
+procedure TformSettings.cbUseLLDBForMacChange(Sender: TObject);
+begin
+
 end;
 
 procedure TformSettings.cbWriteLoggingOnChange(Sender: TObject);
@@ -2047,6 +2090,8 @@ begin
   panel11.visible:=false;
 
   cbUseMacDebugger.checked:=true;
+
+
 
   {$else}
   cbUseMacDebugger.visible:=false;

@@ -101,6 +101,7 @@ end;
 procedure tenumthread.addsymbol;
 var i: integer;
 begin
+  if terminated then exit;
 
   if frmEnumerateDLLs<>nil then
   begin
@@ -113,6 +114,8 @@ end;
 
 procedure tenumthread.AddModule;
 begin
+  if terminated then exit;
+
   if frmEnumerateDLLs<>nil then
   begin
     if x<>nil then frmEnumerateDLLs.treeview1.EndUpdate;

@@ -3425,8 +3425,16 @@ begin
       {$ifdef darwin}
       else
       begin
-        outputdebugstring('Setting the CurrentDebuggerInterface to the MacException Debug interface');
-        CurrentDebuggerInterface:=TMacExceptionDebugInterface.create;
+        if isProcessTranslated(processid) then
+        begin
+          port:=strtoint(formsettings.edtRosettaDebugserverPort.Text);
+          CurrentDebuggerInterface:=TGDBServerDebuggerInterface.createAndConnect(formsettings.edtRosettaDebugserverLaunchCommand.Text, 'localhost', port);
+        end
+        else
+        begin
+          outputdebugstring('Setting the CurrentDebuggerInterface to the MacException Debug interface');
+          CurrentDebuggerInterface:=TMacExceptionDebugInterface.create;
+        end;
       end;
       {$endif}
     end;

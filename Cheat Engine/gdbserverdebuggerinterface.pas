@@ -9,9 +9,9 @@ interface
 
 uses
   Classes, SysUtils, DebuggerInterface, contexthandler, ctypes, forms, resolve,
-  sockets, XMLRead, XMLwrite, DOM {$ifdef windows}, windows, WinSock2, Clipbrd{$endif}
+  XMLRead, XMLwrite, DOM {$ifdef windows}, windows, WinSock2, Clipbrd{$endif}
   {$ifdef darwin} , macport,macportdefines,BaseUnix,Unix{$endif}
-  ,math, syncobjs, StringHashList, Maps;
+  ,math, syncobjs, StringHashList, Maps, sockets;
 
 type
   TGDBServerContextHandler=class(TContextInfo)
@@ -390,11 +390,12 @@ begin
   {$ifdef unix}fpFD_SET{$else}FD_SET{$endif}(socket, sl);
 
 
+
   tv.tv_sec:=timeout div 1000;
   tv.tv_usec:=(timeout mod 1000)*1000;
 
-  i:={$ifdef windows}winsock2.select{$else}fpselect{$endif}(0, @sl,nil,nil,@tv);
-  result:=i=1;
+  i:={$ifdef windows}winsock2.select{$else}fpselect{$endif}(socket+1, @sl,nil,nil,@tv);
+  result:=i>=1;
 end;
 
 procedure TGDBServerDebuggerInterface.nack;
@@ -2603,6 +2604,7 @@ begin
 
     if (socket=cint(INVALID_SOCKET)) then
       raise exception.create('Socket creation failed. Check permissions');
+
 
     sa.sin_family := AF_INET;
     sa.sin_port := port;

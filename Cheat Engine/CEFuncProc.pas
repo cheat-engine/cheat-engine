@@ -363,7 +363,8 @@ uses disassembler,CEDebugger,debughelper, symbolhandler, symbolhandlerstructs,
      frmProcessWatcherUnit, KernelDebugger, formsettingsunit, MemoryBrowserFormUnit,
      savedscanhandler, networkInterface, networkInterfaceApi, vartypestrings,
      processlist, Parsers, Globals, xinput, luahandler, LuaClass, LuaObject,
-     UnexpectedExceptionsHelper, LazFileUtils, autoassembler, Clipbrd, mainunit2, cpuidUnit, OpenSave;
+     UnexpectedExceptionsHelper, LazFileUtils, autoassembler, Clipbrd, mainunit2,
+     cpuidUnit, OpenSave, GDBServerDebuggerInterface, DebuggerInterfaceAPIWrapper;
 
 
 resourcestring
@@ -2798,7 +2799,11 @@ begin
     v:=VirtualProtectEx(processhandle, pointer(address),size,PAGE_READWRITE,original);
     if v then
     begin
-      result:=writeprocessmemory(processhandle,pointer(address),buffer,size,s);
+      if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) and GDBWriteProcessMemoryCodeOnly then
+        TGDBServerDebuggerInterface(CurrentDebuggerInterface).writeBytes(address, buffer,size)
+      else
+        result:=writeprocessmemory(processhandle,pointer(address),buffer,size,s);
+
       result:=result or VirtualProtectEx(processhandle, pointer(address),size,original,a);
     end;
     ntresumeProcess(processhandle);
