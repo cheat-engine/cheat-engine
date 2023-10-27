@@ -208,6 +208,7 @@ var
   GDBWriteProcessMemoryCodeOnly: boolean;
 
   cedebugsymbolspresent: boolean;
+  threadsafetycheck: boolean;
 
 implementation
 

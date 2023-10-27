@@ -16046,6 +16046,14 @@ begin
   result:=0;
 end;
 
+function lua_setThreadSafetyCheck(L: Plua_State): integer;  cdecl;
+begin
+  if lua_gettop(L)>=1 then
+    threadsafetycheck:=lua_toboolean(L,1);
+
+  result:=0;
+end;
+
 procedure InitLimitedLuastate(L: Plua_State);
 begin
   //don't put functioncallback events in here, as limited luastates can be destroyed
@@ -16205,6 +16213,8 @@ begin
 
 
   lua_register(L, 'syncSymbolsNow',lua_syncSymbolsNow);
+
+  lua_register(L, 'setThreadSafetyCheck', lua_setThreadSafetyCheck);
 
 
   initializeLuaNetworkInterface(L);
