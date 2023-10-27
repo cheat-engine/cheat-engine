@@ -13,7 +13,7 @@ uses
   dialogs, JvDesignSurface, DOM, typinfo, LResources, JvDesignImp, JvDesignUtils,
   graphics, math, xmlread,xmlwrite, WSStdCtrls, custombase85, PropEdits,
   ComponentEditors, CEListviewItemEditor, TreeViewPropEdit, menus, MenuIntf, LCLProc,
-  Calendar, CECustomButton, laz.VirtualTrees,  betterControls;
+  Calendar, CECustomButton, laz.VirtualTrees, synedit, betterControls;
 
 type TCEPageControl=class(TPageControl);
 type

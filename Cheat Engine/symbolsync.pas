@@ -22,7 +22,13 @@ unit symbolsync;
 interface
 
 uses
-  jwawindows, windows, Classes, SysUtils, XMLRead, XMLWrite, DOM, NewKernelHandler;
+  {$ifdef windows}
+  jwawindows, windows,
+  {$endif}
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  Classes, SysUtils, XMLRead, XMLWrite, DOM, NewKernelHandler;
 
 function SyncSymbolsNow(retrieveOnly: boolean=false):boolean; //collect all non-table saved symbols and store them in the symbol database file. Check if the last sync time is higher than the previous one, and if so, load added entries in the (synchronized) symbollist , else write the current symbols to the database and delete older entries that are not there anymore
 
@@ -299,7 +305,7 @@ begin
   begin
     try
       fs:=TFileStream.Create(symbolfilepath+'.lock', fmCreate, fmShareExclusive);
-      fs.WriteAnsiString(GetCurrentProcessId.ToString+'.'+GetCurrentThreadId.ToString);
+      fs.WriteAnsiString(GetCurrentProcessId.ToString+'.'+ptruint(GetCurrentThreadId).ToString);
       break;
     except
       //try again

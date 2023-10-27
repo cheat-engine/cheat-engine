@@ -6,22 +6,19 @@ unit foundlisthelper;
 
 
 interface
-
-
-
-
-{$ifdef jni}
-//in cecore the foundlisthelper is data only. No link to a listview
-uses sysutils,classes, symbolhandler, ProcessHandlerUnit, NewKernelHandler, memscan,
+(*
+      {$ifdef jni} sysutils,classes, symbolhandler, ProcessHandlerUnit, NewKernelHandler, memscan,
      byteinterpreter, CustomTypeHandler, groupscancommandparser, math, AvgLvlTree,
-     commonTypeDefs, parsers, unixporthelper;
-{$else}
-uses {$ifdef darwin}macport,{$endif}
+     commonTypeDefs, parsers, unixporthelper
+     {$else}
+*)
+
+uses
+
+     {$ifdef darwin}macport,{$endif}
      sysutils,classes,ComCtrls,StdCtrls, symbolhandlerstructs,
      NewKernelHandler, memscan, CustomTypeHandler, byteinterpreter,
      groupscancommandparser, math, AvgLvlTree, commonTypeDefs, parsers;
-
-{$endif}
 
 type TScanType=(fs_advanced,fs_addresslist);
 

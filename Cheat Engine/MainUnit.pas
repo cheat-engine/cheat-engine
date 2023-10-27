@@ -4983,13 +4983,20 @@ begin
       add('[64-bit]');
       Add('//or manual:');
       Add('//parameters: (64-bit)');
+      {$ifdef windows}
       Add('//rcx=address of input');
       Add('//rdx=address');
       Add('mov eax,[rcx] //eax now contains the bytes ''input'' pointed to');
+      {$else}
+      Add('//rdi=address of input');
+      Add('//rsi=address');
+      Add('mov eax,[rdi] //eax now contains the bytes ''input'' pointed to');
+      {$endif}
       Add('');
       Add('ret');
       add('[/64-bit]');
       add('');
+      {$ifndef darwin}
       add('[32-bit]');
       Add('//jmp dllname.functionname');
       Add('//or manual:');
@@ -5005,6 +5012,7 @@ begin
       Add('pop ebp');
       Add('ret');
       add('[/32-bit]');
+      {$endif}
 
       Add('');
       Add('//The convert back routine should hold a routine that converts the given integer back to a row of bytes (e.g when the user wats to write a new value)');
@@ -5014,15 +5022,25 @@ begin
       Add('//or manual:');
       Add('[64-bit]');
       Add('//parameters: (64-bit)');
-      Add('//ecx=input');
+      {$ifdef windows}
+      Add('//ecx=input (integer)');
       Add('//rdx=address');
       Add('//r8=address of output');
       Add('//example:');
       Add('mov [r8],ecx //place the integer at the 4 bytes pointed to by r8');
+      {$else}
+      Add('//edi=input (integer)');
+      Add('//rsi=address');
+      Add('//rdx=address of output');
+      Add('//example:');
+      Add('mov [rdx],edi //place the integer at the 4 bytes pointed to by rdx');
+      {$endif}
+
       Add('');
       Add('ret');
       Add('[/64-bit]');
       add('');
+{$ifndef darwin}
       Add('[32-bit]');
       Add('//parameters: (32-bit)'); //[esp]=return [esp+4]=input
       Add('push ebp');  //[esp]=ebp , [esp+4]=return [esp+8]=input
@@ -5043,6 +5061,7 @@ begin
       Add('pop ebp');
       Add('ret');
       add('[/32-bit]');
+{$endif}
       Add('');
     end;
 

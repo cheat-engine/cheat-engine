@@ -151,7 +151,12 @@ begin
 
     {$ifdef darwin}
     if MacIsArm64 then  //rosetta2 or I finally ported it to full armv8
-      fSystemArchitecture:=archArm;
+    begin
+      if processhandle=getcurrentprocess then
+        fSystemArchitecture:=archX86
+      else
+        fSystemArchitecture:=archArm;
+    end;
     {$else}
     fSystemArchitecture:=archX86;
     {$endif}
