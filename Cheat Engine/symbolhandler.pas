@@ -6067,10 +6067,6 @@ begin
                   end;
                   {$endif}
 
-
-                  if processhandler.is64Bit<>newmodulelist[newmodulelistpos].is64bitmodule then
-                    newmodulelist[newmodulelistpos].modulename:='_'+newmodulelist[newmodulelistpos].modulename;
-
                 end
                 else
                 begin
