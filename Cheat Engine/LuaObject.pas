@@ -17,7 +17,7 @@ function lua_setProperty(L: PLua_state): integer; cdecl;
 
 implementation
 
-uses LuaClass, LuaHandler, pluginexports, LuaCaller, symbolhandler;
+uses LuaClass, LuaHandler, pluginexports, LuaCaller, symbolhandler, LCLClasses, globals;
 
 resourcestring
   rsThisIsAnInvalidClassOrMethodProperty = 'This is an invalid class or method property';
@@ -247,6 +247,19 @@ begin
       if p<>'' then
         c:=pointer(StrToInt64(p));
     end;
+
+
+    if threadsafetycheck and (c is TLCLComponent) then
+    begin
+      if GetCurrentThreadId<>MainThreadID then
+      begin
+        p:='';
+        v:='';
+        lua_pushstring(L, 'Error: GUI Control access outside of main thread ('+tcomponent(c).Name+':'+c.ClassName+')');
+        lua_error(L);
+      end;
+    end;
+
 
     p:=Lua_ToString(L, 2);
     v:=Lua_ToString(L, 3);
