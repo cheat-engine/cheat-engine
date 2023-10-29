@@ -519,6 +519,8 @@ void CPipeServer::InitMono()
 				mono_type_get_name_full = (MONO_TYPE_GET_NAME_FULL)GetProcAddress(hMono, "il2cpp_type_get_name_full");
 
 				mono_method_get_name = (MONO_METHOD_GET_NAME)GetProcAddress(hMono, "il2cpp_method_get_name");
+				mono_method_get_full_name = (MONO_METHOD_GET_FULL_NAME)GetProcAddress(hMono, "il2cpp_method_get_full_name");
+				mono_method_get_full_name = mono_method_get_full_name ? mono_method_get_full_name : (MONO_METHOD_GET_FULL_NAME)GetProcAddress(hMono, "mono_method_get_full_name");
 				mono_method_get_class = (MONO_METHOD_GET_CLASS)GetProcAddress(hMono, "il2cpp_method_get_class");
 				mono_method_get_header = (MONO_METHOD_GET_HEADER)GetProcAddress(hMono, "il2cpp_method_get_header");
 				mono_method_get_flags = (MONO_METHOD_GET_FLAGS)GetProcAddress(hMono, "il2cpp_method_get_flags");
@@ -680,6 +682,7 @@ void CPipeServer::InitMono()
 				mono_type_get_name_full = (MONO_TYPE_GET_NAME_FULL)GetProcAddress(hMono, "mono_type_get_name_full");
 
 				mono_method_get_name = (MONO_METHOD_GET_NAME)GetProcAddress(hMono, "mono_method_get_name");
+				mono_method_get_full_name = (MONO_METHOD_GET_FULL_NAME)GetProcAddress(hMono, "mono_method_get_full_name");
 				mono_method_get_class = (MONO_METHOD_GET_CLASS)GetProcAddress(hMono, "mono_method_get_class");
 				mono_method_get_header = (MONO_METHOD_GET_HEADER)GetProcAddress(hMono, "mono_method_get_header");
 				mono_method_get_flags = (MONO_METHOD_GET_FLAGS)GetProcAddress(hMono, "mono_method_get_flags");
@@ -1530,6 +1533,20 @@ void CPipeServer::GetMethodName()
 
 	WriteWord((WORD)strlen(methodname));
 	Write(methodname, (WORD)strlen(methodname));
+}
+
+void CPipeServer::GetMethodFullName()
+{
+	void* method = (void*)ReadQword();
+	if (method && mono_method_get_full_name)
+	{
+		char* methodname = mono_method_get_full_name(method);
+
+		WriteWord((WORD)strlen(methodname));
+		Write(methodname, (WORD)strlen(methodname));
+	}
+	else
+		WriteWord(0);
 }
 
 void CPipeServer::GetMethodClass()
@@ -2934,6 +2951,10 @@ void CPipeServer::Start(void)
 
 				case MONOCMD_GETMETHODNAME:
 					GetMethodName();
+					break;
+					
+				case MONOCMD_GETMETHODFULLNAME:
+					GetMethodFullName();
 					break;
 
 				case MONOCMD_GETMETHODCLASS:

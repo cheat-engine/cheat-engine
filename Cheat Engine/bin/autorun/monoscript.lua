@@ -89,6 +89,7 @@ MONOCMD_GETREFLECTIONMETHODOFMONOMETHOD = 59
 MONOCMD_MONOOBJECTUNBOX = 60
 MONOCMD_MONOARRAYNEW = 61
 MONOCMD_ENUMINTERFACESOFCLASS = 62
+MONOCMD_GETMETHODFULLNAME = 63
 
 MONO_TYPE_END        = 0x00       -- End of List
 MONO_TYPE_VOID       = 0x01
@@ -2579,6 +2580,17 @@ function mono_method_getName(method)
   monopipe.unlock()
   return result;
 end
+
+function mono_method_getFullName(monomethod)
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_GETMETHODFULLNAME)
+  monopipe.writeQword(monomethod)
+  local namelength=monopipe.readWord()
+  local result=monopipe.readString(namelength)
+  monopipe.unlock()
+  return result or ''
+end
+
 
 function mono_method_getHeader(method)
   --if debug_canBreak() then return nil end

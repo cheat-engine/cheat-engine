@@ -83,6 +83,7 @@
 #define MONOCMD_MONOOBJECTUNBOX 60
 #define MONOCMD_MONOARRAYNEW 61
 #define MONOCMD_ENUMINTERFACESOFCLASS 62
+#define MONOCMD_GETMETHODFULLNAME 63
 
 
 typedef struct {} MonoType;
@@ -171,6 +172,7 @@ typedef void* (__cdecl * MONO_FIELD_GET_VALUE_OBJECT)(void *domain, void* field,
 
 
 typedef char* (__cdecl *MONO_METHOD_GET_NAME)(void *method);
+typedef char* (__cdecl *MONO_METHOD_GET_FULL_NAME)(void *method);
 typedef void* (__cdecl *MONO_COMPILE_METHOD)(void *method);
 typedef void (__cdecl *MONO_FREE_METHOD)(void *method);
 
@@ -345,6 +347,7 @@ private:
 
 	MONO_METHOD_GET_FLAGS mono_method_get_flags;
 	MONO_METHOD_GET_NAME mono_method_get_name;
+	MONO_METHOD_GET_FULL_NAME mono_method_get_full_name;
 	MONO_METHOD_GET_HEADER mono_method_get_header;
 	MONO_METHOD_GET_CLASS mono_method_get_class;
 	MONO_METHOD_SIG mono_method_signature;
@@ -456,6 +459,7 @@ private:
 	void FindClass();
 	void FindMethod();
 	void GetMethodName();
+	void GetMethodFullName();
 	void GetMethodClass();
 	void GetKlassName();
 	void GetClassNamespace();
