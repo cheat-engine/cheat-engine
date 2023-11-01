@@ -561,6 +561,7 @@ void CPipeServer::InitMono()
 				mono_value_box = (MONO_VALUE_BOX)GetProcAddress(hMono, "il2cpp_value_box");
 				mono_object_unbox = (MONO_OBJECT_UNBOX)GetProcAddress(hMono, "il2cpp_object_unbox");
 				mono_object_new = (MONO_OBJECT_NEW)GetProcAddress(hMono, "il2cpp_object_new");
+				mono_object_to_string = (MONO_OBJECT_TO_STRING)GetProcAddress(hMono, "il2cpp_object_to_string");
 
 				mono_class_get_type = (MONO_CLASS_GET_TYPE)GetProcAddress(hMono, "il2cpp_class_get_type");
 				mono_type_get_class = (MONO_TYPE_GET_CLASS)GetProcAddress(hMono, "il2cpp_type_get_class");
@@ -722,6 +723,7 @@ void CPipeServer::InitMono()
 				mono_value_box = (MONO_VALUE_BOX)GetProcAddress(hMono, "mono_value_box");
 				mono_object_unbox = (MONO_OBJECT_UNBOX)GetProcAddress(hMono, "mono_object_unbox");
 				mono_object_new = (MONO_OBJECT_NEW)GetProcAddress(hMono, "mono_object_new");
+				mono_object_to_string = (MONO_OBJECT_TO_STRING)GetProcAddress(hMono, "mono_object_to_string");
 				mono_object_isinst = (MONO_OBJECT_ISINST)GetProcAddress(hMono, "mono_object_isinst");
 				mono_get_enum_class = (MONO_GET_ENUM_CLASS)GetProcAddress(hMono, "mono_get_enum_class");
 
@@ -2409,102 +2411,120 @@ void CPipeServer::InvokeMethod(void)
 	}
 	try
 	{
-		MonoObject* exception = {};
+		MonoObject* exception = nullptr;
 		result = mono_runtime_invoke(method, pThis, arry, &exception);
 		if (!result)
 		{
 			WriteByte(MONO_TYPE_VOID);
 			WriteQword((UINT64)result);
-			return;
 		}
-		void* klass = mono_object_get_class(result);
-		void* type = klass ? mono_class_get_type(klass) : NULL;
-		int returntype = type ? mono_type_get_type(type) : MONO_TYPE_VOID;
-		WriteByte(returntype);
-		switch (returntype)
+		else
 		{
-		case MONO_TYPE_STRING:
-		{
-			if (il2cpp)
+			void* klass = mono_object_get_class(result);
+			void* type = klass ? mono_class_get_type(klass) : NULL;
+			int returntype = type ? mono_type_get_type(type) : MONO_TYPE_VOID;
+			WriteByte(returntype);
+			switch (returntype)
 			{
-				wchar_t* ptr = il2cpp_string_chars(result);
+			case MONO_TYPE_STRING:
+			{
+				if (il2cpp)
+				{
+					wchar_t* ptr = il2cpp_string_chars(result);
 #ifdef _WINDOWS
-				int l = WideCharToMultiByte(CP_UTF8, 0, ptr, -1, NULL, 0, NULL, NULL);
-				char* c = (char*)malloc(l + 1);
-				l = WideCharToMultiByte(CP_UTF8, 0, ptr, -1, c, l, NULL, NULL);
-				c[l] = 0;
-				WriteString(c);
-				free(c);
+					int l = WideCharToMultiByte(CP_UTF8, 0, ptr, -1, NULL, 0, NULL, NULL);
+					char* c = (char*)malloc(l + 1);
+					l = WideCharToMultiByte(CP_UTF8, 0, ptr, -1, c, l, NULL, NULL);
+					c[l] = 0;
+					WriteString(c);
+					free(c);
 #else
-				//todo: unsure about this
-				std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
-				std::string dest = convert.to_bytes((char16_t*)ptr);
-				WriteString(dest.c_str());
+					//todo: unsure about this
+					std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
+					std::string dest = convert.to_bytes((char16_t*)ptr);
+					WriteString(dest.c_str());
 #endif
-				/*_bstr_t b((wchar_t*)il2cpp_string_chars(result));
-				WriteString((char*)b);*/
+					/*_bstr_t b((wchar_t*)il2cpp_string_chars(result));
+					WriteString((char*)b);*/
 
+				}
+				else
+				{
+					char* ptr = mono_string_to_utf8(result);
+					WriteString(ptr);
+					g_free(ptr);
+				}
+			}
+			break;
+			case MONO_TYPE_CHAR:
+				WriteString((char*)mono_object_unbox(result));
+				break;
+			case MONO_TYPE_R4:
+			{
+				float f = *(float*)mono_object_unbox(result);
+				Write(&f, 4);
+			}break;
+			case MONO_TYPE_R8:
+			{
+				double d = *(double*)mono_object_unbox(result);
+				Write(&d, 8);
+			}break;
+			case MONO_TYPE_I1:
+			case MONO_TYPE_U1:
+			case MONO_TYPE_BOOLEAN:
+				WriteByte(*(BYTE*)mono_object_unbox(result));
+				break;
+			case MONO_TYPE_I2:
+			case MONO_TYPE_U2:
+				WriteWord(*(WORD*)mono_object_unbox(result));
+				break;
+			case MONO_TYPE_I4:
+			case MONO_TYPE_U4:
+				WriteDword(*(DWORD*)mono_object_unbox(result));
+				break;
+			case MONO_TYPE_I:
+			case MONO_TYPE_U:
+			case MONO_TYPE_I8:
+			case MONO_TYPE_U8:
+				WriteQword(*(UINT64*)mono_object_unbox(result));
+				break;
+			case MONO_TYPE_VALUETYPE:
+				WriteQword((UINT64)mono_object_unbox(result));
+				break;
+				/*case MONO_TYPE_PTR:
+				case MONO_TYPE_BYREF:
+				case MONO_TYPE_CLASS:
+				case MONO_TYPE_FNPTR:
+				case MONO_TYPE_GENERICINST:
+				case MONO_TYPE_ARRAY:
+				case MONO_TYPE_SZARRAY:
+				case MONO_TYPE_VALUETYPE:
+				{
+					WriteQword((INT64)result);
+				}
+				break;*/
+
+			default:
+				WriteQword((INT64)result);
+				break;
+			}
+		}
+
+		// Push exception is caused
+		if (exception && mono_object_to_string && mono_string_to_utf8)
+		{
+			WriteByte(1);
+			void* MonoString = mono_object_to_string(exception, (void**) & exception);
+			if (MonoString)
+			{
+				WriteByte(1);
+				WriteString( mono_string_to_utf8(MonoString) );
 			}
 			else
-			{
-				char* ptr = mono_string_to_utf8(result);
-				WriteString(ptr);
-				g_free(ptr);
-			}
+				WriteByte(0);
 		}
-		break;
-		case MONO_TYPE_CHAR:
-			WriteString((char*)mono_object_unbox(result));
-			break;
-		case MONO_TYPE_R4:
-		{
-			float f = *(float*)mono_object_unbox(result);
-			Write(&f, 4);
-		}break;
-		case MONO_TYPE_R8:
-		{
-			double d = *(double*)mono_object_unbox(result);
-			Write(&d, 8);
-		}break;
-		case MONO_TYPE_I1:
-		case MONO_TYPE_U1:
-		case MONO_TYPE_BOOLEAN:
-			WriteByte(*(BYTE*)mono_object_unbox(result));
-			break;
-		case MONO_TYPE_I2:
-		case MONO_TYPE_U2:
-			WriteWord(*(WORD*)mono_object_unbox(result));
-			break;
-		case MONO_TYPE_I4:
-		case MONO_TYPE_U4:
-			WriteDword(*(DWORD*)mono_object_unbox(result));
-			break;
-		case MONO_TYPE_I:
-		case MONO_TYPE_U:
-		case MONO_TYPE_I8:
-		case MONO_TYPE_U8:
-			WriteQword(*(UINT64*)mono_object_unbox(result));
-			break;
-		case MONO_TYPE_VALUETYPE:
-			WriteQword((UINT64)mono_object_unbox(result));
-			break;
-			/*case MONO_TYPE_PTR:
-			case MONO_TYPE_BYREF:
-			case MONO_TYPE_CLASS:
-			case MONO_TYPE_FNPTR:
-			case MONO_TYPE_GENERICINST:
-			case MONO_TYPE_ARRAY:
-			case MONO_TYPE_SZARRAY:
-			case MONO_TYPE_VALUETYPE:
-			{
-				WriteQword((INT64)result);
-			}
-			break;*/
-
-		default:
-			WriteQword((INT64)result);
-			break;
-		}
+		else
+			WriteByte(0);
 	}
 	catch (...)
 	{

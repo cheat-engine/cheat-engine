@@ -3115,11 +3115,18 @@ function mono_invoke_method(domain, method, object, args)
     mono_writeObject(args[i].type, args[i].value)
   end
   
-  local result=mono_readObject()
+  local result =mono_readObject()
   --print(type(result),result)
   if monopipe then
+	  local exception = nil
+	  if monopipe.readByte() == 1 then
+		if monopipe.readByte() == 1 then
+			local excplen = monopipe.readWord()
+			exception = monopipe.readString(excplen)
+		end
+	  end
     monopipe.unlock()
-    return result      
+    return result, exception      
   else
     --something bad happened
     LaunchMonoDataCollector()
