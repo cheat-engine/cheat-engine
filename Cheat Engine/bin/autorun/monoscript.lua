@@ -90,6 +90,10 @@ MONOCMD_MONOOBJECTUNBOX = 60
 MONOCMD_MONOARRAYNEW = 61
 MONOCMD_ENUMINTERFACESOFCLASS = 62
 MONOCMD_GETMETHODFULLNAME = 63
+MONOCMD_TYPEISBYREF = 64
+MONOCMD_GETPTRTYPECLASS = 65
+MONOCMD_GETFIELDTYPE = 66
+MONOCMD_GETTYPEPTRTYPE = 67
 
 MONO_TYPE_END        = 0x00       -- End of List
 MONO_TYPE_VOID       = 0x01
@@ -1556,6 +1560,33 @@ function mono_class_getImage(class)
   return result;   
 end
 
+function mono_ptr_class_get(fieldtype_or_ptrtype)
+--returns the MonoType* object which is a pointer to the given type. Use "mono_class_getFullName" on the returned value to see the difference.
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_GETPTRTYPECLASS)
+  monopipe.writeQword(fieldtype_or_ptrtype)
+  local val = monopipe.readQword()
+  monopipe.unlock()
+  return val
+end
+
+function mono_field_get_type(monofield)
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_GETFIELDTYPE)
+  monopipe.writeQword(monofield)
+  local val = monopipe.readQword()
+  monopipe.unlock()
+  return val
+end
+
+function mono_type_get_ptr_type(ptrtype)
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_GETTYPEPTRTYPE)
+  monopipe.writeQword(ptrtype)
+  local val = monopipe.readQword()
+  monopipe.unlock()
+  return val
+end
 
 function mono_field_getClass(field)
   --if debug_canBreak() then return nil end
@@ -1599,6 +1630,15 @@ function mono_type_get_type(monotype)
   local retv = monopipe.readDword()
   monopipe.unlock()
  return retv
+end
+
+function mono_type_is_byref(monotype)
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_TYPEISBYREF)
+  monopipe.writeQword(monotype)
+  local val = monopipe.readByte()
+  monopipe.unlock()
+  return val == 1
 end
 
 function mono_classtype_get_reflectiontype(monotype)
@@ -2641,6 +2681,7 @@ function mono_method_get_parameters(method)
   
   --types
   for i=1, paramcount do  
+    result.parameters[i].monotype=monopipe.readQword();
     result.parameters[i].type=monopipe.readDword(); 
   end
   
@@ -4528,22 +4569,15 @@ mono_StringStruct=nil
   
 function monoform_exportStructInternal(s, caddr, recursive, static, structmap, makeglobal)
   --print("monoform_exportStructInternal")
-
   if (monopipe==nil) or (caddr==0) or (caddr==nil) then return nil end
-
- -- print("b")
-
   local className = mono_class_getFullName(caddr)
   --print('Populating '..className)
 
   -- handle Array as separate case
-
   if string.sub(className,-2)=='[]' then
     local elemtype = mono_class_getArrayElementClass(caddr)
     return monoform_exportArrayStructInternal(s, caddr, elemtype, recursive, structmap, makeglobal, true)
   end
-
-
   local hasStatic = false
   structure_beginUpdate(s)
 

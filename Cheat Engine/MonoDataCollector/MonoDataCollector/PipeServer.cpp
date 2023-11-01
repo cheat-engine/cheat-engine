@@ -514,9 +514,10 @@ void CPipeServer::InitMono()
 
 				mono_type_get_name = (MONO_TYPE_GET_NAME)GetProcAddress(hMono, "il2cpp_type_get_name");
 				mono_type_get_type = (MONO_TYPE_GET_TYPE)GetProcAddress(hMono, "il2cpp_type_get_type");
+				mono_type_get_name_full = (MONO_TYPE_GET_NAME_FULL)GetProcAddress(hMono, "il2cpp_type_get_name_full");
+				mono_type_is_byref = (MONO_TYPE_IS_BYREF)GetProcAddress(hMono, "il2cpp_type_is_byref");
 				il2cpp_type_get_object = (IL2CPP_TYPE_GET_OBJECT)GetProcAddress(hMono, "il2cpp_type_get_object");
 				il2cpp_method_get_object = (IL2CPP_METHOD_GET_OBJECT)GetProcAddress(hMono, "il2cpp_method_get_object");
-				mono_type_get_name_full = (MONO_TYPE_GET_NAME_FULL)GetProcAddress(hMono, "il2cpp_type_get_name_full");
 
 				mono_method_get_name = (MONO_METHOD_GET_NAME)GetProcAddress(hMono, "il2cpp_method_get_name");
 				mono_method_get_full_name = (MONO_METHOD_GET_FULL_NAME)GetProcAddress(hMono, "il2cpp_method_get_full_name");
@@ -571,6 +572,10 @@ void CPipeServer::InitMono()
 				mono_runtime_invoke = (MONO_RUNTIME_INVOKE)GetProcAddress(hMono, "il2cpp_runtime_invoke");
 				mono_runtime_object_init = (MONO_RUNTIME_OBJECT_INIT)GetProcAddress(hMono, "il2cpp_runtime_object_init");
 
+				mono_ptr_class_get = (MONO_PTR_GET_CLASS)GetProcAddress(hMono, "il2cpp_ptr_class_get");
+				mono_ptr_class_get = mono_ptr_class_get ? mono_ptr_class_get : (MONO_PTR_GET_CLASS)GetProcAddress(hMono, "mono_ptr_class_get");
+				mono_type_get_ptr_type = (MONO_PTR_GET_CLASS)GetProcAddress(hMono, "il2cpp_type_get_ptr_type");
+				mono_type_get_ptr_type = mono_type_get_ptr_type ? mono_type_get_ptr_type : (MONO_PTR_GET_CLASS)GetProcAddress(hMono, "mono_type_get_ptr_type");
 
 				mono_assembly_name_new = (MONO_ASSEMBLY_NAME_NEW)GetProcAddress(hMono, "il2cpp_assembly_name_new");
 				mono_assembly_loaded = (MONO_ASSEMBLY_LOADED)GetProcAddress(hMono, "il2cpp_assembly_loaded");
@@ -679,8 +684,9 @@ void CPipeServer::InitMono()
 				mono_type_get_name = (MONO_TYPE_GET_NAME)GetProcAddress(hMono, "mono_type_get_name");
 				mono_type_get_type = (MONO_TYPE_GET_TYPE)GetProcAddress(hMono, "mono_type_get_type");
 				mono_type_get_object = (MONO_TYPE_GET_OBJECT)GetProcAddress(hMono, "mono_type_get_object");
-				mono_method_get_object = (MONO_METHOD_GET_OBJECT)GetProcAddress(hMono, "mono_method_get_object");
 				mono_type_get_name_full = (MONO_TYPE_GET_NAME_FULL)GetProcAddress(hMono, "mono_type_get_name_full");
+				mono_type_is_byref = (MONO_TYPE_IS_BYREF)GetProcAddress(hMono, "mono_type_is_byref");
+				mono_method_get_object = (MONO_METHOD_GET_OBJECT)GetProcAddress(hMono, "mono_method_get_object");
 
 				mono_method_get_name = (MONO_METHOD_GET_NAME)GetProcAddress(hMono, "mono_method_get_name");
 				mono_method_get_full_name = (MONO_METHOD_GET_FULL_NAME)GetProcAddress(hMono, "mono_method_get_full_name");
@@ -735,6 +741,8 @@ void CPipeServer::InitMono()
 				mono_runtime_invoke = (MONO_RUNTIME_INVOKE)GetProcAddress(hMono, "mono_runtime_invoke");
 				mono_runtime_object_init = (MONO_RUNTIME_OBJECT_INIT)GetProcAddress(hMono, "mono_runtime_object_init");
 
+				mono_ptr_class_get = (MONO_PTR_GET_CLASS)GetProcAddress(hMono, "mono_ptr_class_get");
+				mono_type_get_ptr_type = (MONO_PTR_GET_CLASS)GetProcAddress(hMono, "mono_type_get_ptr_type");
 
 				mono_assembly_name_new = (MONO_ASSEMBLY_NAME_NEW)GetProcAddress(hMono, "mono_assembly_name_new");
 				mono_assembly_loaded = (MONO_ASSEMBLY_LOADED)GetProcAddress(hMono, "mono_assembly_loaded");
@@ -1631,6 +1639,28 @@ DECLSPEC_NOINLINE void CPipeServer::NewString()
 	WriteQword((UINT_PTR)string);
 }
 
+void CPipeServer::GetClassFromPointer()
+{
+	void* ptr = (void*)ReadQword();
+	if (ptr && mono_ptr_class_get)
+	{
+		WriteQword((UINT64)mono_ptr_class_get(ptr));
+	}
+	else
+		WriteQword(0);
+}
+
+void CPipeServer::GetTypeFromPointerType()
+{
+	void* type = (void*)ReadQword();
+	if (type && mono_type_get_ptr_type)
+	{
+		WriteQword((UINT64)mono_type_get_ptr_type(type));
+	}
+	else
+		WriteQword(0);
+}
+
 void CPipeServer::DisassembleMethod()
 {
 	void* method = (void*)ReadQword();
@@ -1708,30 +1738,24 @@ void CPipeServer::GetMethodParameters()
 					WriteByte(0);
 			}
 
-			if (paramcount)
+			gpointer iter = NULL;
+			MonoType* paramtype;
+
+			for (i = 0; i < paramcount; i++)
 			{
-				gpointer iter = NULL;
-				MonoType* paramtype;
-
-				for (i = 0; i < paramcount; i++)
-				{
-					paramtype = mono_signature_get_params((MonoMethodSignature*)methodsignature, &iter);
-
-					if (paramtype)
-						WriteDword(mono_type_get_type(paramtype));
-					else
-						WriteDword(0);
-				};
-			}
-
-			{
-				MonoType* returntype = mono_signature_get_return_type(methodsignature);
-				WriteQword((UINT64)returntype);
-				if (returntype)
-					WriteDword(mono_type_get_type(returntype));
+				paramtype = mono_signature_get_params((MonoMethodSignature*)methodsignature, &iter);
+				WriteQword((UINT64)paramtype);
+				if (paramtype)
+					WriteDword(mono_type_get_type(paramtype));
 				else
 					WriteDword(0);
-			}
+			};
+			MonoType* returntype = mono_signature_get_return_type(methodsignature);
+			WriteQword((UINT64)returntype);
+			if (returntype)
+				WriteDword(mono_type_get_type(returntype));
+			else
+				WriteDword(0);
 		}
 		else
 			WriteByte(0);
@@ -1969,7 +1993,7 @@ void CPipeServer::GetStaticFieldAddressFromClass(void)
 	}
 }
 
-void CPipeServer::GetTypeClass(void)
+void CPipeServer::GetFieldClass(void)
 {
 	void* field = (void*)ReadQword();  // TODO: this should be monotype but EnumFieldsInClass effectively returns fieldtype ptr
 	void* type = field ? mono_field_get_type(field) : NULL;
@@ -1981,6 +2005,15 @@ void CPipeServer::GetTypeClass(void)
 		klass = type ? mono_class_from_mono_type(type) : NULL;
 
 	WriteQword((UINT_PTR)klass);
+}
+
+void CPipeServer::GetFieldType()
+{
+	void* field = (void*)ReadQword();  
+	if (field && mono_field_get_type)
+		WriteQword((UINT_PTR)mono_field_get_type(field));
+	else
+		WriteQword(0);
 }
 
 void CPipeServer::GetArrayElementClass(void)
@@ -2708,6 +2741,18 @@ void CPipeServer::IsSubClassOf()
 		WriteByte(0); //not supported
 }
 
+void CPipeServer::IsTypeByReference()
+{
+	void* monotype = (void*)ReadQword();
+	if (monotype && mono_type_is_byref)
+	{
+		bool bIsByRef = mono_type_is_byref(monotype);
+		WriteByte(bIsByRef);
+	}
+	else
+		WriteByte(0);
+}
+
 void CPipeServer::GetArrayElementSize()
 {
 	void* klass = (void*)ReadQword();
@@ -3025,8 +3070,12 @@ void CPipeServer::Start(void)
 					GetStaticFieldAddressFromClass();
 					break;
 
-				case MONOCMD_GETTYPECLASS:
-					GetTypeClass();
+				case MONOCMD_GETFIELDCLASS:
+					GetFieldClass();
+					break;
+
+				case MONOCMD_GETFIELDTYPE:
+					GetFieldType();
 					break;
 
 				case MONOCMD_GETARRAYELEMENTCLASS:
@@ -3063,6 +3112,10 @@ void CPipeServer::Start(void)
 
 				case MONOCMD_ISCLASSISSUBCLASSOF:
 					IsSubClassOf();
+					break;
+
+				case MONOCMD_TYPEISBYREF:
+					IsTypeByReference();
 					break;
 
 				case MONOCMD_ISIL2CPP:
@@ -3135,6 +3188,14 @@ void CPipeServer::Start(void)
 
 				case MONOCMD_MONOARRAYNEW:
 					NewCSArray();
+					break;
+
+				case MONOCMD_GETPTRTYPECLASS:
+					GetClassFromPointer();
+					break;
+
+				case MONOCMD_GETTYPEPTRTYPE:
+					GetTypeFromPointerType();
 					break;
 
 				}
