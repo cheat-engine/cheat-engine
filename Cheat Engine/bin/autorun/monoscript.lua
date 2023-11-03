@@ -4567,17 +4567,57 @@ end
 
 mono_StringStruct=nil
   
-function monoform_exportStructInternal(s, caddr, recursive, static, structmap, makeglobal)
+function monofrom_addPointerStructure(parentstructure, thiselement, field, recursive, static, structmap, loopnumber)
+  --This function will add sub-strutures to the fields that are c Pointers
+  --to disable, set " monoSettings.Value["MaxPointerChildStructs"] = "" "
+  assert(field.monotype==MONO_TYPE_PTR, 'Error: WAIT! How did I end up here!?')
+  local kls = mono_field_getClass(field.field)
+  if not kls or not readPointer(kls) then return end
+  kls = mono_class_get_type(kls)
+  kls = mono_type_get_ptr_type(kls)
+  if not kls or not readPointer(kls) then return end
+  local pat = mono_type_get_type(kls)
+  kls = mono_type_get_class(kls)
+  kls = pat==MONO_TYPE_GENERICINST and mono_class_getParent(kls) or kls
+  if not kls or not readPointer(kls) then return end
+  local subflds = mono_class_enumFields(kls,1)
+  if #subflds==0 then return end
+  local subofst; -- the offset of very first non-static, non-const field needs to be subtracted from similar fields
+  for k,v in ipairs(subflds) do
+    if not v.isStatic and not v.isConst then
+      subofst = subofst or v.offset
+      break
+    end
+  end
+  local structure = createStructure("")
+  monoform_exportStructInternal(structure, kls, recursive, static, structmap, nil, subofst, loopnumber-1)
+  print(structure.Count, field.name)
+  if structure.Count > 0 then
+    thiselement.ChildStruct = structure
+    thiselement.ChildStructStart = 0
+  else
+    structure.destroy()
+  end
+  --print(#subflds, subflds[1].offset,mono_class_getFullName(kls), mono_class_getFullName(mono_field_getClass(field.field)))
+end
+
+function monoform_exportStructInternal(s, caddr, recursive, static, structmap, makeglobal, minusoffset, loopnumber)
   --print("monoform_exportStructInternal")
+  if not(tonumber(monoSettings.Value["MaxPointerChildStructs"])) then
+    monoSettings.Value["MaxPointerChildStructs"] = "2"
+  end
+
   if (monopipe==nil) or (caddr==0) or (caddr==nil) then return nil end
+
   local className = mono_class_getFullName(caddr)
   --print('Populating '..className)
 
-  -- handle Array as separate case
   if string.sub(className,-2)=='[]' then
     local elemtype = mono_class_getArrayElementClass(caddr)
     return monoform_exportArrayStructInternal(s, caddr, elemtype, recursive, structmap, makeglobal, true)
   end
+  minusoffset = minusoffset or 0
+
   local hasStatic = false
   structure_beginUpdate(s)
 
@@ -4596,14 +4636,16 @@ function monoform_exportStructInternal(s, caddr, recursive, static, structmap, m
       if fieldname~=nil then
         e.Name=fieldname
       end
-      e.Offset=fields[i].offset
+      e.Offset=fields[i].offset - minusoffset
       e.Vartype=mono_class_isEnum(mono_field_getClass( fields[i].field )) and vtDword or monoTypeToVarType(ft)
       --print(string.format("  Field: %d: %d: %d: %s", e.Offset, e.Vartype, ft, fieldname))
 
+      loopnumber = loopnumber or tonumber(monoSettings.Value["MaxPointerChildStructs"])
       if ft==MONO_TYPE_STRING or ft==MONO_TYPE_CHAR then
         --e.Vartype=vtUnicodeString
         e.Bytesize = 999
-
+      elseif ft == MONO_TYPE_PTR and loopnumber > 0 then
+        monofrom_addPointerStructure(s, e, fields[i], recursive, static, structmap, loopnumber)
 --[[        e.Vartype=vtPointer
 --print(string.format("  Field: %d: %d: %d: %s", e.Offset, e.Vartype, ft, fieldname))
 
