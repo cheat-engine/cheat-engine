@@ -4799,61 +4799,70 @@ var
   moduleNameToFind: string;
   currentModuleName: string;
 begin
+ // OutputDebugString('TSymhandler.getmodulebyname('+modulename+')');
   result:=false;
-  moduleNameToFind:=uppercase(modulename);
+  //try
+    moduleNameToFind:=uppercase(modulename);
 
-  if (length(moduleNameToFind)>0) and (moduleNameToFind[1]='"') then
-  begin
-    moduleNameToFind:=trim(moduleNameToFind);
-    moduleNameToFind:=copy(moduleNameToFind, 2, length(moduleNameToFind)-2);
-  end;
-
-  modulelistMREW.beginread;
-
-  for i:=0 to modulelistpos-1 do
-  begin
-    currentModuleName:=uppercase(modulelist[i].modulename);
-    if currentModuleName=moduleNameToFind then
+    if (length(moduleNameToFind)>0) and (moduleNameToFind[1]='"') then
     begin
-      mi:=modulelist[i];
-      result:=true;
-      break;
+      moduleNameToFind:=trim(moduleNameToFind);
+      moduleNameToFind:=copy(moduleNameToFind, 2, length(moduleNameToFind)-2);
     end;
-  end;
 
-  modulelistMREW.endread;
-  if not result then
-  begin
-    symbollistsMREW.beginread;
-    for i:=length(symbollists)-1 downto 0 do
-    begin
-      result:=symbollists[i].getModuleByName(moduleNameToFind,mi);
-      if result then break;
-    end;
-    symbollistsMREW.Endread;
-  end;
+    modulelistMREW.beginread;
 
-  symbolloadervalid.Beginread;
-  try
-    if (symbolloaderthread<>nil) and (symbolloaderthread.driverlistpos>0) then
+    for i:=0 to modulelistpos-1 do
     begin
-      symbolloaderthread.driverlistMREW.beginread;
-      try
-        for i:=0 to symbolloaderthread.driverlistpos do
-        begin
-          if symbolloaderthread.driverlist[i].modulename=modulename then
-          begin
-            mi:=symbolloaderthread.driverlist[i];
-            exit(true);
-          end;
-        end;
-      finally
-        symbolloaderthread.driverlistMREW.Endread;
+      currentModuleName:=uppercase(modulelist[i].modulename);
+      if currentModuleName=moduleNameToFind then
+      begin
+        mi:=modulelist[i];
+        result:=true;
+        break;
       end;
     end;
-  finally
-    symbolloadervalid.Endread;
-  end;
+
+    modulelistMREW.endread;
+    if not result then
+    begin
+      symbollistsMREW.beginread;
+      for i:=length(symbollists)-1 downto 0 do
+      begin
+        result:=symbollists[i].getModuleByName(moduleNameToFind,mi);
+        if result then break;
+      end;
+      symbollistsMREW.Endread;
+    end;
+
+    symbolloadervalid.Beginread;
+    try
+      if (symbolloaderthread<>nil) and (symbolloaderthread.driverlistpos>0) then
+      begin
+        symbolloaderthread.driverlistMREW.beginread;
+        try
+          for i:=0 to symbolloaderthread.driverlistpos do
+          begin
+            if symbolloaderthread.driverlist[i].modulename=modulename then
+            begin
+              mi:=symbolloaderthread.driverlist[i];
+              exit(true);
+            end;
+          end;
+        finally
+          symbolloaderthread.driverlistMREW.Endread;
+        end;
+      end;
+    finally
+      symbolloadervalid.Endread;
+    end;
+
+  {finally
+    if result then
+      outputdebugstring(modulename+' was found')
+    else
+      outputdebugstring(modulename+' was not found');
+  end; }
 end;
 
 function TSymHandler.getsearchpath:string;
@@ -5258,7 +5267,37 @@ begin
           end
           else
           begin
-            //not a modulename
+            //on first glance not a modulename , check some other possiblities first:
+            //outputdebugstring(tokens[i]+' is not a module');
+
+            if ((i+1)<length(tokens)) and ((tokens[i+1]='-') or (tokens[i+1]='+')) then
+            begin
+              s:=tokens[i];
+              found:=false;
+              for j:=i+1 to length(tokens)-1 do
+              begin
+                if (tokens[j]='*') then break; //impossible for filenames
+                s:=s+tokens[j];
+                if getmodulebyname(s,mi) then
+                begin
+                  found:=true;
+                //  outputdebugstring(s+' is a module');
+                  tokens[i]:=inttohex(ApplyTokenType(mi.baseaddress),8);
+                  for k:=i+1 to j do
+                    tokens[k]:='';
+
+                end;
+                if found then break;
+
+
+              end;
+              if found then continue;
+            end;
+
+           // outputdebugstring('so yeah, '+name+' is not a module');
+
+
+
             if not shallow then
             begin
               result:=callbackCheck(tokens[i], slNotModule);

@@ -130,7 +130,7 @@ uses autoassembler, MainUnit, MainUnit2, LuaClass, frmluaengineunit, plugin, plu
   rttihelper, LuaDotNetPipe, LuaRemoteExecutor, windows7taskbar, debugeventhandler,
   tcclib, dotnethost, CSharpCompiler, LuaCECustomButton, feces, process,
   networkInterface, networkInterfaceApi, LuaVirtualStringTree, userbytedisassembler,
-  parsers, LuaNetworkInterface, symbolsync, contexthandler;
+  parsers, LuaNetworkInterface, symbolsync, GDBServerDebuggerInterface, contexthandler;
 
   {$warn 5044 off}
 
@@ -16054,6 +16054,109 @@ begin
   result:=0;
 end;
 
+function lua_gdb_connected(L: Plua_State): integer;  cdecl;
+begin
+  result:=0;
+  if (CurrentDebuggerInterface<>nil) and (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+  begin
+    lua_pushboolean(L, TGDBServerDebuggerInterface(CurrentDebuggerInterface).isConnected);
+    result:=1;
+  end
+end;
+
+function lua_gdb_stopped(L: Plua_State): integer;  cdecl;
+begin
+  result:=0;
+  if (CurrentDebuggerInterface<>nil) and (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+  begin
+    lua_pushboolean(L, TGDBServerDebuggerInterface(CurrentDebuggerInterface).isStopped);
+    result:=1;
+  end;
+end;
+
+function lua_gdb_break(L: Plua_State): integer;  cdecl;
+begin
+  result:=0;
+  if (CurrentDebuggerInterface<>nil) and (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+  begin
+    TGDBServerDebuggerInterface(CurrentDebuggerInterface).ObtainLock;
+    TGDBServerDebuggerInterface(CurrentDebuggerInterface).suspendProcess;
+
+    lua_pushboolean(L, true);
+    result:=2;
+  end;
+end;
+
+function lua_gdb_getCurrentInstructionpointer(L: Plua_State): integer;  cdecl;
+begin
+  result:=0;
+  if (CurrentDebuggerInterface<>nil) and (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+  begin
+    lua_pushinteger(L, TGDBServerDebuggerInterface(CurrentDebuggerInterface).currentprogramcounter);
+    result:=1;
+  end;
+end;
+
+function lua_gdb_setCurrentInstructionpointer(L: Plua_State): integer;  cdecl;
+var a: ptruint;
+begin
+  result:=0;
+  if (lua_gettop(L)>=1) and (CurrentDebuggerInterface<>nil) and (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+  begin
+    a:=lua_toaddress(L, 1);
+
+    TGDBServerDebuggerInterface(CurrentDebuggerInterface).currentprogramcounter:=a;
+  end;
+end;
+
+function lua_gdb_resumefrombreak(L: Plua_State): integer;  cdecl;
+begin
+  result:=0;
+  if (CurrentDebuggerInterface<>nil) and (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+  begin
+
+    TGDBServerDebuggerInterface(CurrentDebuggerInterface).resumeProcess;
+    TGDBServerDebuggerInterface(CurrentDebuggerInterface).ReleaseLock;
+    result:=1;
+  end;
+end;
+
+function lua_gdb_command(L: Plua_State): integer;  cdecl;
+var
+  s: string;
+  timeout: dword;
+  r: string;
+begin
+  result:=0;
+  if (CurrentDebuggerInterface<>nil) and (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+  begin
+    if lua_gettop(L)>=1 then
+      s:=Lua_ToString(L,1)
+    else
+      s:='';
+
+    if lua_gettop(L)>=2 then
+      timeout:=lua_tointeger(L,2)
+    else
+      timeout:=2000;
+
+    r:=TGDBServerDebuggerInterface(CurrentDebuggerInterface).debugPacket(s,timeout);
+
+    lua_pushstring(L, r);
+    result:=1;
+  end;
+end;
+
+function lua_gdb_getcurrentstopreason(L: Plua_State): integer;  cdecl;
+begin
+  result:=0;
+  if (CurrentDebuggerInterface<>nil) and (CurrentDebuggerInterface is TGDBServerDebuggerInterface) and TGDBServerDebuggerInterface(CurrentDebuggerInterface).isStopped then
+  begin
+    lua_pushstring(L, TGDBServerDebuggerInterface(CurrentDebuggerInterface).getCurrentStopPacket);
+    result:=1;
+  end;
+end;
+
 procedure InitLimitedLuastate(L: Plua_State);
 begin
   //don't put functioncallback events in here, as limited luastates can be destroyed
@@ -16215,6 +16318,8 @@ begin
   lua_register(L, 'syncSymbolsNow',lua_syncSymbolsNow);
 
   lua_register(L, 'setThreadSafetyCheck', lua_setThreadSafetyCheck);
+
+
 
 
   initializeLuaNetworkInterface(L);
@@ -16907,9 +17012,15 @@ begin
     lua_register(L, 'loadCEServerExtension', lua_loadCEServerExtension);
 
 
+    lua_register(L, 'gdb_connected', lua_gdb_connected);
+    lua_register(L, 'gdb_stopped', lua_gdb_stopped);
+    lua_register(L, 'gdb_break', lua_gdb_break);
+    lua_register(L, 'gdb_resumefrombreak', lua_gdb_resumefrombreak);
+    lua_register(L, 'gdb_command', lua_gdb_command);
+    lua_register(L, 'gdb_getcurrentstopreaon', lua_gdb_getcurrentstopreason);
 
-
-
+    lua_register(L, 'gdb_setCurrentInstructionPointer', lua_gdb_setCurrentInstructionPointer);
+    lua_register(L, 'gdb_getCurrentInstructionPointer', lua_gdb_getCurrentInstructionPointer);
 
 
     initializeLuaRemoteThread;

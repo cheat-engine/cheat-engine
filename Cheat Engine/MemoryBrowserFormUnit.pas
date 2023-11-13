@@ -753,12 +753,12 @@ uses Valuechange, MainUnit, debugeventhandler, findwindowunit,
   frmSaveMemoryRegionUnit, frmLoadMemoryunit, inputboxtopunit,
   formAddToCodeList, frmFillMemoryUnit, frmCodecaveScannerUnit, FoundCodeUnit,
   frmSelectionlistunit, symbolconfigunit, frmFloatingPointPanelUnit,
-  frmTracerUnit, dissectcodeunit, driverlist, formChangedAddresses, peINFOunit,
+  frmTracerUnit, dissectcodeunit, DriverList, formChangedAddresses, PEInfounit,
   frmGDTunit, frmIDTunit, frmDisassemblyscanunit, ServiceDescriptorTables,
   frmReferencedStringsUnit, frmReferencedFunctionsUnit, Structuresfrm,
-  Structuresfrm2, pointerscannerfrm, frmDebugEventsUnit, frmPagingUnit,
-  frmluaengineunit, disassemblerviewlinesunit, frmBreakpointConditionunit,
-  frmStringMapUnit, frmStringpointerscanUnit, frmFilePatcherUnit,
+  StructuresFrm2, pointerscannerfrm, frmDebugEventsUnit, frmPagingUnit,
+  frmluaengineunit, disassemblerviewlinesunit, frmBreakpointConditionUnit,
+  frmStringMapUnit, frmStringPointerScanUnit, frmFilePatcherUnit,
   frmUltimapUnit, frmUltimap2Unit, frmAssemblyScanUnit, MemoryQuery,
   AccessedMemory, Parsers, GnuAssembler, frmEditHistoryUnit, frmWatchlistUnit,
   vmxfunctions, frmstructurecompareunit, globals, UnexpectedExceptionsHelper,
@@ -1103,7 +1103,6 @@ end;
 procedure TMemoryBrowser.memorypopupPopup(Sender: TObject);
 var
   m: TMemorybrowser;
-  miClearCache: Menus.TMenuItem;
   i,j: integer;
 
   islocked: boolean;
@@ -1114,6 +1113,9 @@ var
 
 
 begin
+  miClearCache.visible:=(CurrentDebuggerInterface<>nil) and (CurrentDebuggerInterface is TGDBServerDebuggerInterface) and GDBReadProcessMemory;
+
+
   //update customtypes
 
 
@@ -1251,7 +1253,8 @@ begin
   else
     miLockRowsize.caption:=rsSetCustomAlignment;
 
-  miClearCache.visible:=(CurrentDebuggerInterface is TGDBServerDebuggerInterface) and GDBReadProcessMemory;
+  miChangeProtectionRWE.enabled:=SystemSupportsWritableExecutableMemory;
+  miChangeProtectionRWE.visible:=SystemSupportsWritableExecutableMemory;
 
 end;
 
@@ -3124,17 +3127,40 @@ end;
 
 procedure TMemoryBrowser.Timer2Timer(Sender: TObject);
 var
+  mm: TMemoryManager;
+  h: THeapStatus;
   rollover: integer;
   timetaken: qword;
+  before, after,diff: int64;
 begin
   if Visible then
   begin
     try
+      GetMemoryManager(mm);
 
       timetaken:=GetTickCount64;
 
-      if hexview<>nil then hexview.update;
-      if disassemblerview<>nil then disassemblerview.Update;
+
+      if hexview<>nil then
+      begin
+        //before:=mm.GetHeapStatus().TotalAllocated;
+        hexview.update;
+       // after:=mm.GetHeapStatus().TotalAllocated;
+       // diff:=after-before;
+       // outputdebugstring(gettickcount64.tostring+':hexview.update: before='+before.ToHexString(1)+' after='+after.ToHexString(1)+' diff='+diff.tostring);
+
+      end;
+
+
+      if disassemblerview<>nil then
+      begin
+       // before:=mm.GetHeapStatus().TotalAllocated;
+        disassemblerview.Update;
+       // after:=mm.GetHeapStatus().TotalAllocated;
+       // diff:=after-before;
+       // outputdebugstring(gettickcount64.tostring+':disassemblerview.update: before='+before.ToHexString(1)+' after='+after.ToHexString(1)+' diff='+diff.tostring);
+
+      end;
 
       //refresh the modulelist
       if processhandler.isNetwork then
@@ -3144,7 +3170,14 @@ begin
 
       lastmodulelistupdate:=(lastmodulelistupdate+1) mod rollover;
       if lastmodulelistupdate=0 then
-        if symhandler<>nil then symhandler.loadmodulelist;
+        if symhandler<>nil then
+        begin
+          before:=mm.GetHeapStatus().TotalAllocated;
+          symhandler.loadmodulelist;
+          after:=mm.GetHeapStatus().TotalAllocated;
+          diff:=after-before;
+          outputdebugstring(gettickcount64.tostring+':symhandler.loadmodulelist: before='+before.ToHexString(1)+' after='+after.ToHexString(1)+' diff='+diff.tostring);
+        end;
 
       timetaken:=GetTickCount64-timetaken;
       if (timetaken>timer2.interval) and (timer2.interval<5000) then
@@ -3160,6 +3193,7 @@ begin
     except
       on e:exception do
       begin
+        outputdebugstring('memorybrowser timer2 error: '+e.message);
         timer2.enabled:=false;
         MessageDlg('Error in memview update timer:'+e.message, mtError,[mbok],0);
       end;
@@ -3767,7 +3801,12 @@ begin
           begin
             outputdebugstring('First making memory writable');
             if processid<>GetCurrentProcessId then
-              ntsuspendProcess(processhandle);
+            begin
+              if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+                TGDBServerDebuggerInterface(CurrentDebuggerInterface).suspendProcess
+              else
+                ntsuspendProcess(processhandle);
+            end;
             vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle,  pointer(Address),bytelength,PAGE_READWRITE,p)
           end;
 
@@ -3783,7 +3822,12 @@ begin
           end;
 
           if (not (SystemSupportsWritableExecutableMemory or SkipVirtualProtectEx)) and (processid<>GetCurrentProcessId) then
-            ntresumeProcess(processhandle);
+          begin
+            if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+              TGDBServerDebuggerInterface(CurrentDebuggerInterface).resumeProcess
+            else
+              ntresumeProcess(processhandle);
+          end;
         end
         else
         begin
@@ -3961,27 +4005,38 @@ var count: string;
     x: dword;
     s: string;
 begin
-  count:='4096';
-  if inputquery(rsAllocateMemory, rsHowMuchMemoryDoYouWantToAddToThisProcess, count) then
-  begin
-    try
-      memsize:=StrToInt(count);
-    except
-      raise exception.Create(Format(rsHowMuchIs, [count]));
+  count:=getPageSize.ToString;
+  try
+    if inputquery(rsAllocateMemory, rsHowMuchMemoryDoYouWantToAddToThisProcess, count) then
+    begin
+      try
+        memsize:=StrToInt(count);
+      except
+        raise exception.Create(Format(rsHowMuchIs, [count]));
+      end;
+
+      baseaddress:=nil;
+
+      if not SystemSupportsWritableExecutableMemory then
+        baseaddress:=VirtualAllocEx(processhandle,nil,memsize,MEM_COMMIT or MEM_RESERVE,PAGE_EXECUTE)
+      else
+        baseaddress:=VirtualAllocEx(processhandle,nil,memsize,MEM_COMMIT or MEM_RESERVE,PAGE_EXECUTE_READWRITE);
+
+      if baseaddress=nil then
+        raise exception.Create(rsErrorAllocatingMemory);
+
+      if allocsAddToUnexpectedExceptionList then
+        AddUnexpectedExceptionRegion(ptruint(baseaddress),memsize);
+
+      if (disassemblerview.SelectedAddress<>0) and (memsize>7) and (messagedlg(Format(rsAtLeastBytesHaveBeenAllocatedAtDoYouWantToGoThereN, [IntToStr(memsize), IntToHex(ptrUint(baseaddress), 8), #13
+        +#10]), mtConfirmation, [mbyes, mbno], 0)=mryes) then
+        disassemblerview.SelectedAddress:=ptrUint(baseaddress);
+
     end;
 
-    baseaddress:=nil;
-
-    baseaddress:=VirtualAllocEx(processhandle,nil,memsize,MEM_COMMIT or MEM_RESERVE,PAGE_EXECUTE_READWRITE);
-    if baseaddress=nil then
-      raise exception.Create(rsErrorAllocatingMemory);
-
-    if allocsAddToUnexpectedExceptionList then
-      AddUnexpectedExceptionRegion(ptruint(baseaddress),memsize);
-
-    if (disassemblerview.SelectedAddress<>0) and (memsize>7) and (messagedlg(Format(rsAtLeastBytesHaveBeenAllocatedAtDoYouWantToGoThereN, [IntToStr(memsize), IntToHex(ptrUint(baseaddress), 8), #13
-      +#10]), mtConfirmation, [mbyes, mbno], 0)=mryes) then
-      disassemblerview.SelectedAddress:=ptrUint(baseaddress);
+  except
+    on e: exception do
+      MessageDlg(e.message, mtError,[mbok],0);
   end;
 end;
 
@@ -4066,7 +4121,11 @@ begin
     raise exception.Create(rsPleaseEnterAValidHexadecimalValue);
   end;
 
-  if CreateRemoteThread(processhandle,nil,0,pointer(startaddress),pointer(parameter),0,threadid)=0 then raise exception.Create(rsMBCreationOfTheRemoteThreadFailed) else showmessage(rsMBThreadCreated);
+  if CreateRemoteThread(processhandle,nil,0,pointer(startaddress),pointer(parameter),0,threadid)=0 then
+    MessageDlg(rsMBCreationOfTheRemoteThreadFailed, mterror,[mbok],0)
+  else
+    showmessage(rsMBThreadCreated);
+
 end;
 
 procedure TMemoryBrowser.MemoryRegions1Click(Sender: TObject);

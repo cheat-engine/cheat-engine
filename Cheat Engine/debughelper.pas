@@ -3425,8 +3425,12 @@ begin
       {$ifdef darwin}
       else
       begin
-        if isProcessTranslated(processid) then
+        if (formsettings.cbUseRosettaDebugserver.checked) and isProcessTranslated(processid) then
         begin
+          processhandler.SystemArchitecture:=archX86;
+
+          SkipVirtualProtectEx:=true;
+          GDBWriteProcessMemoryCodeOnly:=true;
           port:=strtoint(formsettings.edtRosettaDebugserverPort.Text);
           CurrentDebuggerInterface:=TGDBServerDebuggerInterface.createAndConnect(formsettings.edtRosettaDebugserverLaunchCommand.Text, 'localhost', port);
         end

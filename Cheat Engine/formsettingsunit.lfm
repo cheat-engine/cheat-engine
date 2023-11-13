@@ -1,12 +1,12 @@
 object formSettings: TformSettings
   Left = 593
-  Height = 627
+  Height = 817
   Top = 144
   Width = 902
   AutoSize = True
   BorderIcons = [biSystemMenu]
   Caption = 'Cheat Engine settings'
-  ClientHeight = 627
+  ClientHeight = 817
   ClientWidth = 902
   OnChangeBounds = FormChangeBounds
   OnClose = FormClose
@@ -14,21 +14,21 @@ object formSettings: TformSettings
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poMainFormCenter
-  LCLVersion = '2.2.2.0'
+  LCLVersion = '2.2.6.0'
   Scaled = False
   object pnlConfig: TPanel
     Left = 0
-    Height = 595
+    Height = 785
     Top = 0
     Width = 902
     Align = alClient
     AutoSize = True
-    ClientHeight = 595
+    ClientHeight = 785
     ClientWidth = 902
     TabOrder = 0
     object tvMenuSelection: TTreeView
       Left = 1
-      Height = 593
+      Height = 783
       Top = 1
       Width = 153
       Align = alLeft
@@ -63,30 +63,30 @@ object formSettings: TformSettings
     end
     object pcSetting: TPageControl
       Left = 154
-      Height = 593
+      Height = 783
       Top = 1
       Width = 747
-      ActivePage = Assembler
+      ActivePage = GeneralSettings
       Align = alClient
-      TabIndex = 7
+      TabIndex = 0
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
         Caption = 'General Settings'
-        ClientHeight = 563
+        ClientHeight = 753
         ClientWidth = 741
         object ScrollBox1: TScrollBox
           Left = 0
-          Height = 563
+          Height = 753
           Top = 0
           Width = 741
           HorzScrollBar.Page = 549
           HorzScrollBar.Tracking = True
-          VertScrollBar.Page = 561
+          VertScrollBar.Page = 587
           VertScrollBar.Tracking = True
           Align = alClient
-          ClientHeight = 561
-          ClientWidth = 724
+          ClientHeight = 751
+          ClientWidth = 739
           TabOrder = 0
           OnClick = ScrollBox1Click
           object Label11: TLabel
@@ -237,12 +237,12 @@ object formSettings: TformSettings
             Left = 0
             Height = 65
             Top = 403
-            Width = 724
+            Width = 739
             Anchors = [akTop, akLeft, akRight]
             AutoSize = True
             Caption = 'Address list specific'
             ClientHeight = 38
-            ClientWidth = 714
+            ClientWidth = 729
             TabOrder = 3
             object cbShowAsSigned: TCheckBox
               AnchorSideLeft.Control = GroupBox1
@@ -642,7 +642,7 @@ object formSettings: TformSettings
       end
       object tsSymbols: TTabSheet
         Caption = 'Symbols'
-        ClientHeight = 563
+        ClientHeight = 753
         ClientWidth = 741
         object cbSkipPDB: TCheckBox
           AnchorSideLeft.Control = tsSymbols
@@ -731,36 +731,35 @@ object formSettings: TformSettings
       end
       object tsHotkeys: TTabSheet
         Caption = 'Hotkeys'
-        ClientHeight = 563
+        ClientHeight = 753
         ClientWidth = 741
         ImageIndex = 7
         inline frameHotkeyConfig: TframeHotkeyConfig
-          Height = 563
+          Height = 753
           Width = 741
           Align = alClient
-          ClientHeight = 563
+          ClientHeight = 753
           ClientWidth = 741
           DesignLeft = 737
           DesignTop = 306
           inherited Panel1: TPanel
-            Height = 477
+            Height = 667
             Width = 515
-            ClientHeight = 477
+            ClientHeight = 667
             ClientWidth = 515
             inherited Label1: TLabel
               Width = 515
             end
             inherited ListBox1: TListBox
-              Height = 461
+              Height = 651
               Width = 515
-              TopIndex = 0
             end
           end
           inherited Panel2: TPanel
             Left = 515
-            Height = 477
+            Height = 667
             Width = 226
-            ClientHeight = 477
+            ClientHeight = 667
             ClientWidth = 226
             inherited Edit1: TEdit
               Width = 222
@@ -805,7 +804,7 @@ object formSettings: TformSettings
       end
       object Unrandomizer: TTabSheet
         Caption = 'Unrandomizer'
-        ClientHeight = 563
+        ClientHeight = 753
         ClientWidth = 741
         ImageIndex = 8
         object Label5: TLabel
@@ -847,12 +846,12 @@ object formSettings: TformSettings
       end
       object ScanSettings: TTabSheet
         Caption = 'Scan Settings'
-        ClientHeight = 563
+        ClientHeight = 753
         ClientWidth = 741
         ImageIndex = 1
         object ScrollBox2: TScrollBox
           Left = 0
-          Height = 563
+          Height = 753
           Top = 0
           Width = 741
           HorzScrollBar.Page = 641
@@ -860,7 +859,7 @@ object formSettings: TformSettings
           VertScrollBar.Page = 425
           VertScrollBar.Tracking = True
           Align = alClient
-          ClientHeight = 561
+          ClientHeight = 751
           ClientWidth = 739
           TabOrder = 0
           object Label3: TLabel
@@ -1242,18 +1241,18 @@ object formSettings: TformSettings
       end
       object Plugins: TTabSheet
         Caption = 'Plugins'
-        ClientHeight = 563
+        ClientHeight = 753
         ClientWidth = 741
         ImageIndex = 3
         object Panel7: TPanel
           Left = 643
-          Height = 563
+          Height = 753
           Top = 0
           Width = 98
           Align = alRight
           AutoSize = True
           BevelOuter = bvNone
-          ClientHeight = 563
+          ClientHeight = 753
           ClientWidth = 98
           TabOrder = 0
           object Button5: TButton
@@ -1298,12 +1297,12 @@ object formSettings: TformSettings
         end
         object Panel8: TPanel
           Left = 0
-          Height = 563
+          Height = 753
           Top = 0
           Width = 643
           Align = alClient
           BevelOuter = bvNone
-          ClientHeight = 563
+          ClientHeight = 753
           ClientWidth = 643
           TabOrder = 1
           object Label22: TLabel
@@ -1317,7 +1316,7 @@ object formSettings: TformSettings
           end
           object clbPlugins: TCheckListBox
             Left = 0
-            Height = 547
+            Height = 737
             Top = 16
             Width = 643
             Align = alClient
@@ -1328,7 +1327,7 @@ object formSettings: TformSettings
       end
       object Languages: TTabSheet
         Caption = 'Languages'
-        ClientHeight = 563
+        ClientHeight = 753
         ClientWidth = 741
         object Panel1: TPanel
           AnchorSideLeft.Control = Languages
@@ -1338,12 +1337,12 @@ object formSettings: TformSettings
           AnchorSideBottom.Control = Languages
           AnchorSideBottom.Side = asrBottom
           Left = 0
-          Height = 563
+          Height = 753
           Top = 0
           Width = 741
           Anchors = [akTop, akLeft, akRight, akBottom]
           BevelOuter = bvNone
-          ClientHeight = 563
+          ClientHeight = 753
           ClientWidth = 741
           TabOrder = 0
           object cbShowLanguageMenuItem: TCheckBox
@@ -1352,7 +1351,7 @@ object formSettings: TformSettings
             AnchorSideBottom.Side = asrBottom
             Left = 0
             Height = 18
-            Top = 545
+            Top = 735
             Width = 338
             Anchors = [akLeft, akBottom]
             Caption = 'Show language selection menu item at the main screen'
@@ -1365,7 +1364,7 @@ object formSettings: TformSettings
             AnchorSideRight.Control = Panel10
             AnchorSideBottom.Control = cbShowLanguageMenuItem
             Left = 0
-            Height = 529
+            Height = 719
             Top = 16
             Width = 609
             Anchors = [akTop, akLeft, akRight, akBottom]
@@ -1454,21 +1453,21 @@ object formSettings: TformSettings
       end
       object Assembler: TTabSheet
         Caption = 'Debugger Options'
-        ClientHeight = 563
+        ClientHeight = 753
         ClientWidth = 741
         ImageIndex = 5
         object ScrollBox3: TScrollBox
           Left = 0
-          Height = 563
+          Height = 753
           Top = 0
           Width = 741
           HorzScrollBar.Page = 711
           HorzScrollBar.Tracking = True
-          VertScrollBar.Page = 546
+          VertScrollBar.Page = 749
           VertScrollBar.Tracking = True
           Align = alClient
-          ClientHeight = 546
-          ClientWidth = 724
+          ClientHeight = 751
+          ClientWidth = 739
           TabOrder = 0
           object replacewithnops: TCheckBox
             AnchorSideLeft.Control = Label4
@@ -1664,13 +1663,14 @@ object formSettings: TformSettings
                   TabOrder = 0
                 end
                 object cbAttachDebuggerToRosettaOnProcessOpen: TCheckBox
-                  AnchorSideLeft.Side = asrBottom
+                  AnchorSideLeft.Control = cbUseRosettaDebugserver
+                  AnchorSideTop.Control = cbUseRosettaDebugserver
+                  AnchorSideTop.Side = asrBottom
                   Left = 184
                   Height = 18
-                  Top = 0
-                  Width = 283
-                  BorderSpacing.Left = 30
-                  Caption = 'Attach debugger to Rosetta targets on attach'
+                  Top = 18
+                  Width = 367
+                  Caption = 'Attach debugger to Rosetta targets when opening a process'
                   Checked = True
                   OnChange = cbAttachDebuggerToRosettaOnProcessOpenChange
                   ParentShowHint = False
@@ -1684,7 +1684,7 @@ object formSettings: TformSettings
                   AnchorSideTop.Side = asrBottom
                   Left = 184
                   Height = 18
-                  Top = 18
+                  Top = 36
                   Width = 101
                   Caption = 'Ask to attach'
                   Checked = True
@@ -1697,7 +1697,7 @@ object formSettings: TformSettings
                   AnchorSideTop.Side = asrBottom
                   Left = 2
                   Height = 16
-                  Top = 40
+                  Top = 58
                   Width = 233
                   BorderSpacing.Left = 2
                   BorderSpacing.Top = 4
@@ -1708,7 +1708,7 @@ object formSettings: TformSettings
                   AnchorSideTop.Control = lblRosettaLaunchCommand
                   Left = 582
                   Height = 16
-                  Top = 40
+                  Top = 58
                   Width = 25
                   Caption = 'Port'
                   ParentColor = False
@@ -1720,7 +1720,7 @@ object formSettings: TformSettings
                   AnchorSideRight.Control = edtRosettaDebugserverPort
                   Left = 2
                   Height = 22
-                  Top = 56
+                  Top = 74
                   Width = 574
                   Anchors = [akTop, akLeft, akRight]
                   BorderSpacing.Right = 8
@@ -1728,11 +1728,13 @@ object formSettings: TformSettings
                   Text = '/usr/libexec/rosetta/debugserver 0.0.0.0:33453'
                 end
                 object edtRosettaDebugserverPort: TEdit
+                  AnchorSideTop.Control = lblRosettaPort
+                  AnchorSideTop.Side = asrBottom
                   AnchorSideRight.Control = tsMacDebuggerInterface
                   AnchorSideRight.Side = asrBottom
                   Left = 584
                   Height = 22
-                  Top = 56
+                  Top = 74
                   Width = 80
                   Anchors = [akTop, akRight]
                   TabOrder = 5
@@ -1745,13 +1747,28 @@ object formSettings: TformSettings
                   Left = 2
                   Height = 18
                   Hint = 'Use this in case the target JIT''s code to native code'
-                  Top = 78
-                  Width = 155
-                  Caption = 'Use GDB to write code'
+                  Top = 96
+                  Width = 201
+                  Caption = 'Use debugserver to write code'
                   OnChange = cbGDBWriteCode2Change
                   ParentShowHint = False
                   ShowHint = True
                   TabOrder = 6
+                end
+                object cbUseRosettaDebugserver: TCheckBox
+                  AnchorSideLeft.Control = rbMacDebugThreadLevel
+                  AnchorSideLeft.Side = asrBottom
+                  AnchorSideTop.Control = tsMacDebuggerInterface
+                  Left = 184
+                  Height = 18
+                  Top = 0
+                  Width = 271
+                  BorderSpacing.Left = 88
+                  Caption = 'Use rosetta debugserver on rosetta targets'
+                  Checked = True
+                  OnChange = cbUseRosettaDebugserverChange
+                  State = cbChecked
+                  TabOrder = 7
                 end
               end
               object TabSheet1: TTabSheet
@@ -2212,7 +2229,7 @@ object formSettings: TformSettings
             AnchorSideLeft.Control = askforreplacewithnops
             AnchorSideTop.Control = cbRecordIPTForFindWhatRoutines
             AnchorSideTop.Side = asrBottom
-            Left = 170
+            Left = 174
             Height = 20
             Top = 191
             Width = 72
@@ -2292,7 +2309,7 @@ object formSettings: TformSettings
       end
       object tsLua: TTabSheet
         Caption = 'Lua'
-        ClientHeight = 563
+        ClientHeight = 753
         ClientWidth = 741
         object cbLuaPassiveGarbageCollection: TCheckBox
           AnchorSideLeft.Control = tsLua
@@ -2388,13 +2405,13 @@ object formSettings: TformSettings
       end
       object Extra: TTabSheet
         Caption = 'Extra'
-        ClientHeight = 563
+        ClientHeight = 753
         ClientWidth = 741
         ImageIndex = 6
         object TauntOldOsUser: TLabel
           Left = 0
           Height = 16
-          Top = 547
+          Top = 737
           Width = 741
           Align = alBottom
           Alignment = taCenter
@@ -2521,7 +2538,7 @@ object formSettings: TformSettings
       end
       object tsTools: TTabSheet
         Caption = 'tsTools'
-        ClientHeight = 563
+        ClientHeight = 753
         ClientWidth = 741
         ImageIndex = 9
         object Panel2: TPanel
@@ -2549,13 +2566,13 @@ object formSettings: TformSettings
         end
         object Panel3: TPanel
           Left = 511
-          Height = 545
+          Height = 735
           Top = 18
           Width = 230
           Align = alRight
           AutoSize = True
           BevelOuter = bvNone
-          ClientHeight = 545
+          ClientHeight = 735
           ClientWidth = 230
           Constraints.MinWidth = 230
           TabOrder = 1
@@ -2704,7 +2721,7 @@ object formSettings: TformSettings
             AnchorSideBottom.Control = spbDown
             Left = 0
             Height = 28
-            Top = 460
+            Top = 650
             Width = 21
             Anchors = [akLeft, akBottom]
             BorderSpacing.Bottom = 2
@@ -2731,7 +2748,7 @@ object formSettings: TformSettings
             AnchorSideBottom.Side = asrBottom
             Left = 0
             Height = 27
-            Top = 490
+            Top = 680
             Width = 21
             Anchors = [akLeft, akBottom]
             Enabled = False
@@ -2755,18 +2772,18 @@ object formSettings: TformSettings
         end
         object Panel5: TPanel
           Left = 0
-          Height = 545
+          Height = 735
           Top = 18
           Width = 511
           Align = alClient
           BevelOuter = bvNone
-          ClientHeight = 545
+          ClientHeight = 735
           ClientWidth = 511
           TabOrder = 2
           object Panel4: TPanel
             Left = 0
             Height = 28
-            Top = 517
+            Top = 707
             Width = 511
             Align = alBottom
             AutoSize = True
@@ -2810,7 +2827,7 @@ object formSettings: TformSettings
           end
           object lvTools: TListView
             Left = 0
-            Height = 517
+            Height = 707
             Top = 0
             Width = 511
             Align = alClient
@@ -2839,7 +2856,7 @@ object formSettings: TformSettings
       end
       object CodeFinder: TTabSheet
         Caption = 'CodeFinder'
-        ClientHeight = 563
+        ClientHeight = 753
         ClientWidth = 741
         ImageIndex = 4
         object cbHandleBreakpoints: TCheckBox
@@ -2854,7 +2871,7 @@ object formSettings: TformSettings
       end
       object tsSigning: TTabSheet
         Caption = 'tsSigning'
-        ClientHeight = 563
+        ClientHeight = 753
         ClientWidth = 741
         object cbAlwaysSignTable: TCheckBox
           AnchorSideLeft.Control = tsSigning
@@ -2885,7 +2902,7 @@ object formSettings: TformSettings
   object Panel6: TPanel
     Left = 0
     Height = 32
-    Top = 595
+    Top = 785
     Width = 902
     Align = alBottom
     AutoSize = True

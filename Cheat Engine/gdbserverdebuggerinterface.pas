@@ -90,6 +90,8 @@ type
     canStop: boolean;
     canStepRange: boolean;
     canUseContextCommands: boolean;
+
+    cannotuseQSaveRegisterState: boolean;
     ThreadSuffixSupported: boolean; //
     ThreadEvents: boolean; //
     ThreadListWhenStopped: boolean;
@@ -128,6 +130,12 @@ type
 
     oldcontexts: TMap; //map that contains all seen contexts during a stop. Gets cleared after a call to ContinueDebugEvent
 
+    breakIfNeededCount: integer; //in case breakIfNeeded is called multiple times
+
+
+    savedStateIndex: integer;
+    savedState: pointer; //in case the index method doesn't work
+
     procedure clearOldContexts;
     procedure ack;
     procedure nack;
@@ -149,6 +157,9 @@ type
     function findExecuteBreakpoint(address:qword): integer;
     function findWatchpointBreakpoint(address:qword): integer;
 
+    function getCurrentProgramcounter :ptruint;
+    procedure setCurrentProgramcounter(newpc: ptruint);
+
     function ApplyRegisterChanges(hThread: THandle; reglist: PContextElementRegisterList; oldc, newc: pointer): boolean;
   public
     lastreceivedpacket: string; //debug string (delete)
@@ -162,10 +173,17 @@ type
     procedure getProcessList(list: tstrings);
     procedure getThreadList(var tl: TDwordArray);
 
-    function debugPacket(data: string): string;
+    function getCurrentStopPacket: string;
+    function debugPacket(data: string; timeout: integer=2000): string;
     function writeBytes(address: ptruint; data: pointer; size: integer): boolean;
-    procedure readBytes(address: ptruint; bytecount: integer; data: pointer; out actualread: integer);
-    procedure readBytesFast(address: ptruint; bytecount: integer; out data: pointer; out size: integer);
+    procedure readBytes(address: ptruint; data: pointer; size: integer; out actualread: integer);
+    procedure readBytesFast(address: ptruint; data: pointer; size: integer; out actualread: integer);
+
+    function saveState: boolean;
+    function restoreState: boolean;
+
+    function allocateMemory(size: integer; protections: string): ptruint;
+    function deallocateMemory(address: ptruint): boolean;
 
     function isInjectedEvent: boolean; override;
     function stoptarget(out wasStopped: boolean):boolean;
@@ -177,6 +195,8 @@ type
     function GetThreadContext(hThread: THandle; lpContext: pointer; isFrozenThread: Boolean=false): BOOL; overload; override;
     function SetThreadContext(hThread: THandle; lpContext: pointer; isFrozenThread: Boolean=false): BOOL; overload; override;
 
+    function suspendProcess: boolean;
+    procedure resumeProcess;
 
     function canUseIPT: boolean; override;
 
@@ -191,6 +211,7 @@ type
     function canReportExactDebugRegisterTrigger: boolean; override;
     function usesDebugRegisters: boolean; override;
 
+    function isConnected: boolean;
 
     function DebugActiveProcess(dwProcessId: DWORD): WINBOOL; override;
     function DebugActiveProcessStop(dwProcessID: DWORD): WINBOOL; override;
@@ -207,6 +228,8 @@ type
     constructor connectToExistingServer(ip: string; _port: word);
 
     property isStopped: boolean read stopped;
+    property currentprogramcounter: ptruint read getCurrentProgramcounter write setCurrentProgramcounter;
+
   end;
 
 const EXCEPTION_GDB_BREAKPOINT=$CEDB0002;
@@ -720,8 +743,11 @@ var
 begin
   if haslock<=0 then raise exception.create('sendPacket without lock');
 
+
+  outputdebugstring('ce -> gdb: '+s);
   if (s='c') or (s.StartsWith('vCont;')) then
   begin
+    OutputDebugString('GDB continued:'+s);
     stopped:=false;
     stoptargetused:=false;
     stoppacket:='';
@@ -778,13 +804,34 @@ begin
   result:=false;
 end;
 
-function TGDBServerDebuggerInterface.debugPacket(data: string): string;
+function TGDBServerDebuggerInterface.getCurrentStopPacket: string;
 begin
-  sendPacket(data);
-  if ssctrl in GetKeyShiftState then
-    result:='<noread>'
+  if stopped then
+    result:=stoppacket
   else
-    result:=receivePacket(1000,true);
+    result:='';
+end;
+
+function TGDBServerDebuggerInterface.debugPacket(data: string; timeout: integer=2000): string;
+begin
+  obtainlock;
+  try
+    breakifneeded;
+
+    if data<>'' then
+      sendPacket(data);
+
+    if ssctrl in GetKeyShiftState then
+      result:='<noread>'
+    else
+      result:=receivePacket(timeout,true);
+
+
+    continueAfterManualStop;
+  finally
+    ReleaseLock;
+  end;
+
 end;
 
 function TGDBServerDebuggerInterface.writeBytes(address: ptruint; data: pointer; size: integer): boolean;
@@ -802,6 +849,10 @@ begin
     breakIfNeeded;
 
     //e.g: M10002C7DD,6:909090909090
+
+
+    outputdebugstring(format('writeBytes(%x)',[address]));
+
     bytesleft:=size;
     result:=true;
     while result and (bytesleft>0) do
@@ -832,14 +883,13 @@ begin
   end;
 end;
 
-procedure TGDBServerDebuggerInterface.readBytes(address: ptruint; bytecount: integer; data: pointer; out actualread: integer);
+procedure TGDBServerDebuggerInterface.readBytes(address: ptruint; data: pointer; size: integer; out actualread: integer);
 var
   s: string;
   wasstopped: boolean;
 
   bytesleft: integer;
   blocksize: integer;
-  size: integer;
 begin
   ObtainLock;
   try
@@ -847,7 +897,7 @@ begin
 
     actualread:=0;
 
-    bytesleft:=bytecount;
+    bytesleft:=size;
     while bytesleft>0 do
     begin
       blocksize:=min(maxpacketsize, bytesleft);
@@ -870,16 +920,19 @@ begin
   end;
 end;
 
-procedure TGDBServerDebuggerInterface.readBytesFast(address: ptruint; bytecount: integer; out data: pointer; out size: integer);
+procedure TGDBServerDebuggerInterface.readBytesFast(address: ptruint; data: pointer; size: integer; out actualread: integer);
 var
   wasstopped: boolean;
+  d: pointer;
 begin
   ObtainLock;
   try
     breakIfNeeded;
 
-    sendPacket('x'+inttohex(address,1)+','+inttohex(bytecount,1));
-    receiveBinaryPacket(data,size);
+    sendPacket('x'+inttohex(address,1)+','+inttohex(size,1));
+    actualread:=size;
+    receiveBinaryPacket(d,actualread);
+    copymemory(data,d,actualread);
 
     continueAfterManualStop;
   finally
@@ -917,18 +970,45 @@ begin
   end;
 end;
 
+function TGDBServerDebuggerInterface.suspendProcess:boolean;
+var wasstopped: boolean;
+begin
+  result:=stopped;
+  if not stopped then
+    result:=stoptarget(wasstopped);
+
+  inc(breakIfNeededCount);
+end;
+
+procedure TGDBServerDebuggerInterface.resumeProcess;
+begin
+  continueAfterManualStop;
+end;
+
 function TGDBServerDebuggerInterface.breakIfNeeded: boolean;
 var wasstopped: boolean;
 begin
   result:=stopped;
   if not stopped and hasToBreakFirst then
     result:=stoptarget(wasstopped);
+
+  inc(breakIfNeededCount);
 end;
 
 procedure TGDBServerDebuggerInterface.continueAfterManualStop;
 begin
-  if stoppedDueToManualBreak then
+  outputdebugstring('continueAfterManualStop: breakIfNeededCount='+breakIfNeededCount.ToString);
+  ObtainLock;
+  if breakIfNeededCount>0 then
+    dec(breakIfNeededCount);
+
+  if stoppedDueToManualBreak and (breakIfNeededCount=0) then
+  begin
+    outputdebugstring('continueAfterManualStop: Continueing');
     sendPacket('c');
+  end;
+
+  ReleaseLock;
 end;
 
 function TGDBServerDebuggerInterface.setWriteBP(address: ptruint; size: integer=1):integer;
@@ -1281,6 +1361,7 @@ begin
 
   if not stopped then
   begin
+    ObtainLock;
     c:=3;
     timeout:=10;
 
@@ -1291,7 +1372,8 @@ begin
       dec(timeout);
     until stopped or (timeout=0);
 
-    result:=stopped
+    ReleaseLock;
+    result:=stopped;
   end;
 end;
 
@@ -1465,7 +1547,11 @@ begin
 
     if stoppacket<>'' then
     begin
+      {$ifdef darwin}
 
+      outputdebugstring('waitfordebugevent received stoppacket: '+stoppacket);
+
+      {$endif}
 
 
       result:=true;
@@ -1723,6 +1809,8 @@ var
   tid: dword;
   i: integer;
   didstepalready: boolean;
+  timeout: integer;
+  ws: boolean;
 begin
   ObtainLock;
   try
@@ -1736,10 +1824,21 @@ begin
         c:='vCont;s:'+currenttid.ToHexString(1);
         sendPacket(c);
 
+        OutputDebugString('stepactionhandler: single stepping one time to do a step action');
         stoppacket:='';
+        timeout:=0;
         repeat
-          s:=receivePacket(3000,true);
-        until isStopPacket(s);
+          s:=receivePacket(1000,true);
+          inc(timeout);
+        until isStopPacket(s) or (timeout>5);
+
+        if (timeout>5) and (isStopPacket(s)=false) then
+        begin
+          outputdebugstring('stepactionhandler: Failure waiting for break after single step. Giving up');
+          stoptarget(ws);
+          sendPacket('c');
+          exit(true);
+        end;
 
         tid:=getThreadFromStopPacket(s);
         if tid<>currenttid then
@@ -1805,9 +1904,6 @@ begin
     clearOldContexts;
     ReleaseLock;
   end;
-
-
-
 end;
 
 procedure TGDBServerDebuggerInterface.clearOldContexts;
@@ -1828,6 +1924,7 @@ begin
 
   oldcontexts.Clear;
 end;
+
 
 function TGDBServerDebuggerInterface.ApplyRegisterChanges(hThread: THandle; reglist: PContextElementRegisterList; oldc, newc: pointer): boolean;
 var
@@ -1966,6 +2063,97 @@ begin
   result:=i=gdbcontextHandler.ContextSize;
 end;
 
+function TGDBServerDebuggerInterface.allocateMemory(size: integer; protections: string): ptruint;
+var
+  r: string;
+begin
+  result:=0;
+  ObtainLock;
+  breakIfNeeded;
+  try
+    sendPacket('_M'+size.ToHexString+','+protections);
+    r:=receivePacket;
+    if (r<>'') and (r[1]<>'E') then
+    begin
+      try
+        result:=StrToInt64('$'+r);
+      except
+      end;
+    end;
+  finally
+    continueAfterManualStop;
+    ReleaseLock;
+  end;
+end;
+
+function TGDBServerDebuggerInterface.deallocateMemory(address: ptruint): boolean;
+var
+  r: string;
+begin
+  result:=false;
+  ObtainLock;
+  breakIfNeeded;
+  try
+    sendpacket('_m'+address.ToHexString);
+    r:=receivePacket;
+    result:=r='OK';
+  finally
+    continueAfterManualStop;
+    ReleaseLock;
+  end;
+
+end;
+
+function TGDBServerDebuggerInterface.saveState: boolean;
+//only call when actually stopped
+var
+  tid: dword;
+  r: string;
+begin
+
+  tid:=getThreadFromStopPacket(stoppacket);
+  if cannotuseQSaveRegisterState=false then
+  begin
+    sendPacket('QSaveRegisterState;thread:'+tid.ToHexString);
+    r:=receivePacket;
+    outputdebugstring('QSaveRegisterState returned '+r);
+
+    if (r<>'') and (r[1]<>'E') then
+    begin
+      try
+        savedStateIndex:=strtoint(r);
+
+        exit(true);
+      except
+        cannotuseQSaveRegisterState:=true;
+      end;
+    end;
+  end;
+
+  if savedState<>nil then
+    freememandnil(savedState);
+
+  getmem(savedState, gdbcontexthandler.ContextSize);
+  result:=GetThreadContext(tid,savedstate);
+
+end;
+
+function TGDBServerDebuggerInterface.restoreState: boolean;
+var
+  tid: dword;
+begin
+  tid:=getThreadFromStopPacket(stoppacket);
+  if cannotuseQSaveRegisterState=false then
+  begin
+    sendpacket('QRestoreRegisterState:'+savedstateindex.ToString+';thread:'+tid.ToHexString);
+    exit(receivePacket='OK');
+  end;
+
+
+  if savedstate<>nil then
+    result:=SetThreadContext(tid,savedstate);
+end;
+
 function TGDBServerDebuggerInterface.canUseIPT: boolean;
 begin
   result:=false;
@@ -1973,6 +2161,62 @@ begin
 end;
 
 
+function TGDBServerDebuggerInterface.getCurrentProgramcounter :ptruint;
+var s: array of byte;
+   thread: dword;
+   r: string;
+begin
+  if not stopped then raise exception.create('ProgramCounter read while not suspended');
+  ObtainLock;
+  try
+    setlength(s, gdbcontextHandler.InstructionPointerRegister^.size);
+
+    thread:=getThreadFromStopPacket(stoppacket);
+
+    sendpacket('p'+inttohex(gdbcontextHandler.InstructionPointerRegister^.internalidentifier,1)+';thread:'+thread.tohexstring);
+    r:=receivePacket;
+    if r<>'' then
+      HexToBin(pchar(r), @s[0], gdbcontextHandler.InstructionPointerRegister^.size);
+
+    result:=0;
+    copymemory(@result,@s[0],min(sizeof(ptruint), gdbcontextHandler.InstructionPointerRegister^.size));
+
+  finally
+    ReleaseLock;
+  end;
+end;
+
+procedure TGDBServerDebuggerInterface.setCurrentProgramcounter(newpc: ptruint);
+var s: string;
+  thread: dword;
+  r: string;
+  buf: array of byte;
+begin
+  if not stopped then raise exception.create('ProgramCounter write while not suspended');
+  ObtainLock;
+  try
+
+    setlength(buf, gdbcontextHandler.InstructionPointerRegister^.size);
+    zeromemory(@buf[0], gdbcontextHandler.InstructionPointerRegister^.size);
+
+    copymemory(@buf[0],@newpc, min(sizeof(newpc), gdbcontextHandler.InstructionPointerRegister^.size) );
+
+    setlength(s, gdbcontextHandler.InstructionPointerRegister^.size*2);
+
+    BinToHex(@buf[0], @s[1], gdbcontextHandler.InstructionPointerRegister^.size);
+
+
+    thread:=getThreadFromStopPacket(stoppacket);
+    sendpacket('P'+inttohex(gdbcontextHandler.InstructionPointerRegister^.internalidentifier,1)+'='+s+';thread:'+thread.tohexstring);
+    r:=receivePacket;
+    if r<>'OK' then
+      raise exception.create('Failure setting programcounter');
+
+
+  finally
+    ReleaseLock;
+  end;
+end;
 
 function TGDBServerDebuggerInterface.DebugActiveProcess(dwProcessId: DWORD): WINBOOL;
 type TRegList=(rlUnkown, rlGPR, rlFloats);
@@ -2000,7 +2244,6 @@ var
   nreg: TDOMElement;
   wasstopped: boolean;
   nextoffset: dword;
-
 begin
   {$ifndef STANDALONEDEBUG}
   if (processhandler.processid=0) or (processhandler.processid<>dwProcessId) then
@@ -2343,6 +2586,13 @@ begin
 
     hasToBreakFirst:=true;
 
+{$ifndef STANDALONEDEBUG}
+    if lowercase(gdbcontextHandler.InstructionPointerRegister^.name).EndsWith('ip') then   //todo: if more architectures get added, change this   (e.g read the actual architecture field)
+      processhandler.SystemArchitecture:=archX86
+    else
+      processhandler.SystemArchitecture:=archArm;
+{$endif}
+
     exit(true);
     //fAttach:PIDHEX
     //once successfull do a qXfer:features:read:target.xml:0,maxpacketsize-1 and fill in a contexthandler
@@ -2424,7 +2674,7 @@ begin
       if pageinfo=nil then //still not read
       begin
         getmem(data,4096);
-        TGDBServerDebuggerInterface(CurrentDebuggerInterface).readBytes(ptruint(p and qword($fffffffffffff000)), 4096, data, s);
+        TGDBServerDebuggerInterface(CurrentDebuggerInterface).readBytes(ptruint(p and qword($fffffffffffff000)), data, 4096, s);
         if s=4096 then
         begin
           pageinfo:=RPMPageMap.Add(p shr 12, data);
@@ -2567,6 +2817,11 @@ begin
     freeandnil(context);
 end;
 
+function TGDBServerDebuggerInterface.isConnected: boolean;
+begin
+  result:=socket<>INVALID_SOCKET;
+end;
+
 procedure TGDBServerDebuggerInterface.connect(ip: string; _port: word);
 var r: string;
   hr: THostResolver;
@@ -2576,6 +2831,8 @@ var r: string;
 
   hostinfo: TStringArray;
   continueOptions: TStringArray;
+  starttime: qword;
+  connectresult: integer;
 
 begin
   canUseContextCommands:=true; //assume the best
@@ -2599,21 +2856,41 @@ begin
       end;
     end;
 
+
     port:=ShortHostToNet(_port);
-    socket:=FPSocket(AF_INET, SOCK_STREAM, 0);
-
-    if (socket=cint(INVALID_SOCKET)) then
-      raise exception.create('Socket creation failed. Check permissions');
 
 
-    sa.sin_family := AF_INET;
-    sa.sin_port := port;
-    sa.sin_addr.s_addr := host.s_addr;
+    starttime:=gettickcount64;
 
-    B:=TRUE;
-    fpsetsockopt(socket, IPPROTO_TCP, TCP_NODELAY, @B, sizeof(B));
 
-    if fpconnect(socket, @sa, sizeof(sa)) >=0 then
+
+    connectresult:=-1;
+    while (connectresult<>0) do
+    begin
+      socket:=FPSocket(AF_INET, SOCK_STREAM, 0);
+      if (socket=cint(INVALID_SOCKET)) then
+        raise exception.create('Socket creation failed. Check permissions');
+
+
+
+      ZeroMemory(@sa,sizeof(sa));
+      sa.sin_family := AF_INET;
+      sa.sin_port := port;
+      sa.sin_addr.s_addr := host.s_addr;
+      B:=TRUE;
+      fpsetsockopt(socket, IPPROTO_TCP, TCP_NODELAY, @B, sizeof(B));
+      connectresult:=fpconnect(socket, @sa, sizeof(sa));
+
+
+
+      if (connectresult=0) or (gettickcount64>starttime+10000) then break;
+
+      FpClose(socket);
+      socket:=INVALID_SOCKET;
+      sleep(10);
+    end;
+
+    if connectresult=0 then
     begin
       usesAck:=true; //initially it starts as true
       b:=TRUE;
@@ -2765,8 +3042,7 @@ begin
 
 
     end
-    else
-      raise exception.create('Failure to connect to '+ip+':'+_port.ToString);
+    else raise exception.create('Failure to connect');
 
   finally
     ReleaseLock;

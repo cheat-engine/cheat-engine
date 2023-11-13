@@ -2795,7 +2795,11 @@ begin
   end
   else
   begin
-    ntsuspendProcess(processhandle);
+    if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+      TGDBServerDebuggerInterface(CurrentDebuggerInterface).suspendProcess
+    else
+      ntsuspendProcess(processhandle);
+
     v:=VirtualProtectEx(processhandle, pointer(address),size,PAGE_READWRITE,original);
     if v then
     begin
@@ -2806,7 +2810,11 @@ begin
 
       result:=result or VirtualProtectEx(processhandle, pointer(address),size,original,a);
     end;
-    ntresumeProcess(processhandle);
+
+    if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+      TGDBServerDebuggerInterface(CurrentDebuggerInterface).resumeProcess
+    else
+      ntresumeProcess(processhandle);
   end;
 end;
 

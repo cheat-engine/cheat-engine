@@ -184,6 +184,10 @@ begin
       if (PAGE_NOACCESS and mbi.Protect)=PAGE_NOACCESS then temp:=rsNoAccess;
       if (PAGE_GUARD and mbi.Protect)=PAGE_GUARD then temp:=temp+'+'+rsGuard;
       if (PAGE_NOCACHE	and mbi.Protect)=PAGE_NOCACHE then temp:=temp+'+'+rsNoCache;
+
+      {$ifdef darwin}
+      temp:=temp+' ('+inttostr(mbi.macprotect)+')';
+      {$endif}
       listview1.Items[listview1.Items.Count-1].SubItems.add(temp);
 
       {$ifdef darwin}

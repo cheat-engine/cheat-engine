@@ -702,6 +702,7 @@ begin
 
     GDBReadProcessMemory:=true;
     GDBWriteProcessMemory:=true;
+    SkipVirtualProtectEx:=true;
 
     outputdebugstring('Using GDBServer debugger interface');
     if CurrentDebuggerInterface<>nil then

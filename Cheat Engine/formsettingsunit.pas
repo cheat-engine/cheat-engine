@@ -106,6 +106,7 @@ type
     cbAskToClearListOnOpen: TCheckBox;
     cbAttachDebuggerToRosettaOnProcessOpen: TCheckBox;
     cbAskToAttachToRosetta: TCheckBox;
+    cbUseRosettaDebugserver: TCheckBox;
     combothreadpriority: TComboBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
@@ -279,6 +280,7 @@ type
     procedure cbSynchronizeSymbolsChange(Sender: TObject);
     procedure cbUseIntelPTChange(Sender: TObject);
     procedure cbUseLLDBForMacChange(Sender: TObject);
+    procedure cbUseRosettaDebugserverChange(Sender: TObject);
     procedure cbWriteLoggingOnChange(Sender: TObject);
     procedure CheckBox1Change(Sender: TObject);
     procedure cbRecordIPTForFindWhatRoutinesChange(Sender: TObject);
@@ -400,7 +402,8 @@ uses
   frmProcessWatcherUnit, CustomTypeHandler, processlist, commonTypeDefs,
   frmEditHistoryUnit, Globals, fontSaveLoadRegistry, CETranslator,
   MemoryBrowserFormUnit, DBK32functions, feces, UnexpectedExceptionsHelper,
-  cpuidUnit, DPIHelper, symbolsync;
+  cpuidUnit, DPIHelper, symbolsync, ProcessHandlerUnit, GDBServerDebuggerInterface,
+  DebuggerInterfaceAPIWrapper;
 
 
 type TLanguageEntry=class
@@ -939,12 +942,16 @@ begin
         reg.WriteString('GDBServer launch command', edtGDBServerCommand.text);
         reg.WriteString('GDBPort', edtGDBPort.text);
         reg.writebool('GDBWriteCode', cbGDBWriteCode.checked);
+        GDBWriteProcessMemoryCodeOnly:=cbGDBWriteCode.checked;
 
         {$ifdef darwin}
+        reg.writeBool('UseRosettaDebugserver', cbUseRosettaDebugserver.checked);
         reg.writeBool('AttachDebuggerToRosettaOnProcessOpen', cbAttachDebuggerToRosettaOnProcessOpen.checked);
         reg.writeBool('AskToAttachToRosetta', cbAskToAttachToRosetta.checked);
         reg.WriteString('RosettaDebugserverLaunchCommand',edtRosettaDebugserverLaunchCommand.text);
         reg.WriteString('RosettaDebugserverPort',edtRosettaDebugserverPort.text);
+        if (currentdebuggerinterface is TGDBServerDebuggerInterface) and isProcessTranslated(processid) then
+          GDBWriteProcessMemoryCodeOnly:=true;
         {$endif}
 
 
@@ -1424,6 +1431,17 @@ end;
 procedure TformSettings.cbUseLLDBForMacChange(Sender: TObject);
 begin
 
+end;
+
+procedure TformSettings.cbUseRosettaDebugserverChange(Sender: TObject);
+begin
+  cbAttachDebuggerToRosettaOnProcessOpen.Enabled:=cbUseRosettaDebugserver.checked;
+  cbAskToAttachToRosetta.enabled:=cbUseRosettaDebugserver.checked;
+  lblRosettaLaunchCommand.enabled:=cbUseRosettaDebugserver.checked;
+  lblRosettaPort.enabled:=cbUseRosettaDebugserver.checked;
+  edtRosettaDebugserverLaunchCommand.enabled:=cbUseRosettaDebugserver.checked;
+  edtRosettaDebugserverPort.enabled:=cbUseRosettaDebugserver.checked;
+  cbGDBWriteCode2.enabled:=cbUseRosettaDebugserver.checked;
 end;
 
 procedure TformSettings.cbWriteLoggingOnChange(Sender: TObject);

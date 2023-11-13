@@ -1617,6 +1617,7 @@ var i: integer=0;
     prefered: ptrUint=0;
     protection: dword=0;
 
+    oldprocessid: dword;
     oldhandle: thandle=0;
     oldsymhandler: TSymHandler=nil;
 
@@ -1827,10 +1828,12 @@ begin
   begin
     //get this function to use the symbolhandler that's pointing to CE itself and the self processid/handle
     oldhandle:=processhandlerunit.ProcessHandle;
+    oldprocessid:=processid;
     processid:=getcurrentprocessid;
     processhandle:=getcurrentprocess;
     oldsymhandler:=symhandler;
     symhandler:=selfsymhandler;
+    processhandler.processid:=getcurrentprocessid;
     processhandler.processhandle:=processhandle;
   end
   else
@@ -1840,7 +1843,10 @@ begin
     processhandle:=processhandlerunit.ProcessHandle;
   end;
 
+  {$ifndef darwin}
+
   symhandler.waitforsymbolsloaded(true);
+  {$endif}
 
 {$ifndef jni}
   if pluginhandler=nil then exit; //Error. Cheat Engine is not properly configured
@@ -4110,7 +4116,12 @@ begin
     end;
 
     if (not SystemSupportsWritableExecutableMemory) and (not SkipVirtualProtectEx) and (ProcessID<>GetCurrentProcessId) then
-      ntsuspendProcess(processhandle);
+    begin
+      if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+        TGDBServerDebuggerInterface(CurrentDebuggerInterface).suspendProcess
+      else
+        ntsuspendProcess(processhandle);
+    end;
 
 
     for i:=0 to length(assembled)-1 do
@@ -4147,7 +4158,12 @@ begin
     end;
 
     if (not SystemSupportsWritableExecutableMemory) and (not SkipVirtualProtectEx) and (ProcessID<>GetCurrentProcessId) then
-      ntresumeProcess(processhandle);
+    begin
+      if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+        TGDBServerDebuggerInterface(CurrentDebuggerInterface).resumeProcess
+      else
+        ntresumeProcess(processhandle);
+    end;
 
 
     {$ifdef windows}
@@ -4432,6 +4448,7 @@ begin
 
     if targetself then
     begin
+      processhandler.processid:=oldprocessid;
       processhandler.processhandle:=oldhandle;
       symhandler:=oldsymhandler;
     end;

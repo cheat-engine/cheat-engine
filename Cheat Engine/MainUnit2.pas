@@ -993,7 +993,10 @@ begin
 
           {$ifdef darwin}
           if reg.ValueExists('UseMacDebugger') then
-            cbUseMacDebugger.checked:=reg.readBool('UseMacDebugger');;
+            cbUseMacDebugger.checked:=reg.readBool('UseMacDebugger');
+
+          if reg.ValueExists('UseRosettaDebugserver') then
+            cbUseRosettaDebugserver.checked:=reg.ReadBool('UseRosettaDebugserver');
 
           if reg.ValueExists('AttachDebuggerToRosettaOnProcessOpen') then
             cbAttachDebuggerToRosettaOnProcessOpen.checked:=reg.ReadBool('AttachDebuggerToRosettaOnProcessOpen');

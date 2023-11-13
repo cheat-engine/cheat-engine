@@ -64,7 +64,8 @@ implementation
 {$ifdef jni}
 uses networkinterface, networkInterfaceApi;
 {$else}
-uses LuaHandler, mainunit, networkInterface, networkInterfaceApi, ProcessList, lua, FileUtil;
+uses LuaHandler, mainunit, networkInterface, networkInterfaceApi, ProcessList, lua,
+  FileUtil, globals;
 {$endif}
 
 procedure TProcessHandler.overridePointerSize(newsize: integer);
@@ -153,7 +154,10 @@ begin
     if MacIsArm64 then  //rosetta2 or I finally ported it to full armv8
     begin
       if isProcessTranslated(processid) then
-        fSystemArchitecture:=archX86
+      begin
+        fSystemArchitecture:=archX86;
+        globals.SystemSupportsWritableExecutableMemory:=true;
+      end
       else
         fSystemArchitecture:=archArm;
     end;

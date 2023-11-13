@@ -2668,6 +2668,19 @@ begin
   begin
     i:=assemblescreen.Keystrokes.FindCommand(ecSelectAll);
     if i<>-1 then assemblescreen.Keystrokes[i].ShortCut:=TextToShortCut('Meta+A');
+
+    i:=assemblescreen.Keystrokes.FindCommand(ecLineStart);
+    if i<>-1 then assemblescreen.Keystrokes[i].ShortCut:=TextToShortCut('Meta+Left');
+
+    i:=assemblescreen.Keystrokes.FindCommand(ecLineEnd);
+    if i<>-1 then assemblescreen.Keystrokes[i].ShortCut:=TextToShortCut('Meta+Right');
+
+    i:=assemblescreen.Keystrokes.FindCommand(ecEditorTop);
+    if i<>-1 then assemblescreen.Keystrokes[i].ShortCut:=TextToShortCut('Meta+Up');
+
+    i:=assemblescreen.Keystrokes.FindCommand(ecEditorBottom);
+    if i<>-1 then assemblescreen.Keystrokes[i].ShortCut:=TextToShortCut('Meta+Down');
+
   end;
 
   if processhandler.SystemArchitecture=archArm then emplate1.visible:=false;

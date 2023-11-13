@@ -163,6 +163,7 @@ type
   private
     cs: TCriticalSection; static;
     working: boolean;
+    notworkingreason: string;
 
     new: function():PTCCState; cdecl;
     parse_args: function(s:PTCCState; pargc: pinteger; pargv: pchar; optind: integer):integer; cdecl;//  //(TCCState *s, int *pargc, char ***pargv, int optind)
@@ -314,6 +315,14 @@ end;
 function tcc: TTCC;
 begin
   {$ifndef standalonetest}
+    {$ifdef darwin}
+    if isProcessTranslated(processid) then
+      result:=tccrosetta
+    else
+      result:=tcc64;
+
+    exit;
+    {$else}
     {$ifdef windows}
     if processhandler.OSABI=abiSystemV then
       exit(tcc_linux);
@@ -325,6 +334,7 @@ begin
     else
     {$endif}
       result:=tcc32;
+    {$endif}
   {$else}
     result:=tcc64;
   {$endif}
@@ -1215,19 +1225,30 @@ begin
   if cs=nil then
     cs:=TCriticalSection.create;
 
+  notworkingreason:='';
+
   {$ifdef windows}
 
   {$ifdef cpu32}
   module:=LoadLibrary({$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\'+{$endif}'tcc32-32.dll'); //generates 32-bit code
+  if module=0 then
+    notworkingreason:='tcc32-32.dll can not be found';
+
   {$else}
+  module:=0;
   case target of
-    i386:    module:=loadlibrary({$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\'+{$endif}'tcc64-32.dll'); //generates 32-bit code
-    x86_64:  module:=loadlibrary({$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\'+{$endif}'tcc64-64.dll');
-    i386_sysv: module:=loadlibrary({$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\'+{$endif}'tcc64-32-linux.dll'); //32-bit linux abi code
-    x86_64_sysv: module:=loadlibrary({$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\'+{$endif}'tcc64-64-linux.dll'); //64-bit linux
+    i386: p:={$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\'+{$endif}'tcc64-32.dll';
+    x86_64:  p:={$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\'+{$endif}'tcc64-64.dll';
+    i386_sysv: p:={$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\'+{$endif}'tcc64-32-linux.dll';
+    x86_64_sysv: p:={$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\'+{$endif}'tcc64-64-linux.dll';
     else
-      module:=0;
+      p:='';
   end;
+  if p<>'' then
+    module:=loadlibrary(p);
+
+  if module=0 then
+    notworkingreason:=p+' could not be found';
   {$endif}
   {$else}
   if target=aarch64 then
@@ -1240,61 +1261,72 @@ begin
       p:=ExtractFilePath(application.ExeName)+'libtcc_arm64.dylib';
       module:=loadlibrary(p);
     end;
+
+    if module=0 then
+      notworkingreason:='libtcc_arm64.dylib could not be loaded';
   end
   else
   begin
-    module:=loadlibrary('libtcc_x86_64.dylib');
+    p:='libtcc_x86_64.dylib';
+    module:=loadlibrary(p);
 
     if module=0 then
     begin
       p:=ExtractFilePath(application.ExeName)+'libtcc_x86_64.dylib';
       module:=loadlibrary(p);
     end;
+
+    if module=0 then
+      notworkingreason:='libtcc_x86_64.dylib could not be loaded';
   end;
 
   {$endif}
 
   working:=false;
 
-  pointer(new):=GetProcAddress(module,'tcc_new');
-  pointer(parse_args):=GetProcAddress(module,'tcc_parse_args');
-  pointer(set_options):=GetProcAddress(module,'tcc_set_options');
-  pointer(set_lib_path):=GetProcAddress(module,'tcc_set_lib_path');
-  pointer(add_include_path):=GetProcAddress(module,'tcc_add_include_path');
-  pointer(set_error_func):=GetProcAddress(module,'tcc_set_error_func');
-
-  pointer(set_output_type):=GetProcAddress(module,'tcc_set_output_type');
-  pointer(set_symbol_lookup_func):=GetProcAddress(module,'tcc_set_symbol_lookup_func');
-  pointer(set_binary_writer_func):=GetProcAddress(module,'tcc_set_binary_writer_func');
-  pointer(compile_string):=GetProcAddress(module,'tcc_compile_string');
-
-  pointer(add_symbol):=GetProcAddress(module,'tcc_add_symbol');
-  pointer(add_file):=GetProcAddress(module,'tcc_add_file');
-  pointer(output_file):=GetProcAddress(module,'tcc_output_file');
-  pointer(relocate):=GetProcAddress(module,'tcc_relocate');
-  pointer(get_symbol):=GetProcAddress(module,'tcc_get_symbol');
-  pointer(get_symbols):=GetProcAddress(module,'tcc_get_symbols');
-  pointer(delete):=GetProcAddress(module,'tcc_delete');
-
-  pointer(get_stab):=GetProcAddress(module,'tcc_get_stab');
-
-  pointer(install_filehook):=GetProcAddress(module,'tcc_install_filehook');
-
-
-
-  working:=(module<>0) and
-           assigned(new) and
-           assigned(set_options) and
-           assigned(add_include_path) and
-           assigned(compile_string) and
-           assigned(output_file) and
-           assigned(delete) and
-           assigned(get_stab) and
-           assigned(install_filehook);
-
-  if working then
+  if module<>0 then
   begin
-    install_filehook(@TCC_OpenFileCallBack, @TCC_ReadFileCallback, @TCC_CloseFileCallback);
+    pointer(new):=GetProcAddress(module,'tcc_new');
+    pointer(parse_args):=GetProcAddress(module,'tcc_parse_args');
+    pointer(set_options):=GetProcAddress(module,'tcc_set_options');
+    pointer(set_lib_path):=GetProcAddress(module,'tcc_set_lib_path');
+    pointer(add_include_path):=GetProcAddress(module,'tcc_add_include_path');
+    pointer(set_error_func):=GetProcAddress(module,'tcc_set_error_func');
+
+    pointer(set_output_type):=GetProcAddress(module,'tcc_set_output_type');
+    pointer(set_symbol_lookup_func):=GetProcAddress(module,'tcc_set_symbol_lookup_func');
+    pointer(set_binary_writer_func):=GetProcAddress(module,'tcc_set_binary_writer_func');
+    pointer(compile_string):=GetProcAddress(module,'tcc_compile_string');
+
+    pointer(add_symbol):=GetProcAddress(module,'tcc_add_symbol');
+    pointer(add_file):=GetProcAddress(module,'tcc_add_file');
+    pointer(output_file):=GetProcAddress(module,'tcc_output_file');
+    pointer(relocate):=GetProcAddress(module,'tcc_relocate');
+    pointer(get_symbol):=GetProcAddress(module,'tcc_get_symbol');
+    pointer(get_symbols):=GetProcAddress(module,'tcc_get_symbols');
+    pointer(delete):=GetProcAddress(module,'tcc_delete');
+
+    pointer(get_stab):=GetProcAddress(module,'tcc_get_stab');
+
+    pointer(install_filehook):=GetProcAddress(module,'tcc_install_filehook');
+
+
+    working:=assigned(new) and
+             assigned(set_options) and
+             assigned(add_include_path) and
+             assigned(compile_string) and
+             assigned(output_file) and
+             assigned(delete) and
+             assigned(get_stab) and
+             assigned(install_filehook);
+
+    if working then
+    begin
+      install_filehook(@TCC_OpenFileCallBack, @TCC_ReadFileCallback, @TCC_CloseFileCallback);
+    end
+    else
+      notworkingreason:=p +' is missing one or more exports';
+
   end;
 end;
 
@@ -1575,7 +1607,7 @@ var s: PTCCState;
 begin
   if not working then
   begin
-    if textlog<>nil then textlog.add('Incorrect tcc library');
+    if textlog<>nil then textlog.add('Incorrect tcc library:'+notworkingreason);
     exit(false);
   end;
 

@@ -196,7 +196,7 @@ uses foundcodeunit, DebugHelper, MemoryBrowserFormUnit, frmThreadlistunit,
      frmDebugEventsUnit, formdebugstringsunit, symbolhandler,
      networkInterface, networkInterfaceApi, ProcessHandlerUnit, globals,
      UnexpectedExceptionsHelper, frmcodefilterunit, frmBranchMapperUnit, LuaHandler,
-     LazLogger, Dialogs, vmxfunctions, debuggerinterface, DBVMDebuggerInterface,
+     LazLogger, Dialogs, vmxfunctions, DebuggerInterface, DBVMDebuggerInterface,
      formChangedAddresses, iptnative, commonTypeDefs, GDBServerDebuggerInterface;
 
 resourcestring
@@ -916,6 +916,10 @@ begin
           if dbcCanUseInt1BasedBreakpoints in CurrentDebuggerInterface.DebuggerCapabilities then
             context^.EFlags:=eflags_setRF(context^.EFlags,1);
         end
+        else
+        begin
+          OutputDebugString('co_run without breakpoint. (this is ok)');
+        end;
 
       end;
 
