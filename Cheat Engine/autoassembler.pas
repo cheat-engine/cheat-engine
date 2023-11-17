@@ -4130,11 +4130,14 @@ begin
 
       testptr:=assembled[i].address;
 
+      op:=0;
       if SystemSupportsWritableExecutableMemory or SkipVirtualProtectEx then
         vpe:=(SkipVirtualProtectEx=false) and virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),PAGE_EXECUTE_READWRITE,op)
       else
         vpe:=(SkipVirtualProtectEx=false) and virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),PAGE_READWRITE,op);
 
+      if vpe then
+        outputdebugstring('autoassemble: original protection was '+op.ToString);
 
       if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) and GDBWriteProcessMemoryCodeOnly then
         ok1:=TGDBServerDebuggerInterface(CurrentDebuggerInterface).writeBytes(testptr, @assembled[i].bytes[0], length(assembled[i].bytes))

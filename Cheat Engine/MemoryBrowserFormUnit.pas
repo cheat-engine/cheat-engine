@@ -3172,11 +3172,11 @@ begin
       if lastmodulelistupdate=0 then
         if symhandler<>nil then
         begin
-          before:=mm.GetHeapStatus().TotalAllocated;
+          //before:=mm.GetHeapStatus().TotalAllocated;
           symhandler.loadmodulelist;
-          after:=mm.GetHeapStatus().TotalAllocated;
-          diff:=after-before;
-          outputdebugstring(gettickcount64.tostring+':symhandler.loadmodulelist: before='+before.ToHexString(1)+' after='+after.ToHexString(1)+' diff='+diff.tostring);
+          //after:=mm.GetHeapStatus().TotalAllocated;
+          //diff:=after-before;
+          //outputdebugstring(gettickcount64.tostring+':symhandler.loadmodulelist: before='+before.ToHexString(1)+' after='+after.ToHexString(1)+' diff='+diff.tostring);
         end;
 
       timetaken:=GetTickCount64-timetaken;

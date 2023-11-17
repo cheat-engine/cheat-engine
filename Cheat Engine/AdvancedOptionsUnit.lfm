@@ -1,7 +1,7 @@
 object AdvancedOptions: TAdvancedOptions
-  Left = 259
+  Left = 574
   Height = 303
-  Top = 195
+  Top = 188
   Width = 571
   Caption = 'Code list/Pause'
   ClientHeight = 303

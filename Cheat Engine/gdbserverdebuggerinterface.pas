@@ -543,6 +543,8 @@ begin
             end;
           end;
 
+          outputdebugstring('gdb <- '+result);
+
           if not usesAck then exit; //got the data
 
           if checkPacket(fullpacket)=false then

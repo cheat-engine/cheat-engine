@@ -1668,10 +1668,10 @@ begin
     with enablescript do
     begin
       if (processhandler.SystemArchitecture=archx86) and (not processhandler.is64bit) then
-        add('alloc(originalcall'+nameextension+',2048)')
+        add('alloc(originalcall'+nameextension+',1024)')
       else
       begin
-        add('alloc(originalcall'+nameextension+',2048,'+address+')');
+        add('alloc(originalcall'+nameextension+',1024,'+address+')');
         add('alloc(jumptrampoline'+nameextension+',64,'+address+') //special jump trampoline in the current region (64-bit)');
 
         if processhandler.SystemArchitecture=archx86 then
@@ -1825,7 +1825,7 @@ begin
       begin
         add('dealloc(originalcall'+nameextension+')');
         if processhandler.is64bit then
-          add('dealloc(jumptrampoline)');
+          add('dealloc(jumptrampoline'+nameextension+')');
       end;
 
       for i:=0 to disablescript.Count-1 do

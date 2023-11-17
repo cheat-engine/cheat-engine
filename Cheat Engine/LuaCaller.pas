@@ -10,6 +10,7 @@ and results
 interface
 
 uses
+  {$ifdef darwin}macport,{$endif}
   Classes, Controls, SysUtils, ceguicomponents, forms, lua, lualib, lauxlib,
   comctrls, StdCtrls, CEFuncProc, typinfo, Graphics, disassembler, LuaDisassembler,
   LastDisassembleData, Assemblerunit, commonTypeDefs, ExtCtrls, addresslist,
@@ -1370,6 +1371,8 @@ begin
   result:=0;
   if Luavm=nil then exit;
   oldstack:=lua_gettop(Luavm);
+
+ // outputdebugstring('TLuaCaller.SymbolLookupCallback. oldstack='+oldstack.ToString);
   try
     PushFunction;
     lua_pushstring(luavm, s);

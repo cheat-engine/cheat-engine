@@ -63,6 +63,7 @@ type
   private
     done: TEvent;
     ownersymhandler: TSymHandler;
+    instances: integer; static;
   public
     symbolname: string;
     address: ptruint;
@@ -764,12 +765,16 @@ end;
 
 constructor TSymbolLoaderThreadEvent.create(sh: TSymhandler);
 begin
+  InterlockedIncrement(instances);
   ownersymhandler:=sh;
   done:=tevent.Create(nil,true,false,'');
+
+  outputdebugstring('new TSymbolLoaderThreadEvent of type '+classname+'.  instances='+inttostr(instances));
 end;
 
 destructor TSymbolLoaderThreadEvent.destroy;
 begin
+  InterlockedDecrement(instances);
   if done<>nil then
     done.free;
 

@@ -1492,7 +1492,13 @@ begin
     params:='-g '+params;
 
   if processhandler.isAndroid then
-    params:='-D ANDROID '+params;
+    params:='-D ANDROID '+params
+  else
+  begin
+  {$ifdef darwin}
+    params:='-D __APPLE__ '+params;
+  {$endif}
+  end;
 
 
   set_options(s,pchar(params));
