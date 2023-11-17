@@ -3453,9 +3453,6 @@ function monoform_createInstanceOfClass(sender)
   end  
 end
 
-
-
-
 --[[
 function monoform_miCreateObject(sender)
   if (monoForm.TV.Selected~=nil) then
@@ -4718,6 +4715,50 @@ function monoform_exportArrayStruct(arraytype, elemtype, typename, recursive, st
   return monoform_exportArrayStructInternal(acs, arraytype, elemtype, recursive, structmap, makeglobal, reload)  
 end
 
+function mono_structfields_getStartOffset(fields)
+  --this function get the first non-static, non-const field and gets its offset to subtract from all the offsets of fields
+  --this is done since structs as a memeber element in a class are not pointers, rather simple values!
+  for k,v in pairs(fields) do
+    if not(v.isConst) and not(v.isStatic) then
+      return v.offset
+    end
+  end
+end
+
+function monoform_addCSStructElements(structure, klass, parentstructname, offsetInStructure, prename, postname, preklassName, postClassName)
+  parentstructname = type(parentstructname)=='string' and #parentstructname>0 and parentstructname..'.' or ''
+  offsetInStructure = tonumber(offsetInStructure) or 0 --for arrays of the same struct
+  prename = prename or "" --the text to add before the name of the element
+  postname = postname or "" --text to add after the name of the element
+  preklassName = preklassName or "" --the text to add before the klassname (in paranthesis) of the element
+  postklassName = postklassName or "" --text to add after the klassname (in paranthesis) of the element
+
+  local subfield = mono_class_enumFields(klass)
+  local suboffset = mono_structfields_getStartOffset(subfield)
+  if not suboffset then
+    suboffset = targetIs64Bit() and 0x10 or 0x8
+  end
+  for k,v in pairs(subfield) do
+    if not(v.isConst) and not(v.isStatic) then
+      local fieldClass = mono_field_getClass( v.field )
+      local klsname = mono_class_getName(fieldClass)
+      local eloffset = offsetInStructure+v.offset-suboffset
+      if mono_class_isStruct(fieldClass) then
+        monoform_addCSStructElements(structure, fieldClass, v.name, eloffset, prename, postname, klsname..'.')
+      else
+        local nm = v.name..'('..preklassName..klsname..postklassName..')'
+        local ce=structure.addElement()
+        ce.Name=string.format("%s%s%s",prename,parentstructname..nm,postname)
+        ce.Offset=eloffset
+        ce.Vartype= mono_class_isEnum(fieldClass) and vtDword or monoTypeToVarType( v.monotype ) --vtPointer
+        if ce.Vartype == vtDword then
+          ce.DisplayMethod = 'dtSignedInteger'
+        end
+      end
+    end
+  end
+end
+
 function monoform_exportArrayStructInternal(acs, arraytype, elemtype, recursive, structmap, makeglobal, reload)
   --print("monoform_exportArrayStructInternal")
   --print(fu(arraytype),mono_class_getFullName(arraytype))
@@ -4737,35 +4778,22 @@ function monoform_exportArrayStructInternal(acs, arraytype, elemtype, recursive,
 
       local j
       local psize = arraytype and mono_array_element_size(arraytype) or nil
-	  psize = psize and psize or (targetIs64Bit() and 8 or 4)
+      psize = psize and psize or (targetIs64Bit() and 8 or 4)
 
-        local start
-        if targetIs64Bit() then
-          start=0x20
-        else
-          start=0x10
-        end
+      local start
+      if targetIs64Bit() then
+        start=0x20
+      else
+        start=0x10
+      end
       local elementkls = mono_class_getArrayElementClass(arraytype)
       local elementmonotype = mono_type_get_type(mono_class_get_type(elementkls))
       local isStruct = mono_class_isStruct(elementkls)--mono_class_isValueType(elementkls) and not(mono_class_IsPrimitive(elementkls)) and not(mono_class_isEnum(elementkls))
       --print(fu(elementkls),mono_class_getFullName(elementkls),fu(elementmonotype))
       if isStruct  then
          --print("yep, a struct")
-         local subfield = mono_class_enumFields(elementkls)
-         local suboffset = subfield[1].offset == 0x10 and 0x10 or 0
-         for k,v in pairs(subfield) do
-          if not(v.isConst) and not(v.isStatic) then
-            local nm = v.name..'('..mono_class_getName(mono_field_getClass(v.field))..')'
-            for j=0, 9 do -- Arbitrarily add 10 elements
-              ce=acs.addElement()
-              ce.Name=string.format("[%d]%s",j,nm)
-              ce.Offset=j*psize+start+v.offset-suboffset
-              ce.Vartype= mono_class_isEnum(mono_field_getClass( v.field )) and vtDword or monoTypeToVarType( v.monotype ) --vtPointer
-	      if ce.Vartype == vtDword then
-		     ce.DisplayMethod = 'dtSignedInteger'
-	      end
-            end
-          end
+         for j=0, 9 do -- Arbitrarily add 10 elements
+           monoform_addCSStructElements(acs, elementkls, "", j*psize+start, '['..j..']', "")
          end
       else
         for j=0, 9 do -- Arbitrarily add 10 elements
