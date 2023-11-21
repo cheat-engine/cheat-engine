@@ -12,7 +12,7 @@ interface
 uses
   {$ifdef windows}windows, {$endif}
   {$ifdef darwin}macport, {$endif}
-  Classes, SysUtils, AvgLvlTree, laz_avl_Tree, math, fgl, cvconst,
+  Classes, SysUtils, AvgLvlTree, {$ifdef laztrunk}AVL_Tree,{$else}laz_avl_Tree,{$endif} math, fgl, cvconst,
   syncobjs, symbolhandlerstructs, DOM;
 
 type

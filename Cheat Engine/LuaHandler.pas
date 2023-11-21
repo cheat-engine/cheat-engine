@@ -30,7 +30,11 @@ uses
   variants, LazUTF8, zstream, MemoryQuery, LCLVersion
   {$ifdef darwin}
   ,macportdefines
-  {$endif}, betterControls;
+  {$endif},
+  {$ifdef laztrunk}
+  LazFileUtils,
+  {$endif}
+  betterControls;
 
 
 const MAXTABLERECURSIONLOOKUP=2;
@@ -3357,6 +3361,9 @@ begin
     lua_pushinteger(L, 4);
     {$endif}
 
+    if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+      lua_pushinteger(L, 5);
+
     result:=1;
   end
   else
@@ -4281,8 +4288,10 @@ var parameters: integer;
   local,shallow,e: boolean;
 
 begin
+
   result:=0;
   parameters:=lua_gettop(L);
+  //outputdebugstring('getAddressSafe. parameters='+parameters.ToString);
   if parameters>=1 then
   begin
     if lua_type(L,1)=LUA_TNUMBER then
@@ -4293,13 +4302,19 @@ begin
 
     s:=Lua_ToString(L, 1);
 
+    //outputdebugstring('getAddressSafe('+s+')');
+
     if parameters>=2 then
       local:=lua_toboolean(L, 2)
     else
       local:=false;
 
     if parameters>=3 then
-      shallow:=lua_toboolean(L, 3)
+    begin
+      shallow:=lua_toboolean(L, 3);
+      //if shallow then
+      //  outputdebugstring('getAddressSafe: shallow=true');
+    end
     else
       shallow:=false;
 
@@ -4468,6 +4483,7 @@ end;
 function reinitializeSymbolhandler(L: PLua_state): integer; cdecl;
 var waittilldone: boolean;
 begin
+  outputdebugstring('lua: reinitializeSymbolhandler');
   if lua_gettop(L)>=1 then
     waittilldone:=lua_toboolean(L,1)
   else
@@ -8294,6 +8310,17 @@ begin
 
   result:=1;
 end;
+
+{$ifdef darwin}
+function targetIsRosetta(L: PLua_State): integer; cdecl;
+begin
+  lua_pop(L, lua_gettop(L));
+  lua_pushboolean(L, isProcessTranslated(processid));
+
+  result:=1;
+end;
+{$endif}
+
 
 function getABI(L: PLua_State): integer; cdecl;
 begin
@@ -16170,6 +16197,10 @@ begin
   lua_register(L, 'targetIsX86', targetIsX86);
   lua_register(L, 'targetIsArm', targetIsArm);
   lua_register(L, 'targetIsAndroid', targetIsAndroid);
+  {$ifdef darwin}
+  lua_register(L, 'targetIsRosetta', targetIsRosetta);
+
+  {$endif}
 
   lua_register(L, 'getABI', getABI);
 

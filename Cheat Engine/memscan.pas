@@ -31,7 +31,7 @@ uses
      SyncObjs, SyncObjs2 {$ifdef windows},windows7taskbar{$endif},SaveFirstScan, savedscanhandler, autoassembler,
      symbolhandler, CEFuncProc{$ifdef windows},shellapi{$endif}, CustomTypeHandler, lua,lualib,lauxlib,
      LuaHandler, {$ifdef windows}fileaccess,{$endif} groupscancommandparser, commonTypeDefs, LazUTF8,
-     forms, LazFileUtils, LCLProc, LCLVersion, AvgLvlTree, Laz_AVL_Tree;
+     forms, LazFileUtils, LCLProc, LCLVersion, AvgLvlTree, {$ifdef laztrunk}AVL_Tree{$else}laz_avl_Tree{$endif};
 {$define customtypeimplemented}
 {$endif}
 

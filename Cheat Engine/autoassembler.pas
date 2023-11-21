@@ -3689,12 +3689,10 @@ begin
                         if ok1 then continue; //it's a label, no need to do a heavy symbol lookup
 
                         //not an alloc or kalloc
-
-
-
-
                         try
-                          testptr:=symhandler.getAddressFromName(copy(currentline2,1,length(currentline2)-1));
+                          testptr:=getAddressFromScript(s2);
+                          if testptr=0 then
+                            testptr:=symhandler.getAddressFromName(s2);
 
                           if currentaddress>testptr then
                             diff:=currentaddress-testptr

@@ -22,13 +22,14 @@ unit symbolsync;
 interface
 
 uses
+  Classes, SysUtils,
   {$ifdef windows}
   jwawindows, windows,
   {$endif}
   {$ifdef darwin}
-  macport,
+  macport,macportdefines,
   {$endif}
-  Classes, SysUtils, XMLRead, XMLWrite, DOM, NewKernelHandler;
+  XMLRead, XMLWrite, DOM, NewKernelHandler;
 
 function SyncSymbolsNow(retrieveOnly: boolean=false):boolean; //collect all non-table saved symbols and store them in the symbol database file. Check if the last sync time is higher than the previous one, and if so, load added entries in the (synchronized) symbollist , else write the current symbols to the database and delete older entries that are not there anymore
 
@@ -350,23 +351,42 @@ begin
     //delete process entries that do not exist anymore (or wrong pid)
     pidlookup:=tmap.Create(itu8,sizeof(pchar));
     ths:=CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS,0);
+
+    //outputdebugstring('synsymbolsnow: getting processlist');
     if (ths<>0) and (ths<>INVALID_HANDLE_VALUE) then
     begin
+      try
+        //outputdebugstring('ths is valid');
 
-      if Process32First(ths, pe) then
-      repeat
-        if pe.th32ProcessID=0 then continue;
+        ZeroMemory(@pe,sizeof(pe));
+        pe.dwSize:=sizeof(pe);
 
-        pname:=pchar(@pe.szExeFile[0]);
-        pname:=extractfilename(pname);
 
-        t:=strnew(pchar(pname));
-        pid:=pe.th32ProcessID;
-        pidlookup.Add(pid, t);
-      until Process32Next(ths,pe)=false;
+          if Process32First(ths, pe) then
+          begin
+            repeat
+              //outputdebugstring('found process:'+pe.th32ProcessID.ToString);
+              if pe.th32ProcessID=0 then continue;
 
-      closehandle(ths);
+              pname:=pchar(@pe.szExeFile[0]);
+              pname:=extractfilename(pname);
+
+              //outputdebugstring('processname is '+pname);
+
+              t:=strnew(pchar(pname));
+              pid:=pe.th32ProcessID;
+              pidlookup.Add(pid, t);
+            until Process32Next(ths,pe)=false;
+
+          end;
+          //else
+          //  outputdebugstring('Process32First failed');
+      finally
+        closehandle(ths);
+      end;
     end;
+
+   // outputdebugstring('after processlist');
 
     updated:=false;
     symbolsyncnode:=TDomElement(d.FindNode('symbolsync'));

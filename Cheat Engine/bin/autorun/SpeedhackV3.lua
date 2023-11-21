@@ -311,7 +311,7 @@ function(speed) --OnSetSpeed(speed)
   if (not isConnectedToCEServer()) and targetIsX86() then
     local result, errormsg
     if getAddressSafe("new_gettickcount")==nil or getAddressSafe("speedhack_wantedspeed")==nil then
-      print("not yet hooked yet")
+
       result,errormsg=hookSpeedFunctions()
       if not result then return true, false, errormsg end
     end

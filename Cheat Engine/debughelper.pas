@@ -469,7 +469,12 @@ begin
     {$ENDIF}
 
     if currentprocesid <> 0 then
-      debuggerinterfaceAPIWrapper.DebugActiveProcessStop(currentprocesid);
+    begin
+      outputdebugstring('calling DebugActiveProcessStop');
+      debuggerinterfaceAPIWrapper.DebugActiveProcessStop(currentprocesid)
+    end
+    else
+      outputdebugstring('currentprocesid==0');
 
     terminate;
     OnAttachEvent.SetEvent;

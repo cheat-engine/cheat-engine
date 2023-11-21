@@ -9500,6 +9500,7 @@ end;
 
 procedure TMainForm.Forcerechecksymbols1Click(Sender: TObject);
 begin
+  outputdebugstring('Forcerechecksymbols');
   symhandler.reinitialize;
   symhandler.waitforsymbolsloaded;
 //  addresslist.needsToReinterpret := True;

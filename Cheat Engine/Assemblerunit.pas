@@ -3597,6 +3597,11 @@ begin
       if (t[2]='O') and (t[3]='R') then //could be WORD
         exit((t='WORD') or (t='WORD PTR'));
     end;
+
+    'P': //PTR
+    begin
+      exit(t='PTR');
+    end;
   end;
 end;
 
@@ -3615,6 +3620,11 @@ var i,j,err,err2: integer;
 begin
   if length(token)=0 then exit(false); //empty string
 
+  if token[1]='#' then
+  begin
+    val(copy(token,1),i,err); //just an integer
+    if err=0 then exit(true);
+  end;
 
   quotechar:=#0;
 

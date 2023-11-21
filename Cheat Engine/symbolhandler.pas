@@ -3667,6 +3667,11 @@ end;
 procedure TSymhandler.Waitforsymbolsloaded(apisymbolsonly: boolean=false; specificmodule: string='');
 //6.8.3+:Just make it till the dll list enum and load is done
 begin
+
+  if (MainThreadID=GetCurrentThreadId) and (self<>selfsymhandler) then
+  begin
+    outputdebugstring('mainthread: Waitforsymbolsloaded');
+  end;
   symbolloadervalid.beginread;
 
   if symbolloaderthread<>nil then
@@ -3694,6 +3699,8 @@ begin
   end;
 
   symbolloadervalid.endread;
+  if MainThreadID=GetCurrentThreadId then
+    outputdebugstring('mainthread: Waitforsymbolsloaded done');
 end;
 
 procedure TSymhandler.ReinitializeUserdefinedSymbolList;
@@ -5556,8 +5563,11 @@ begin
                     end;
                   end;
 
-                  if waitforsymbols then
+                  if waitforsymbols and (not shallow) then
                   begin
+                    outputdebugstring('going to wait for all symbols loaded because of '+name);
+                    if not shallow then outputdebugstring('shallow=false');
+
                     waitforsymbolsloaded;
                     //check again now that the symbols are loaded
                     si:=symbollist.FindSymbol(tokens[i]);

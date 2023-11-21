@@ -4117,8 +4117,8 @@ end
 
 function mono_checkifmonoanyhow(t)
   while t.Terminated==false do
-    local r=getAddressSafe('mono_thread_attach')
-    local r2=getAddressSafe('il2cpp_thread_attach')
+    local r=getAddressSafe('mono_thread_attach',false,true)
+    local r2=getAddressSafe('il2cpp_thread_attach',false,true)
     
     if (r~=nil) or (r2~=nil) then
       --print("thread_checkifmonoanyhow found the mono_thread_attach export")

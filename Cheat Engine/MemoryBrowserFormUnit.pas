@@ -1103,6 +1103,7 @@ end;
 procedure TMemoryBrowser.memorypopupPopup(Sender: TObject);
 var
   m: TMemorybrowser;
+  mi: menus.tmenuitem;
   i,j: integer;
 
   islocked: boolean;
@@ -1123,19 +1124,19 @@ begin
   begin
     j:=dispDouble.MenuIndex+1+i;
     if j<DisplayType1.Count then
-      miClearCache:=displayType1.Items[j]
+      mi:=displayType1.Items[j]
     else
     begin
-      miClearCache:=tmenuitem.create(memorypopup);
-      miClearCache.OnClick:=DisplayTypeClick;
-      miClearCache.AutoCheck:=true;
-      miClearCache.RadioItem:=true;
-      miClearCache.GroupIndex:=3;
-      DisplayType1.Add(miClearCache);
+      mi:=tmenuitem.create(memorypopup);
+      mi.OnClick:=DisplayTypeClick;
+      mi.AutoCheck:=true;
+      mi.RadioItem:=true;
+      mi.GroupIndex:=3;
+      DisplayType1.Add(mi);
     end;
 
-    miClearCache.caption:=TCustomType(customtypes[i]).name;
-    miClearCache.tag:=$1000+i;
+    mi.caption:=TCustomType(customtypes[i]).name;
+    mi.tag:=$1000+i;
   end;
 
   //delete the entries that are too many
@@ -4005,7 +4006,11 @@ var count: string;
     x: dword;
     s: string;
 begin
+  {$ifdef darwin}
   count:=getPageSize.ToString;
+  {$else}
+  count:='4096';
+  {$endif}
   try
     if inputquery(rsAllocateMemory, rsHowMuchMemoryDoYouWantToAddToThisProcess, count) then
     begin

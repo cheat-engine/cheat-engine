@@ -3006,9 +3006,6 @@ begin
 
     mbcanvas.Repaint;
     lastupdate:=gettickcount;
-
-
-    LoadMemoryRegion;
   end;
 
   if (lastaddress<>faddress) and assigned(fonAddressChange) then

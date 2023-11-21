@@ -543,7 +543,7 @@ begin
             end;
           end;
 
-          outputdebugstring('gdb <- '+result);
+          //outputdebugstring('gdb <- '+result);
 
           if not usesAck then exit; //got the data
 
@@ -746,10 +746,10 @@ begin
   if haslock<=0 then raise exception.create('sendPacket without lock');
 
 
-  outputdebugstring('ce -> gdb: '+s);
+ // outputdebugstring('ce -> gdb: '+s);
   if (s='c') or (s.StartsWith('vCont;')) then
   begin
-    OutputDebugString('GDB continued:'+s);
+    //OutputDebugString('GDB continued:'+s);
     stopped:=false;
     stoptargetused:=false;
     stoppacket:='';
@@ -823,10 +823,7 @@ begin
     if data<>'' then
       sendPacket(data);
 
-    if ssctrl in GetKeyShiftState then
-      result:='<noread>'
-    else
-      result:=receivePacket(timeout,true);
+    result:=receivePacket(timeout,true);
 
 
     continueAfterManualStop;
@@ -853,7 +850,7 @@ begin
     //e.g: M10002C7DD,6:909090909090
 
 
-    outputdebugstring(format('writeBytes(%x)',[address]));
+   // outputdebugstring(format('writeBytes(%x)',[address]));
 
     bytesleft:=size;
     result:=true;
@@ -999,14 +996,14 @@ end;
 
 procedure TGDBServerDebuggerInterface.continueAfterManualStop;
 begin
-  outputdebugstring('continueAfterManualStop: breakIfNeededCount='+breakIfNeededCount.ToString);
+  //outputdebugstring('continueAfterManualStop: breakIfNeededCount='+breakIfNeededCount.ToString);
   ObtainLock;
   if breakIfNeededCount>0 then
     dec(breakIfNeededCount);
 
   if stoppedDueToManualBreak and (breakIfNeededCount=0) then
   begin
-    outputdebugstring('continueAfterManualStop: Continueing');
+    //outputdebugstring('continueAfterManualStop: Continueing');
     sendPacket('c');
   end;
 
@@ -2608,14 +2605,26 @@ var
   s: string;
   wasstopped: boolean;
 begin
-
+  OutputDebugString('TGDBServerDebuggerInterface.DebugActiveProcessStop');
 
   ObtainLock;
+  OutputDebugString('got lock');
+
   stoptarget(wasstopped);
-  sendPacket('c');
+
+  OutputDebugString('stopped target. Sending ''D''');
   sendPacket('D');
-  result:=receivePacket='OK';
+
   ReleaseLock;
+  OutputDebugString('released lock');
+
+  fpclose(socket);
+  if gdbserverExecutor<>nil then
+  begin
+    OutputDebugString('terminating gdbserverExecutor');
+    gdbserverExecutor.Terminate;
+  end;
+
 end;
 
 procedure TGDBServerDebuggerInterface.AddToNoBreakList(threadid: integer);
