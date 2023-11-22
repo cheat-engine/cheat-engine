@@ -2378,6 +2378,10 @@ begin
   cbNot.Enabled:=false;
   cbLuaFormula.enabled:=false;
   cbNewLuaState.enabled:=false;
+
+  miAddTab.enabled:=false;
+  if scantablist<>nil then
+    scantablist.Enabled:=false;
 end;
 
 procedure TMainForm.enableGui(isnextscan: boolean);
@@ -2433,6 +2437,10 @@ begin
 
   cbspeedhack.Enabled := True;
   cbunrandomizer.Enabled := True;
+
+  miAddTab.enabled:=true;
+  if scantablist<>nil then
+    scantablist.Enabled:=true;
 
 end;
 
@@ -5468,6 +5476,7 @@ var
 
   scantabtopcontrol: TControl;
 begin
+
   if scantablist = nil then
   begin
     foundlistheightdiff := btnMemoryView.top - (foundlist3.top + foundlist3.Height);

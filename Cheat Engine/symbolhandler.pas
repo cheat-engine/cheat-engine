@@ -6037,10 +6037,6 @@ begin
           try
             if module32first(ths,me32) then
             repeat
-              if me32.GlblcntUsage>0 then
-              asm
-              nop
-              end;
               s:=WinCPToUTF8(pchar(@me32.szModule[0]));
               x:=WinCPToUTF8(pchar(@me32.szExePath[0]));
               if (s[1]<>'[') then //do not extract the filename if it's a 'special' marker
@@ -6078,6 +6074,11 @@ begin
                 if not processhandler.isNetwork then
                 begin
                   {$ifdef darwin}
+                  //if me32.is64bit then
+                 //   outputdebugstring(modulename+' is 64-bit')
+                  //else
+                  //  outputdebugstring(modulename+' is NOT 64-bit');
+
                   newmodulelist[newmodulelistpos].is64bitmodule:=me32.is64bit; //I own this struct now so yes...
                   {$endif}
 
@@ -6123,7 +6124,10 @@ begin
 
 
                   if processhandler.is64Bit<>newmodulelist[newmodulelistpos].is64bitmodule then
+                  begin
+                   // outputdebugstring(newmodulelist[newmodulelistpos].modulename+' does not match process');
                     newmodulelist[newmodulelistpos].modulename:='_'+newmodulelist[newmodulelistpos].modulename;
+                  end;
 
                 end
                 else

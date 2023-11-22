@@ -15127,7 +15127,13 @@ var
   ln: TSourceCodeInfo;
   tr: TTCCRegionList;
   oldprotect: dword;
+
+  mbi: TMEMORYBASICINFORMATION;
 begin
+  {$ifdef darwin}
+  outputdebugstring('lua compile()');
+  {$endif}
+
   if lua_gettop(L)>=1 then
   begin
     if lua_isstring(L,1) then
@@ -15195,6 +15201,9 @@ begin
 
       if a=0 then //allocate myself
       begin
+        {$ifdef darwin}
+        outputdebugstring('testcompiling()');
+        {$endif}
         //test compile to get the size
         if ((list=nil) and (tcc.compileScript(s,$00400000,bytes,nil,nil,nil,errorlog,nil,targetself)=false)) or
            ((list<>nil) and (
@@ -15211,6 +15220,10 @@ begin
           exit(2);
         end;
 
+        {$ifdef darwin}
+        outputdebugstring('testcompile success');
+        {$endif}
+
 {$ifdef windows}
         if useKernelAlloc then
           a:=ptruint(kernelalloc(bytes.size*2))
@@ -15218,9 +15231,28 @@ begin
 {$endif}
         begin
           if SystemSupportsWritableExecutableMemory then
-            a:=ptruint(VirtualAllocEx(ph,nil, bytes.Size*2,MEM_RESERVE or MEM_COMMIT,PAGE_EXECUTE_READWRITE))
+          begin
+            {$ifdef darwin}
+            outputdebugstring('allocating as RWX');
+            {$endif}
+            a:=ptruint(VirtualAllocEx(ph,nil, bytes.Size*2,MEM_RESERVE or MEM_COMMIT,PAGE_EXECUTE_READWRITE));
+          end
           else
-            a:=ptruint(VirtualAllocEx(ph,nil, bytes.Size*2,MEM_RESERVE or MEM_COMMIT,PAGE_READWRITE))
+          begin
+            {$ifdef darwin}
+            outputdebugstring('allocating as RW');
+            {$endif}
+            a:=ptruint(VirtualAllocEx(ph,nil, bytes.Size*2,MEM_RESERVE or MEM_COMMIT,PAGE_READWRITE));
+
+            {$ifdef darwin}
+            if VirtualQueryEx(ph, pointer(a),mbi,sizeof(mbi))=sizeof(mbi) then
+            begin
+              outputdebugstring('protect='+mbi.Protect.ToString+' ('+mbi.macProtect.ToString+')');
+            end
+            else
+              outputdebugstring('VirtualQueryEx failed');
+            {$endif}
+          end;
         end;
 
         if a=0 then
