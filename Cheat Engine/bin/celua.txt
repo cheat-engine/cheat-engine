@@ -2537,6 +2537,7 @@ Disassemblerview class: (Inheritance: Panel->CustomControl->WinControl->Control-
 properties
   SelectedAddress: integer - The currently selected address in the disassemblerview
   SelectedAddress2: integer - The secondary selected address in the disassemblerview
+  SelectionSize: integer - The size of the selected area
   TopAddress: Integer - The first address to show
   ShowJumplines: boolean - Determines if the jumplines should be shown
   HideFocusRect: boolean - If set to true the focus rectangle won't be shown
