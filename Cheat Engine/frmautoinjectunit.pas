@@ -267,6 +267,7 @@ type
     View1: TMenuItem;
     AAPref1: TMenuItem;
     procedure btnExecuteClick(Sender: TObject);
+    procedure emplate1Click(Sender: TObject);
     procedure FormDropFiles(Sender: TObject; const FileNames: array of String);
     procedure Load1Click(Sender: TObject);
     procedure menuAOBInjectionClick(Sender: TObject);
@@ -285,6 +286,7 @@ type
     procedure miCallLuaClick(Sender: TObject);
     procedure miNewWindowClick(Sender: TObject);
     procedure miRedoClick(Sender: TObject);
+    procedure N1Click(Sender: TObject);
     procedure ReplaceDialog1Find(Sender: TObject);
     procedure ReplaceDialog1Replace(Sender: TObject);
     procedure Save1Click(Sender: TObject);
@@ -771,6 +773,15 @@ begin
 {$endif}
 end;
 
+procedure TfrmAutoInject.emplate1Click(Sender: TObject);
+begin
+  mi5ByteJMP.Visible:=processhandler.is64Bit and (processhandler.SystemArchitecture=archX86);
+  mi14ByteJMP.visible:=mi5ByteJMP.Visible;
+  n1.visible:=mi5ByteJMP.Visible;
+  mi1ByteExceptionJMP.Visible:=processhandler.SystemArchitecture=archX86;
+  n2.visible:=mi1ByteExceptionJMP.Visible;
+end;
+
 procedure TfrmAutoInject.FormDropFiles(Sender: TObject; const FileNames: array of String);
 var load: boolean;
 begin
@@ -853,6 +864,11 @@ end;
 procedure TfrmAutoInject.miRedoClick(Sender: TObject);
 begin
   assemblescreen.Redo;
+end;
+
+procedure TfrmAutoInject.N1Click(Sender: TObject);
+begin
+
 end;
 
 procedure TfrmAutoInject.ReplaceDialog1Find(Sender: TObject);

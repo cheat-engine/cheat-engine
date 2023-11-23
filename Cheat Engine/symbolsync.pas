@@ -477,7 +477,7 @@ begin
     fs.Size:=0;
     fs.free;
 
-    DeleteFile(symbolfilepath+'.lock');
+    DeleteFile(pchar(symbolfilepath+'.lock'));
 
     if pidlookup<>nil then
     begin

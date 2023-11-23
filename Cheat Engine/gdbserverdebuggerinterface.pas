@@ -2617,8 +2617,12 @@ begin
 
   ReleaseLock;
   OutputDebugString('released lock');
-
+  {$ifdef windows}
+  closehandle(socket);
+  {$else}
   fpclose(socket);
+  {$endif}
+
   if gdbserverExecutor<>nil then
   begin
     OutputDebugString('terminating gdbserverExecutor');
@@ -2896,7 +2900,11 @@ begin
 
       if (connectresult=0) or (gettickcount64>starttime+10000) then break;
 
+      {$ifdef windows}
+      closehandle(socket);
+      {$else}
       FpClose(socket);
+      {$endif}
       socket:=INVALID_SOCKET;
       sleep(10);
     end;

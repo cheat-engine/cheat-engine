@@ -2468,14 +2468,14 @@ begin
   {$ifdef windows}
   if e is EAccessViolation then
   begin
-    case EAccessViolation(e).ExceptionRecord.ExceptionInformation[0] of
+    case EAccessViolation(e).ExceptionRecord^.ExceptionInformation[0] of
       0: op:='read';
       1: op:='write to';
       8: op:='execute';
       else op:='do something weird with';
     end;
 
-    s:=s+' (tried to '+op+' address '+inttohex(qword(EAccessViolation(e).ExceptionRecord.ExceptionInformation[1]),8)+')';
+    s:=s+' (tried to '+op+' address '+inttohex(qword(EAccessViolation(e).ExceptionRecord^.ExceptionInformation[1]),8)+')';
   end;
   {$endif}
 
@@ -7750,7 +7750,7 @@ begin
   {$ifdef windows}
   try
 
-    if @DebugActiveProcessStop <> @DebugActiveProcessStopProstitute then
+    if pointer(@DebugActiveProcessStop) <> pointer(@DebugActiveProcessStopProstitute) then
     begin
       //detach the debugger
       //hide;
