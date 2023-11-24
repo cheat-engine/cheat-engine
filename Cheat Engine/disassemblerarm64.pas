@@ -2686,13 +2686,13 @@ function highestbit(v: dword): integer;
 var i: integer;
 begin
   case v of
-     $1ff: exit(9);
-     $3fff: exit(14);
-     $7fff: exit(15);
-     $ffff: exit(16);
-    $1ffff: exit(17);
-    $3ffff: exit(18);
-    $7ffff: exit(19);
+     $1ff: exit(8);
+     $3fff: exit(13);
+     $7fff: exit(14);
+     $ffff: exit(15);
+    $1ffff: exit(16);
+    $3ffff: exit(17);
+    $7ffff: exit(18);
     $7ffffff: exit(26);
     else
     begin
@@ -2951,7 +2951,7 @@ end;
 
 function TArm64Instructionset.ParseParametersForDisassembler(plist: TAParametersList): boolean;
 var
-  i: integer;
+  i,j: integer;
   v,v2,v3: dword;
   qv,qv2: qword;
 
@@ -3214,8 +3214,12 @@ begin
       pt_label:
       begin
         v:=(opcode shr plist[i].offset) and plist[i].maxval;
-        v:=v shl 2;
-        qv2:=SignExtend(v,highestbit(plist[i].maxval)+2);
+        j:=highestbit(plist[i].maxval);
+        qv2:=SignExtend(v,j);
+        qv2:=qv2 shl 2;
+
+        j:=highestbit(plist[i].maxval);
+
         qv:=address+qv2;
 
 
