@@ -102,7 +102,7 @@ type
 implementation
 
 {$ifndef armdev}
-uses math, NewKernelHandler,ProcessHandlerUnit,StringHashList;
+uses math, NewKernelHandler,ProcessHandlerUnit,StringHashList, symbolhandler;
 {$else}
 uses StringHashList, math, Rtti, RttiUtils, TypInfo;
 {$endif}
@@ -3218,7 +3218,12 @@ begin
         qv2:=SignExtend(v,highestbit(plist[i].maxval)+2);
         qv:=address+qv2;
 
+
+        {$ifdef armdev}
         p:=inttohex(qv,8);
+        {$else}
+        p:=symhandler.getNameFromAddress(qv);
+        {$endif}
       end;
 
       pt_addrlabel:
@@ -3235,7 +3240,11 @@ begin
           qv:=address+v;
         end;
 
+        {$ifdef armdev}
         p:=inttohex(qv,8);
+        {$else}
+        p:=symhandler.getNameFromAddress(qv);
+        {$endif}
       end;
 
       pt_pstatefield_SP: p:='SPSEL';
@@ -3891,6 +3900,13 @@ begin
   then
     result:=result+[pt_label, pt_addrlabel, pt_systemreg];
 
+  {$ifndef armdev}
+  symhandler.getAddressFromName(param,false,r);
+  if r then
+    result:=result+[pt_label, pt_addrlabel];
+
+  {$endif}
+
 
   if tlbilist.Find(param)<>-1 then
      result:=result+[pt_sysop_tlbi];
@@ -4519,7 +4535,11 @@ begin
     begin
       if paramstr[1]='#' then paramstr:=paramstr.Substring(1);
 
+      {$ifdef armdev}
       qv:=StrToInt64('$'+paramstr);
+      {$else}
+      qv:=symhandler.getAddressFromName(paramstr);
+      {$endif}
 
       outputdebugstring(pchar(format('assembling pt_label.  origin=%.8x target destination=%.8x',[address, qv])));
       qv:=qv-address;
@@ -4539,7 +4559,11 @@ begin
 
     pt_addrlabel:
     begin
+      {$ifdef armdev}
       qv:=StrToInt64('$'+paramstr);
+      {$else}
+      qv:=symhandler.getAddressFromName(paramstr);
+      {$endif}
 
 
       if param.extra=0 then
