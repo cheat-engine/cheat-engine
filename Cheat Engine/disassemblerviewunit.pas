@@ -136,6 +136,10 @@ type TDisassemblerview=class(TPanel)
     procedure StatusInfoLabelCopy(sender: TObject);
 
     procedure setCR3(pa: QWORD);
+
+    function getSelectionSize: integer;
+    procedure setSelectionSize(s: integer);
+
   protected
     backlist: TStack;
     goingback: boolean;
@@ -211,6 +215,7 @@ type TDisassemblerview=class(TPanel)
     property OnDisassemblerViewOverride: TDisassemblerViewOverrideCallback read fOnDisassemblerViewOverride write fOnDisassemblerViewOverride;
     property CR3: qword read fCR3 write setCR3;
     property CurrentDisassembler: TDisassembler read fCurrentDisassembler;
+    property SelectionSize: integer read getSelectionSize write setSelectionSize;
 
     property RelativeBase: ptruint read fRelativeBase write fRelativeBase;
     property UseRelativeBase: boolean read fUseRelativeBase write fUseRelativeBase;
@@ -388,6 +393,44 @@ begin
     EndUpdate;
   end;
 
+
+  update;
+end;
+
+function TDisassemblerview.getSelectionSize: integer;
+var
+  lastaddr: ptruint;
+  d: TDisassembler;
+begin
+  d:=TDisassembler.create;
+  lastaddr:=max(fSelectedAddress2, fSelectedAddress);
+  d.disassemble(lastaddr);
+  d.free;
+
+  result:=lastaddr-min(fSelectedAddress2, fSelectedAddress);
+end;
+
+procedure TDisassemblerview.setSelectionSize(s: integer);
+var
+  first: ptruint;
+  last: ptruint;
+  current: ptruint;
+  stop: ptruint;
+  d: TDisassembler;
+begin
+  first:=min(fSelectedAddress2, fSelectedAddress);
+  fselectedaddress:=first;
+
+  current:=first;
+  stop:=first+s;
+
+  d:=TDisassembler.create;
+  while current<stop do
+  begin
+    fselectedaddress2:=current;
+    d.disassemble(current);
+  end;
+  d.free;
 
   update;
 end;

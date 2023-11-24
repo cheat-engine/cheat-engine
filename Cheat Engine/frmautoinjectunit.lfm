@@ -1,7 +1,7 @@
 object frmAutoInject: TfrmAutoInject
-  Left = 542
+  Left = 726
   Height = 313
-  Top = 366
+  Top = 320
   Width = 431
   HelpContext = 1089
   AllowDropFiles = True
@@ -154,6 +154,7 @@ object frmAutoInject: TfrmAutoInject
     end
     object emplate1: TMenuItem
       Caption = 'Template'
+      OnClick = emplate1Click
       object mi5ByteJMP: TMenuItem
         AutoCheck = True
         Caption = '5 Byte JMP (<2GB Distance)'
@@ -167,6 +168,7 @@ object frmAutoInject: TfrmAutoInject
       end
       object N1: TMenuItem
         Caption = '-'
+        OnClick = N1Click
       end
       object mi1ByteExceptionJMP: TMenuItem
         AutoCheck = True

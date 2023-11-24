@@ -267,6 +267,7 @@ type
     View1: TMenuItem;
     AAPref1: TMenuItem;
     procedure btnExecuteClick(Sender: TObject);
+    procedure emplate1Click(Sender: TObject);
     procedure FormDropFiles(Sender: TObject; const FileNames: array of String);
     procedure Load1Click(Sender: TObject);
     procedure menuAOBInjectionClick(Sender: TObject);
@@ -285,6 +286,7 @@ type
     procedure miCallLuaClick(Sender: TObject);
     procedure miNewWindowClick(Sender: TObject);
     procedure miRedoClick(Sender: TObject);
+    procedure N1Click(Sender: TObject);
     procedure ReplaceDialog1Find(Sender: TObject);
     procedure ReplaceDialog1Replace(Sender: TObject);
     procedure Save1Click(Sender: TObject);
@@ -389,9 +391,9 @@ type
 
 
 procedure generateAPIHookScript(script: tstrings; address: string; addresstogoto: string; addresstostoreneworiginalfunction: string=''; nameextension:string='0'; targetself: boolean=false);
-procedure GenerateCodeInjectionScript(script: tstrings; addressstring: string; farjmp: boolean=false; jmp1:boolean=false);
-procedure GenerateAOBInjectionScript(script: TStrings; address: string; symbolname: string; commentradius: integer=10; farjmp: boolean=false; jmp1: boolean=false);
-procedure GenerateFullInjectionScript(Script: tstrings; address: string; commentradius: integer=10; farjmp: boolean=false; jmp1: boolean=false);
+procedure GenerateCodeInjectionScript(script: tstrings; addressstring: string; farjmp: boolean=false; jmp1:boolean=false; originalcodeMinSize: integer=1);
+procedure GenerateAOBInjectionScript(script: TStrings; address: string; symbolname: string; commentradius: integer=10; farjmp: boolean=false; jmp1: boolean=false; originalcodeMinSize: integer=1);
+procedure GenerateFullInjectionScript(Script: tstrings; address: string; commentradius: integer=10; farjmp: boolean=false; jmp1: boolean=false; originalcodeMinSize: integer=1);
 
 function registerAutoAssemblerTemplate(name: string; m: TAutoAssemblerTemplateCallback; shortcut: TShortCut=0): integer;
 procedure unregisterAutoAssemblerTemplate(id: integer);
@@ -771,6 +773,15 @@ begin
 {$endif}
 end;
 
+procedure TfrmAutoInject.emplate1Click(Sender: TObject);
+begin
+  mi5ByteJMP.Visible:=processhandler.is64Bit and (processhandler.SystemArchitecture=archX86);
+  mi14ByteJMP.visible:=mi5ByteJMP.Visible;
+  n1.visible:=mi5ByteJMP.Visible;
+  mi1ByteExceptionJMP.Visible:=processhandler.SystemArchitecture=archX86;
+  n2.visible:=mi1ByteExceptionJMP.Visible;
+end;
+
 procedure TfrmAutoInject.FormDropFiles(Sender: TObject; const FileNames: array of String);
 var load: boolean;
 begin
@@ -853,6 +864,11 @@ end;
 procedure TfrmAutoInject.miRedoClick(Sender: TObject);
 begin
   assemblescreen.Redo;
+end;
+
+procedure TfrmAutoInject.N1Click(Sender: TObject);
+begin
+
 end;
 
 procedure TfrmAutoInject.ReplaceDialog1Find(Sender: TObject);
@@ -1260,7 +1276,7 @@ begin
   d.free;
 end;
 
-procedure GenerateCodeInjectionScript(script: tstrings; addressstring: string; farjmp: boolean=false; jmp1: boolean=false);
+procedure GenerateCodeInjectionScript(script: tstrings; addressstring: string; farjmp: boolean=false; jmp1: boolean=false; originalcodeMinSize: integer=1);
 function inttostr(i:int64):string;
 begin
   if i=0 then result:='' else result:=sysutils.IntToStr(i);
@@ -1285,7 +1301,6 @@ var
     jmpsize: integer;
 
     rewrite: tstringlist;
-
 begin
 
   if not processhandler.is64Bit then
@@ -1315,7 +1330,10 @@ begin
   enablecode:=tstringlist.Create;
   disablecode:=tstringlist.Create;
 
-  while codesize<jmpsize do
+  if originalcodeMinSize<jmpsize then
+    originalcodeMinSize:=jmpsize;
+
+  while codesize<originalcodeMinSize do
   begin
     GetOriginalInstruction(c, originalcode, farjmp);
     codesize:=c-a;
@@ -1426,11 +1444,18 @@ var
   a: ptruint;
   mi: TModuleInfo;
   address: string;
+  originalCodeMinSize: integer;
 begin
   if parent is TMemoryBrowser then
-    a:=TMemoryBrowser(parent).disassemblerview.SelectedAddress
+  begin
+    a:=min(TMemoryBrowser(parent).disassemblerview.SelectedAddress, TMemoryBrowser(parent).disassemblerview.SelectedAddress2);
+    originalCodeMinSize:=TMemoryBrowser(parent).disassemblerview.selectionsize;
+  end
   else
-    a:=memorybrowser.disassemblerview.SelectedAddress;
+  begin
+    a:=min(memorybrowser.disassemblerview.SelectedAddress, memorybrowser.disassemblerview.SelectedAddress2);
+    originalCodeMinSize:=memorybrowser.disassemblerview.selectionsize;
+  end;
 
   if symhandler.getmodulebyaddress(a,mi) then
     address:='"'+mi.modulename+'"+'+inttohex(a-mi.baseaddress,1)
@@ -1442,7 +1467,9 @@ begin
 
 
   if inputquery(rsCodeInjectTemplate, rsOnWhatAddressDoYouWantTheJump, address) then
-    GenerateCodeInjectionScript(assemblescreen.lines, address, (ssCtrl in GetKeyShiftState) or mi14ByteJMP.checked, mi1ByteExceptionJMP.checked);
+  begin
+    GenerateCodeInjectionScript(assemblescreen.lines, address, (ssCtrl in GetKeyShiftState) or mi14ByteJMP.checked, mi1ByteExceptionJMP.checked, originalCodeMinSize);
+  end;
 end;
 
 procedure TfrmAutoInject.Panel1Resize(Sender: TObject);
@@ -3146,7 +3173,7 @@ begin
 end;
 
 // \/   http://forum.cheatengine.org/viewtopic.php?t=566415 (jgoemat and some mods by db)
-procedure GenerateFullInjectionScript(Script: tstrings; address: string; commentRadius: integer=10; farjmp: boolean=false; jmp1:boolean=false);
+procedure GenerateFullInjectionScript(Script: tstrings; address: string; commentRadius: integer=10; farjmp: boolean=false; jmp1:boolean=false; originalcodeMinSize: integer=1);
 var
   originalcode: tstringlist;
   originalbytes: array of byte;
@@ -3211,7 +3238,10 @@ begin
   originalcode:=tstringlist.create;
   codesize:=0;
 
-  while codesize<jmpsize do
+  if originalcodeMinSize<jmpsize then
+    originalcodeMinSize:=jmpsize;
+
+  while codesize<originalcodeMinSize do
   begin
     GetOriginalInstruction(c, originalcode, farjmp);
     codesize:=c-a;
@@ -3372,7 +3402,7 @@ var
   address: string;
   mi: TModuleInfo;
 begin
-  a:=memorybrowser.disassemblerview.SelectedAddress;
+  a:=min(memorybrowser.disassemblerview.SelectedAddress, memorybrowser.disassemblerview.SelectedAddress2);
 
   if symhandler.getmodulebyaddress(a,mi) then
     address:='"'+mi.modulename+'"+'+inttohex(a-mi.baseaddress,1)
@@ -3383,7 +3413,7 @@ begin
     mi14ByteJMP.Checked:=true;
 
   if inputquery(rsCodeInjectTemplate, rsOnWhatAddressDoYouWantTheJump, address) then
-    generateFullInjectionScript(assemblescreen.Lines, address, 10, (ssCtrl in GetKeyShiftState) or mi14ByteJMP.checked, mi1ByteExceptionJMP.checked);
+    generateFullInjectionScript(assemblescreen.Lines, address, 10, (ssCtrl in GetKeyShiftState) or mi14ByteJMP.checked, mi1ByteExceptionJMP.checked, memorybrowser.disassemblerview.SelectionSize);
 end;
 
 procedure TfrmAutoInject.miReplaceClick(Sender: TObject);
@@ -3464,7 +3494,7 @@ begin
 
 end;
 
-procedure GenerateAOBInjectionScript(script: TStrings; address: string; symbolname: string; commentradius: integer=10; farjmp: boolean=false; jmp1:boolean=false);
+procedure GenerateAOBInjectionScript(script: TStrings; address: string; symbolname: string; commentradius: integer=10; farjmp: boolean=false; jmp1:boolean=false; originalcodeMinSize: integer=1);
 var
   a,a2: ptrUint;                  // pointer to injection point
   originalcode: tstringlist;      // disassembled code we're replacing
@@ -3536,7 +3566,10 @@ begin
   originalcode:=tstringlist.create;
   codesize:=0;
 
-  while codesize<jmpsize do
+  if originalcodeMinSize<jmpsize then
+    originalcodeMinSize:=jmpsize;
+
+  while codesize<originalcodeMinSize do
   begin
     GetOriginalInstruction(c, originalcode, farjmp);
     codesize:=c-a;
@@ -3706,7 +3739,7 @@ var
   mi: TModuleInfo;
   symbolname: string;
 begin
-  a:=memorybrowser.disassemblerview.SelectedAddress;
+  a:=min(memorybrowser.disassemblerview.SelectedAddress, memorybrowser.disassemblerview.SelectedAddress2);
 
   if symhandler.getmodulebyaddress(a,mi) then
     address:='"'+mi.modulename+'"+'+inttohex(a-mi.baseaddress,1)
@@ -3725,7 +3758,7 @@ begin
     symbolname:='INJECT'+nr;
 
     if inputquery(rsCodeInjectTemplate, rsWhatIdentifierDoYouWantToUse, symbolName) then
-      GenerateAOBInjectionScript(assemblescreen.Lines, address, symbolname, 10, (ssCtrl in GetKeyShiftState) or mi14ByteJMP.checked, mi1ByteExceptionJMP.checked);
+      GenerateAOBInjectionScript(assemblescreen.Lines, address, symbolname, 10, (ssCtrl in GetKeyShiftState) or mi14ByteJMP.checked, mi1ByteExceptionJMP.checked, memorybrowser.disassemblerview.SelectionSize);
   end;
 end;
 

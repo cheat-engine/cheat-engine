@@ -209,7 +209,7 @@ autoAssemble(text, disableInfo OPTIONAL)
 
 autoAssembleCheck(text, enable, targetself) : Checks the script for syntax errors. Returns true on succes, false with an error message on failure
 
-compile(text, address OPTIONAL, targetself OPTIONAL) : Compiles C code and returns a table with the addresses of the symbols on success, or nil with a secondary result containing the errormessage
+compile(text, address OPTIONAL, targetself OPTIONAL, kernelmode OPTIONAL, nodebug OPTIONAL) : Compiles C code and returns a table with the addresses of the symbols on success, or nil with a secondary result containing the errormessage
 compile({indexedtable containing scripts}, address OPTIONAL, targetself OPTIONAL) ) : ^ but allows multiple scripts to be compiled into one
 compileFiles({filelist}, address OPTIONAL, targetself OPTIONAL) ): ^ but takes an indexed list of files
 compileTCCLib() - Compiles the TCC library functions some C code may need to function internally
@@ -599,6 +599,7 @@ targetIs64Bit(): Returns true if the target process is 64-bit, false if 32-bit
 targetIsX86(): Returns true if the target process is x86 based
 targetIsArm(): Returns true if the target process is arm based 
 targetIsAndroid(): Returns true if the target process is running on the Android OS
+targetIsRosetta(): Returns true if the target process is running inside the rosetta emulator (macos only)
 
 getABI(): Returns 0 for windows calling convention. Returns 1 for unix/linux calling convention
 
@@ -757,7 +758,7 @@ createProcess(path, parameters OPTIONAL, debug OPTIONAL, breakonentrypoint OPTIO
 debugProcess(interface OPT): starts the debugger for the currently opened process (won't ask the user) Optional interface: 0=default, 1=windows debug, 2=VEHDebug, 3=Kerneldebug
 
 debug_isDebugging(): Returns true if the debugger has been started
-debug_getCurrentDebuggerInterface() : Returns the current debuggerinterface used (1=windows, 2=VEH 3=Kernel, nil=no debugging active)
+debug_getCurrentDebuggerInterface() : Returns the current debuggerinterface used (1=windows, 2=VEH 3=Kernel, 4=mac native, 5=gdb, nil=no debugging active)
 debug_canBreak(): Returns true if there is a possibility the target can stop on a breakpoint. 6.4+
 debug_isBroken(): Returns true if the debugger is currently halted on a thread
 debug_isStepping(): Returns true if the debugger was single stepping an instruction earlier
@@ -2536,6 +2537,7 @@ Disassemblerview class: (Inheritance: Panel->CustomControl->WinControl->Control-
 properties
   SelectedAddress: integer - The currently selected address in the disassemblerview
   SelectedAddress2: integer - The secondary selected address in the disassemblerview
+  SelectionSize: integer - The size of the selected area
   TopAddress: Integer - The first address to show
   ShowJumplines: boolean - Determines if the jumplines should be shown
   HideFocusRect: boolean - If set to true the focus rectangle won't be shown
@@ -3295,6 +3297,7 @@ SymbolList class
 
 Global functions
   createSymbolList() : Creates an empty symbollist
+  createSymbolList(initlist :{name,address}, name: string OPTIONAL) : creates a symbollist with addresses initialized based on a lua table that is build using name:address (like the result of compile)  If name is provided automatically register the list under that name
   getMainSymbolList(): Returns the symhandler internal symbol list (Note: This does not contain .net, modulelist, or other info)
   enumRegisteredSymbolLists() : Returns a table containing all the registered symbollists
 
@@ -4158,6 +4161,17 @@ methods
   getFirstChild(node): node - returns the first child of a node
   getNextSibling(node): node - gets the next sibling
   getNodeLevel(node): integer - gets the level at which this node resided (it does this by calling getNodeParent until it hits nil)
+
+GDBServerDebuggerIntaace functions: (only functional when using the gdb server debugger interface)
+  gdb_connected(): returns true when connected
+  gdb_stopped(): returns true if the target is suspended by gdb
+  gdb_break(): sends a ctrl+c to the gdb server which tells it to stop the target
+  gdb_command(string, timeout OPTIONAL): Sends a command to the gdb server and wait for timeout in milliseconds for a reply (default is 2000) if the string is empty only receive data
+  gdb_getcurrentstopreason(): returns the current stopreason.  Nil if not stopped
+  gdb_setCurrentInstructionpointer(address)
+  gdb_getCurrentInstructionpointer(address)
+  
+
 
 ----CEServer----
 connectToCEServer(hostname,port) - Connects to the given host and port. On success, most commands subsequent will be handled by the server. Like processlist, memory reading, etc...

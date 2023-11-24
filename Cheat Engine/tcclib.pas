@@ -1245,7 +1245,7 @@ begin
       p:='';
   end;
   if p<>'' then
-    module:=loadlibrary(p);
+    module:=loadlibrary(pchar(p));
 
   if module=0 then
     notworkingreason:=p+' could not be found';
