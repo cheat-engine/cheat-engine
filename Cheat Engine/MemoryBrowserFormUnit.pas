@@ -681,8 +681,9 @@ type
 
     frmiptlog: TfrmIPTLogDisplay;
 
+    showdebugpaneltimer: TTimer;
 
-
+    procedure showDebugPaneltimertimer(sender: TObject);
 
     procedure setRegisterPanelFont(f: TFont);
 
@@ -862,27 +863,17 @@ var
   cw: integer;
   ew: integer;
 begin
+
   oldstackwidth:=pnlStacktrace.Width;
   oldpanel3width:=panel3.width;
-  {if state then
-  begin
-    //resizing should change the stack, not the hexview
-    panel3.Align:=alLeft;
-    splitter3.Align:=alLeft;
-    pnlStacktrace.align:=alclient;
-    splitter3.ResizeControl:=pnlStacktrace;
-  end
-  else
-  begin
-    splitter3.ResizeControl:=panel3;
-    pnlStacktrace.align:=alRight;
-    splitter3.Align:=alRight;
-    panel3.Align:=alclient;
-  end; }
+
 
   FShowDebugPanels:=state;
+
+
   registerview.Visible:=state;
   pnlStacktrace.Visible:=state;
+
   splitter2.Visible:=state;
   splitter3.Visible:=state;
 
@@ -1766,10 +1757,12 @@ end;
 
 procedure TMemoryBrowser.RegisterViewResize(Sender: TObject);
 begin
+  {$ifndef darwin}
   if scrollbox1.VertScrollBar.IsScrollBarVisible then
     sbShowFloats.Left:=scrollbox1.VertScrollBar.ClientSizeWithBar-sbShowFloats.Width
   else
     sbShowFloats.Left:=scrollbox1.VertScrollBar.ClientSizeWithoutBar-sbShowFloats.Width;
+  {$endif}
 end;
 
 procedure TMemoryBrowser.miAddRefClick(Sender: TObject);
@@ -5856,6 +5849,14 @@ begin
   setControlFontKeepColor(scrollbox1,f);
 end;
 
+procedure TMemoryBrowser.showDebugPaneltimertimer(sender: tobject);
+begin
+  showdebugpaneltimer.enabled:=false;
+  showDebugPanels:=true;
+  registerview.ClientWidth:=lblFlags.left+lblFlags.width+16+scrollbox1.VertScrollBar.Size;
+  scrollbox1.HorzScrollBar.Visible:=false;
+  scrollbox1.Invalidate;
+end;
 
 procedure TMemoryBrowser.UpdateDebugContext(threadhandle: THandle; threadid: dword; changeselection: boolean=true; _debuggerthread: TDebuggerThread=nil);
 var temp: string='';
@@ -5884,6 +5885,9 @@ var temp: string='';
     iptlogsize: integer;
 begin
   if _debuggerthread<>nil then debuggerthread.execlocation:=41301;
+
+
+
 
 
   oldcontexthandler:=contexthandler;
@@ -6012,7 +6016,7 @@ begin
 
   if _debuggerthread<>nil then _debuggerthread.execlocation:=41303;
 
-
+  {}
   if (accessedreglist<>nil) then
   begin
     for i:=0 to pnlGeneralRegisters.ControlCount-1 do
@@ -6075,6 +6079,7 @@ begin
     disassemblerview.SelectedAddress:=contexthandler.InstructionPointerRegister^.getValue(context);
   end;
 
+  {}
 
   //apply the values
   if pnlGeneralRegisters.visible then
@@ -6130,23 +6135,23 @@ begin
   end;
 
   if _debuggerthread<>nil then _debuggerthread.execlocation:=41308;
+  {}
 
   sbShowFloats.BringToFront;
   //sbShowFloats.visible:=true;
 
   if not registerview.visible then
   begin
-    setShowDebugPanels(true);
+    showdebugpaneltimer:=ttimer.Create(self);
+    showDebugPaneltimer.interval:=1;
+    showDebugPaneltimer.OnTimer:=showDebugPaneltimertimer;
+    showDebugPaneltimer.enabled:=true;
 
-    registerview.ClientWidth:=lblFlags.left+lblFlags.width+16+scrollbox1.VertScrollBar.Size;
-
-    scrollbox1.HorzScrollBar.Visible:=false;
+    //tthread.Queue(nil, doshowdebugpanels);
 
 
-
-
-    scrollbox1.Invalidate;
   end;
+
 
   if _debuggerthread<>nil then _debuggerthread.execlocation:=41309;
 
