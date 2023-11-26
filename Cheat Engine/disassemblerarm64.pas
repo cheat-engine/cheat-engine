@@ -73,6 +73,7 @@ type
   private
     address: qword;
     opcode: uint32;
+    syntaxcheck: boolean;
 
     procedure InitARM64Support;
 
@@ -3906,7 +3907,7 @@ begin
 
   {$ifndef armdev}
   symhandler.getAddressFromName(param,false,r);
-  if r then
+  if not r then
     result:=result+[pt_label, pt_addrlabel];
 
   {$endif}
@@ -4545,6 +4546,9 @@ begin
       qv:=symhandler.getAddressFromName(paramstr);
       {$endif}
 
+      if syntaxcheck then qv:=address and $fffffffff0;
+
+
       outputdebugstring(pchar(format('assembling pt_label.  origin=%.8x target destination=%.8x',[address, qv])));
       qv:=qv-address;
 
@@ -4568,6 +4572,7 @@ begin
       {$else}
       qv:=symhandler.getAddressFromName(paramstr);
       {$endif}
+      if syntaxcheck then qv:=address and $fffffffff0;
 
 
       if param.extra=0 then
@@ -5423,7 +5428,13 @@ var
   match: boolean;
 begin
   InitARM64Support;
-  outputdebugstring(pchar('Assembling ARM64 instruction '+instruction+' at '+inttohex(_address,8)));
+
+  syntaxcheck:=_address=0;
+
+  if syntaxcheck then
+    outputdebugstring(pchar('Syntaxcheck: Assembling ARM64 instruction '+instruction+' at '+inttohex(_address,8)))
+  else
+    outputdebugstring(pchar('Assembling ARM64 instruction '+instruction+' at '+inttohex(_address,8)));
   result:=0;
   parameters:=[];
 
