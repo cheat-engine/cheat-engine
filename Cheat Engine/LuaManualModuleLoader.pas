@@ -15,7 +15,7 @@ procedure initializeLuaModuleLoader;
 implementation
 
 {$IFDEF windows}
-uses ManualModuleLoader, lua, lauxlib, lualib, LuaClass, LuaHandler, LuaObject;
+uses ManualModuleLoader, lua, lauxlib, lualib, LuaClass, LuaHandler, LuaObject, luafile;
 
 function moduleloader_createModuleLoader(L: PLua_State): integer; cdecl;
 var
@@ -56,6 +56,9 @@ begin
     if lua_isuserdata(L,1) then
     begin
       o:=lua_toceuserdata(L, 1);
+      if o is TLuafile then
+        o:=tluafile(o).stream;
+
       if o is TMemoryStream then       //(memstream, filename, executeEntrypoint, timeout)
       begin
         if lua_gettop(L)>=2 then
