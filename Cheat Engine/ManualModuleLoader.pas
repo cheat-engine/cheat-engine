@@ -123,9 +123,12 @@ begin
   self.filename:=filename;
 
   m:=tmemorystream.create;
-  m.LoadFromFile(filename);
-  createFromMemoryStream(m);
-  m.free;
+  try
+    m.LoadFromFile(filename);
+    createFromMemoryStream(m);
+  finally
+    m.free;
+  end;
 end;
 
 procedure TModuleLoader.createFromMemoryStream(memstream: tmemorystream);
