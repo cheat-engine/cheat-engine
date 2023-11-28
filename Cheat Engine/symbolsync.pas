@@ -259,7 +259,7 @@ var
   symbolpath: string;
   symbolfilepath: string;
 
-  fs: TFilestream;
+  fs: TFilestream=nil;
   trycount: integer;
 
   d: TXMLDocument=nil;
@@ -268,11 +268,9 @@ var
 
   HasBeenUpdatedSinceLastSync: boolean;
 
-  ths: THandle;
-  pe: TProcessEntry32;
-  pidlookup: TMap=nil;
+
   pname: string;
-  t: pchar;
+  t: string;
   mi: TMapIterator;
 
   i: integer;
@@ -289,6 +287,8 @@ var
 
   updated: boolean;
   madeChanges: boolean=false;
+  s: string;
+  sa: TStringArray;
 begin
 
   if (length(trim(tempdiralternative))>2) and dontusetempdir then
@@ -305,8 +305,19 @@ begin
   while trycount<10 do
   begin
     try
+      {$ifdef unix}
+      fs:=TFileStream.Create(symbolfilepath+'.lock', fmOpenRead);
+      try
+        pid:=fs.ReadDWord;
+
+        if (pid<>GetCurrentProcessId) and pidexists(pid) then raise EFilerError.create('Another process has a lock on the symbolfile. Waiting');
+      finally
+        fs.free;
+      end;
+      {$endif}
+
       fs:=TFileStream.Create(symbolfilepath+'.lock', fmCreate, fmShareExclusive);
-      fs.WriteAnsiString(GetCurrentProcessId.ToString+'.'+ptruint(GetCurrentThreadId).ToString);
+      fs.WriteDword(GetCurrentProcessId);
       break;
     except
       //try again
@@ -349,42 +360,9 @@ begin
 
 
     //delete process entries that do not exist anymore (or wrong pid)
-    pidlookup:=tmap.Create(itu8,sizeof(pchar));
-    ths:=CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS,0);
-
-    //outputdebugstring('synsymbolsnow: getting processlist');
-    if (ths<>0) and (ths<>INVALID_HANDLE_VALUE) then
-    begin
-      try
-        //outputdebugstring('ths is valid');
-
-        ZeroMemory(@pe,sizeof(pe));
-        pe.dwSize:=sizeof(pe);
+    pidlookup_init;
 
 
-          if Process32First(ths, pe) then
-          begin
-            repeat
-              //outputdebugstring('found process:'+pe.th32ProcessID.ToString);
-              if pe.th32ProcessID=0 then continue;
-
-              pname:=pchar(@pe.szExeFile[0]);
-              pname:=extractfilename(pname);
-
-              //outputdebugstring('processname is '+pname);
-
-              t:=strnew(pchar(pname));
-              pid:=pe.th32ProcessID;
-              pidlookup.Add(pid, t);
-            until Process32Next(ths,pe)=false;
-
-          end;
-          //else
-          //  outputdebugstring('Process32First failed');
-      finally
-        closehandle(ths);
-      end;
-    end;
 
    // outputdebugstring('after processlist');
 
@@ -412,11 +390,8 @@ begin
           begin
             pid:=pidstring.ToInt64;
             deleteEntry:=true;
-            if pidlookup.GetData(pid,t) then
-            begin
-              if namestring=t then
-                deleteEntry:=false;
-            end;
+
+            if namestring=getpidname(pid) then deleteEntry:=false;
 
             if deleteEntry then
             begin
@@ -446,7 +421,8 @@ begin
       //create a new node
       pid:=processid;
 
-      if pidlookup.GetData(pid,t) then
+      t:=getpidname(pid);
+      if t<>'' then
       begin
         processnode:=TDOMElement(symbolsyncnode.AppendChild(d.CreateElement('process')));
         processnode.AttribStrings['pid']:=processid.ToString;
@@ -479,23 +455,6 @@ begin
 
     DeleteFile(pchar(symbolfilepath+'.lock'));
 
-    if pidlookup<>nil then
-    begin
-      mi:=TMapIterator.Create(pidlookup);
-      mi.First;
-      while not mi.EOM do
-      begin
-        t:=nil;
-        mi.GetData(t);
-        if t<>nil then
-          StrDispose(t);
-
-        mi.Next;
-      end;
-
-      mi.free;
-      pidlookup.Free;
-    end;
 
     if d<>nil then
       freeandnil(d);

@@ -20,6 +20,10 @@ procedure cleanProcessList(processlist: TStrings);
 
 function GetFirstModuleName(processid: dword): string;
 
+procedure pidlookup_init;
+function pidexists(pid: dword): boolean;
+function getpidname(pid: dword): string;
+
 
 //global vars refering to the processlist
 var
@@ -29,7 +33,7 @@ var
 implementation
 
 uses Globals, commonTypeDefs, DebuggerInterfaceAPIWrapper, networkInterfaceApi,
-  GDBServerDebuggerInterface
+  GDBServerDebuggerInterface, maps
   {$ifdef darwin}
   , macportdefines //must be at the end
   {$endif}
@@ -38,6 +42,92 @@ uses Globals, commonTypeDefs, DebuggerInterfaceAPIWrapper, networkInterfaceApi,
 resourcestring
     rsICanTGetTheProcessListYouArePropablyUsingWindowsNT = 'I can''t get the process list. You are propably using windows NT. Use the window list instead!';
 
+var pidlookup: TMap;
+
+procedure pidlookup_init;
+var
+  ths: THandle;
+  pe: TProcessEntry32;
+  mi: TMapIterator;
+  t: pchar;
+  pname: string;
+  pid: dword;
+begin
+  if pidlookup<>nil then
+  begin
+    mi:=TMapIterator.Create(pidlookup);
+    mi.First;
+    while not mi.EOM do
+    begin
+      t:=nil;
+      mi.GetData(t);
+      if t<>nil then
+        StrDispose(t);
+
+      mi.Next;
+    end;
+
+    mi.free;
+    pidlookup.Free;
+  end;
+
+  pidlookup:=tmap.Create(itu8,sizeof(pchar));
+
+  ths:=CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS,0);
+
+  //outputdebugstring('synsymbolsnow: getting processlist');
+  if (ths<>0) and (ths<>INVALID_HANDLE_VALUE) then
+  begin
+    try
+      //outputdebugstring('ths is valid');
+
+      ZeroMemory(@pe,sizeof(pe));
+      pe.dwSize:=sizeof(pe);
+
+
+      if Process32First(ths, pe) then
+      begin
+        repeat
+          //outputdebugstring('found process:'+pe.th32ProcessID.ToString);
+          if pe.th32ProcessID=0 then continue;
+
+          pname:=pchar(@pe.szExeFile[0]);
+          pname:=extractfilename(pname);
+
+          //outputdebugstring('processname is '+pname);
+
+          t:=strnew(pchar(pname));
+          pid:=pe.th32ProcessID;
+          pidlookup.Add(pid, t);
+        until Process32Next(ths,pe)=false;
+
+      end;
+
+    finally
+      closehandle(ths);
+    end;
+  end;
+
+end;
+
+function pidexists(pid: dword): boolean;
+begin
+  if pidlookup=nil then
+    pidlookup_init;
+
+  result:=pidlookup.HasId(pid);
+end;
+
+function getpidname(pid: dword): string;
+var s: pchar;
+begin
+  if pidlookup=nil then pidlookup_init;
+
+  if pidlookup.GetData(pid, s) then
+    result:=s
+  else
+    result:='';
+end;
 
 function GetFirstModuleName(processid: dword): string;
 var

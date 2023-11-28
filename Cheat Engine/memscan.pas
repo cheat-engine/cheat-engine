@@ -438,6 +438,7 @@ type
     OwningScanController: TScanController;
     Addressfile: TFilestream; //tempscandir+'Addresses'+ThreadID.TMP'
     MemoryFile: TFileStream;  //tempscandir+'Memory'+ThreadID.TMP'
+
     Addressfilename: string;
     MemoryFilename: string;
 
@@ -707,6 +708,7 @@ type
     fscanExecutable: Tscanregionpreference;
     fscanCopyOnWrite: Tscanregionpreference;
 
+    InuseFile: TFilestream;
 
     procedure DeleteScanfolder;
     procedure createScanfolder;
@@ -835,7 +837,7 @@ implementation
 uses ProcessHandlerUnit, parsers, Globals;
 {$else}
 uses formsettingsunit, StrUtils, foundlisthelper, ProcessHandlerUnit, parsers,
-     Globals, frmBusyUnit, controls, mainunit2;
+     Globals, frmBusyUnit, controls, mainunit2, processlist;
 {$endif}
 
 resourcestring
@@ -6069,6 +6071,7 @@ begin
   AddressFile:=TFileStream.Create(AddressFilename,fmCreate or fmSharedenynone);
   MemoryFile:=TFileStream.Create(MemoryFilename,fmCreate or fmSharedenynone);
 
+
   Priority:=Globals.scanpriority;
 
   allByte:=vtByte in ScanAllTypes;
@@ -8794,6 +8797,11 @@ begin
 
   fScanResultFolder:=fScanResultFolder+GUIDToString(guid)+pathdelim;
   CreateDir(fScanResultFolder);
+
+
+  InuseFile:=TFilestream.Create(fScanResultFolder+pathdelim+'inuse.lock',fmCreate or fmShareExclusive); //has an exclusive lock marking other CE's that this folder is still in use
+  InuseFile.WriteDword(GetCurrentProcessId);
+
 end;
 
 procedure TMemscan.DeleteScanfolder;
@@ -8803,6 +8811,9 @@ var usedtempdir: string;
     age: longint;
     currenttime: longint;
 
+    pid: dword;
+    iuf: TFilestream;
+
 begin
  // OutputDebugString('TMemscan.DeleteScanfolder');
  { if (attachedFoundlist<>nil) then
@@ -8811,11 +8822,17 @@ begin
   if fScanResultFolder<>'' then
   begin
     try
+      if InuseFile<>nil then
+      begin
+        freeandnil(InuseFile);
+        deletefile(fScanResultFolder+pathdelim+'inuse.lock');
+      end;
+
       if DeleteFolder(fScanResultFolder)=false then outputdebugstring('Failure deleting the scanresults');
 
 
 
-      //check if there are folders that are older than 2 days
+      //check if there are folders left
       if (length(tempdiralternative)>2) and dontusetempdir then
       begin
         usedtempdir:=tempdiralternative;
@@ -8827,6 +8844,8 @@ begin
       else
         usedtempdir:=GetTempDir;
 
+      pidlookup_init;
+
 
       if FindFirst(usedtempdir+strCheatEngine+pathdelim+'{*}',  faDirectory , info)=0 then
       begin
@@ -8836,18 +8855,32 @@ begin
             if length(info.Name)>5 then
             begin
               //if found, delete them if older than 2 days
+              {$ifndef windows}
+              //exclusivity means nothing to unix
               f:=usedtempdir+strCheatEngine+pathdelim+info.name;
-
-
-              age:=info.time; //FileAge('"'+f+'"');
-
-              if age>0 then
+              if FileExists(f+PathDelim+'inuse.lock') then
               begin
-                currenttime:=DateTimeToFileDate(now);
+                iuf:=nil;
+                try
+                  iuf:=tfilestream.Create(f+PathDelim+'inuse.lock', fmOpenRead);
+                  pid:=iuf.ReadDWord;
+                  freeandnil(iuf);
+                  if (pid=GetCurrentProcessId) or pidexists(pid) then continue; //still exists
 
-                if (currenttime-age) > 60*60*24*2 then //if older than 2 days  then
-                  deletefolder(f);
+                  deletefile(f+PathDelim+'inuse.lock');
+                except
+                end;
+
+                if iuf<>nil then
+                  freeandnil(iuf);
               end;
+              {$endif}
+
+
+              if (FileExists(f+PathDelim+'inuse.lock')=false) {$ifdef windows}or deletefile(f+PathDelim+'inuse.lock'){$endif} then //if deleting inuse.lock succeeds, then the file wasn't used anymore (only work on ainwodws)
+                deletefolder(f);
+
+
             end;
           end;
 
