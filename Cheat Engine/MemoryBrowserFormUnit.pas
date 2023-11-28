@@ -441,8 +441,7 @@ type
     procedure Timer2Timer(Sender: TObject);
     procedure miReplacewithnopsClick(Sender: TObject);
 
-    procedure ShowDebugToolbar;
-    procedure HideDebugToolbar;
+
 
     procedure FControl1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FControl1KeyPress(Sender: TObject; var Key: Char);
@@ -638,6 +637,10 @@ type
 
     fcr3: qword;
     fcr3switcher: TfrmCR3Switcher;
+
+    procedure ShowDebugToolbar;
+    procedure HideDebugToolbar;
+
     procedure cr3switcherCR3Change(sender: TObject);
     procedure SetStacktraceSize(size: integer);
     procedure setShowDebugPanels(state: boolean);
@@ -983,12 +986,14 @@ begin
   tbDebug.Visible:=true;
   tbDebug.Tag:=0;
   Showdebugtoolbar1.Checked:=true;
+  showDebugPanels:=true;
 end;
 
 procedure TMemoryBrowser.HideDebugToolbar;
 begin
   tbDebug.Visible:=false;
   Showdebugtoolbar1.Checked:=false;
+  showDebugPanels:=false;
 end;
 
 procedure TMemoryBrowser.Showdebugtoolbar1Click(Sender: TObject);
