@@ -1549,6 +1549,9 @@ var originalcode: array of string;
     i,j: integer;
     codesize: integer;
     a,b,c: ptrUint;
+
+    _address: ptruint;
+    _addresstogoto: ptruint;
     br: ptruint;
     x: string;
 
@@ -1577,6 +1580,9 @@ var originalcode: array of string;
     oldsymhandler: TSymHandler;
     processhandle: THandle;
     ProcessID: DWORD;
+
+    unusedlocalreg: integer;
+    found: boolean;
 begin
   if targetself then
   begin
@@ -1623,17 +1629,62 @@ begin
 
     if processhandler.SystemArchitecture=archarm then
     begin
-      isThumbOrigin:=(a and 1)=1; //assuming that a name is used and not the real address it occurs on
-      isThumbDestination:=(b and 1)=1;
+      if processhandler.is64Bit then
+      begin
+        //aarch64
+        {
+        if the target address is within 4GB do:
+        adrp x0,page
+        add x0,offset
+        br reg
+        returnhere:
 
-      if isThumbOrigin or isThumbDestination then
-        raise exception.create('The thumb instruction set is not yet suppported');
+        else:
+        ldr reg,address
+        br reg
+        address:
+        dd address1
+        dd address2
+        returnhere:
+        }
+        _address:=a;
+        _addresstogoto:=b;
+
+        if a>b then
+        begin
+          c:=a;
+          a:=b;
+          b:=c;
+        end;
+
+        if b-a<$7ffff000 then
+        begin
+          //within 2GB
+          if _addresstogoto and $fff=0 then
+            jumpsize:=8
+          else
+            jumpsize:=12;
+        end
+        else
+        begin
+          jumpsize:=16;
+        end;
+
+      end
+      else
+      begin
+        isThumbOrigin:=(a and 1)=1; //assuming that a name is used and not the real address it occurs on
+        isThumbDestination:=(b and 1)=1;
+
+        if isThumbOrigin or isThumbDestination then
+          raise exception.create('The thumb instruction set is not yet suppported');
 
 
-      jumpsize:=8;
-      c:=ptruint(FindFreeBlockForRegion(a,2048));
-      if (c>0) and (abs(integer(c-a))<31*1024*1024) then
-        jumpsize:=4; //can be done with one instruction B <a>
+        jumpsize:=8;
+        c:=ptruint(FindFreeBlockForRegion(a,2048));
+        if (c>0) and (abs(integer(c-a))<31*1024*1024) then
+          jumpsize:=4; //can be done with one instruction B <a>
+      end;
     end
     else
     begin
@@ -1699,10 +1750,12 @@ begin
       else
       begin
         add('alloc(originalcall'+nameextension+',1024,'+address+')');
-        add('alloc(jumptrampoline'+nameextension+',64,'+address+') //special jump trampoline in the current region (64-bit)');
 
-        if processhandler.SystemArchitecture=archx86 then
+        if processhandler.SystemArchitecture=archX86 then
+        begin
+          add('alloc(jumptrampoline'+nameextension+',64,'+address+'); //special jump trampoline in the current region (64-bit)');
           add('label(jumptrampoline'+nameextension+'address)');
+        end;
       end;
 
       add('label(returnhere'+nameextension+')');
@@ -1720,8 +1773,31 @@ begin
 
       originalcodestart:=enablescript.Count;
 
+      if (processhandler.SystemArchitecture=archArm) and processhandler.is64Bit then //find an unused register
+      begin
+        unusedlocalreg:=9;
+        found:=false;
+        while not found do
+        begin
+          found:=true;
+          for i:=0 to length(originalcode)-1 do
+          begin
+            s:=uppercase(originalcode[i]);
+            if s.Contains('X'+unusedlocalreg.ToString) or s.Contains('W'+unusedlocalreg.ToString) then
+            begin
+              found:=false;
+              break;
+            end;
+          end;
+
+          if not found then
+            inc(unusedlocalreg);
+        end;
+      end;
+
       for i:=0 to length(originalcode)-1 do
       begin
+
         {if hasAddress(originalcode[i], tempaddress, nil ) then
         begin
           if InRangeX(tempaddress, b,b+codesize) then
@@ -1777,7 +1853,19 @@ begin
       end;
 
       if processhandler.SystemArchitecture=archarm then
-        add('b returnhere'+nameextension)
+      begin
+        if processhandler.is64Bit then
+        begin
+          add('ldr x'+unusedlocalreg.tostring+',returnaddress');
+          add('br x'+unusedlocalreg.tostring);
+          add('returnaddress:');
+          add('dq returnhere');
+        end
+        else
+        begin
+          add('b returnhere'+nameextension)
+        end;
+      end
       else
         add('jmp returnhere'+nameextension);
 
@@ -1785,30 +1873,35 @@ begin
 
       if processhandler.systemarchitecture=archarm then
       begin
-        add('jumptrampoline'+nameextension+':');
-        if isThumbDestination then
+        if processhandler.is64Bit then
         begin
-          raise exception.create(rsThumbInstructionsAreNotYetImplemented);
-          if isThumbOrigin then
-          begin
-            add('thumb:b '+addresstogoto);
-          end
-          else
-          begin
-            add('bx jumptrampoline_armtothumb+1');
-            add('jumptrampoline_armtothumb:');
-            add('thumb:bl '+addresstogoto);
-            add('thumb:bx jumptrampoline_thumbtoarm');
-            add('jumptrampoline_thumbtoarm');
-            add('bx lr');
-          end;
         end
         else
-          add('b '+addresstogoto);
-
+        begin
+          add('jumptrampoline'+nameextension+':');
+          if isThumbDestination then
+          begin
+            raise exception.create(rsThumbInstructionsAreNotYetImplemented);
+            if isThumbOrigin then
+            begin
+              add('thumb:b '+addresstogoto);
+            end
+            else
+            begin
+              add('bx jumptrampoline_armtothumb+1');
+              add('jumptrampoline_armtothumb:');
+              add('thumb:bl '+addresstogoto);
+              add('thumb:bx jumptrampoline_thumbtoarm');
+              add('jumptrampoline_thumbtoarm');
+              add('bx lr');
+            end;
+          end
+          else
+            add('b '+addresstogoto);
+        end;
       end
       else
-      if processhandler.is64bit then
+      if processhandler.is64bit and (processhandler.SystemArchitecture=archX86) then
       begin
         add('jumptrampoline'+nameextension+':');
         add('jmp [jumptrampoline'+nameextension+'address]');
@@ -1822,7 +1915,31 @@ begin
 
       if processhandler.SystemArchitecture=archarm then
       begin
-        add('B jumptrampoline'+nameextension);
+        if processhandler.is64Bit then
+        begin
+          if jumpsize=8 then
+          begin
+            add('adrp x0,'+_addresstogoto.ToHexString(8));
+            add('br x0');
+          end;
+          if jumpsize=12 then
+          begin
+            add('adrp x0,'+(_addresstogoto and $fffffffffffff000).ToHexString(8));
+            add('add x0,x0,'+(_addresstogoto and $fff).ToHexString(1));
+            add('br x0');
+          end
+          else
+          begin
+            add('ldr x0,targetaddress');
+            add('br x0');
+            add('targetaddress:');
+            add('dq '+addresstogoto);
+          end;
+        end
+        else
+        begin
+          add('B jumptrampoline'+nameextension);
+        end;
       end
       else
       begin

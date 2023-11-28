@@ -15717,6 +15717,17 @@ var
   VA,PA: qword;
 begin
   result:='';
+  if processhandler.SystemArchitecture=archArm then
+  begin
+    if length(LastDisassembleData.Bytes)=2 then
+      result:=pword(@LastDisassembleData.Bytes[0])^.ToHexString(4);
+
+    if length(LastDisassembleData.Bytes)=4 then
+      result:=pdword(@LastDisassembleData.Bytes[0])^.ToHexString(8);
+
+    exit;
+  end;
+
   for i:=0 to length(LastDisassembleData.Bytes)-1 do
   begin
     if syntaxhighlighting then

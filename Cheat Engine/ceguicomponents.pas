@@ -982,7 +982,7 @@ end;  }
 
 implementation
 
-uses luahandler,luacaller, formdesignerunit, CheckLst, colorbox;
+uses luahandler,luacaller, formdesignerunit, CheckLst, colorbox, SynCompletion;
 
 resourcestring
   rsInvalidFormData = 'Invalid formdata';
@@ -1645,6 +1645,9 @@ initialization
   registerclass(TColorListBox);
   registerclass(TLazVirtualStringTree);
   registerclass(TSynEdit);
+  registerclass(TSynCompletion);
+  registerclass(TSynAutoComplete);
+
 
 
 

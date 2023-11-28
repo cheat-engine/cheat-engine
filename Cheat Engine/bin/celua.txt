@@ -1349,6 +1349,7 @@ properties
   CanUndo: boolean
   CharWidth: integer READONLY
   LineHeight: integer READONLY
+  CaretX, CaretY: integer
 
 methods
   CopyToClipboard()
@@ -3736,6 +3737,7 @@ methods
 
 ModuleLoader(Inheritance: -)
 loadModule(pathtodll, executeEntryPoint OPTIONAL default=true, timeout OPTIONAL default=nil=infinite)
+loadModule(memorystream or tablefile, internalfilename, executeEntryPoint OPTIONAL default=true, timeout OPTIONAL default=nil=infinite)
 
 properties:
   loaded: boolean - true if successfuly mapped
