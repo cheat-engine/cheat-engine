@@ -151,15 +151,21 @@ begin
     //outputdebugstring('setProcessHandle not windows');
 
     {$ifdef darwin}
+    outputdebugstring('setProcessHandle');
     if MacIsArm64 then  //rosetta2 or I finally ported it to full armv8
     begin
       if isProcessTranslated(processid) then
       begin
+        outputdebugstring('rosetta. So x86');
         fSystemArchitecture:=archX86;
         globals.SystemSupportsWritableExecutableMemory:=true;
       end
       else
+      begin
+        outputdebugstring('not rosetta. So pure ARM');
         fSystemArchitecture:=archArm;
+        globals.SystemSupportsWritableExecutableMemory:=false;
+      end;
     end;
     {$else}
     fSystemArchitecture:=archX86;
