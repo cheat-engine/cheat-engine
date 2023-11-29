@@ -145,7 +145,7 @@ loadPOFile(path): Loads a .PO file used for translation
 translate(string): Returns a translation of the string. Returns the same string if it can't be found
 translateID(translationid: string, originalstring: string OPTIONAL): Returns a translation of the string id
 
-convertToUTF8(string/bytetable, originalcodepagenumber): Conversts a given string/bytearray into a utf8 converted from the gtiven codepage number
+convertToUTF8(string/bytetable, originalcodepagenumber): Conversts a given string/bytearray into a utf8 converted from the given codepage number
 ansiToUTF8(string): Converts a string in Ansi encoding to UTF8
 UTF8ToAnsi(string): Converts a string in UTF8 encoding to Ansi
 Note: GUI components mainly show in UTF8, some other functions use Ansi, try to find out which ones...

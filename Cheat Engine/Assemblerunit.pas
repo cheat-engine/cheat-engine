@@ -4988,6 +4988,16 @@ begin
               add(bytes, b);
             end
             else
+            if (length(tokens[i])>=1) and (tokens[i][1] in ['-','+']) then
+            begin
+              //increase/decrease by
+              v:=0;
+              ReadProcessMemory(processhandle,pointer(address+i-1), @b, 1, br);
+              j:=HexStrToInt(tokens[i]);
+              b:=b+j;
+              add(bytes,b);
+            end
+            else
               add(bytes,[HexStrToInt(tokens[i])]);
           end;
         end;
