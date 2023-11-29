@@ -1306,12 +1306,17 @@ begin
   if not processhandler.is64Bit then
     farjmp:=false;
 
-
-
-  if jmp1 then
-    jmpsize:=1
+  if processhandler.SystemArchitecture=archArm then
+  begin
+    jmpsize:=16;
+  end
   else
-    jmpsize:=ifthen(farjmp, 14, 5);
+  begin
+    if jmp1 then
+      jmpsize:=1
+    else
+      jmpsize:=ifthen(farjmp, 14, 5);
+  end;
 
   try
     a:=StrToQWordEx('$'+addressstring);
@@ -1346,10 +1351,11 @@ begin
   try
     with enablecode do
     begin
-      if processhandler.is64bit and (not farjmp) then
+      if (processhandler.SystemArchitecture=archX86) and processhandler.is64bit and (not farjmp) then
         add('alloc(newmem'+inttostr(injectnr)+',2048,'+addressstring+') ')
       else
         add('alloc(newmem'+inttostr(injectnr)+',2048)');
+
       add('label(returnhere'+inttostr(injectnr)+')');
       add('label(originalcode'+inttostr(injectnr)+')');
       add('label(exit'+inttostr(injectnr)+')');
@@ -1363,18 +1369,43 @@ begin
         add(originalcode[i]);
       add('');
       add('exit'+inttostr(injectnr)+':');
-      add('jmp returnhere'+inttostr(injectnr)+'');
+      if processhandler.SystemArchitecture=archArm then
+      begin
+        if processhandler.is64Bit then
+        begin
+          add('ldr r#,returnhereaddress //you have to replace # with an unused register');
+          add('br r#');
+          add('returnhereaddress:');
+          add('dq returnhere');
+        end
+        else
+          add('b returnhere');
+      end
+      else
+        add('jmp returnhere'+inttostr(injectnr)+'');
 
       add('');
       add(addressstring+':');
-      if jmp1 then
-        add('jmp1 newmem')
+
+      if processhandler.SystemArchitecture=archArm then
+      begin
+        add('ldr r#,newmemaddress //you have to replace # with an unused register');
+        add('br r#');
+        add('newmemaddress:');
+        add('dq newmem');
+      end
       else
       begin
-        if farjmp then
-          add('jmp far newmem'+inttostr(injectnr)+'')
+
+        if jmp1 then
+          add('jmp1 newmem')
         else
-          add('jmp newmem'+inttostr(injectnr)+'');
+        begin
+          if farjmp then
+            add('jmp far newmem'+inttostr(injectnr)+'')
+          else
+            add('jmp newmem'+inttostr(injectnr)+'');
+        end;
       end;
 
       if codesize>jmpsize then
