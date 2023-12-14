@@ -6,8 +6,13 @@
 #endif
 
 
+//#define CUSTOM_DEBUG
+#ifdef CUSTOM_DEBUG
+#define DEBUG_CONSOLE 1
+#endif // CUSTOM_DEBUG
+
                                 //yyyymmdd
-#define MONO_DATACOLLECTORVERSION 20230512 
+#define MONO_DATACOLLECTORVERSION 20230830 
 
 #define MONO_TYPE_NAME_FORMAT_IL  0
 #define MONO_TYPE_NAME_FORMAT_REFLECTION  1
@@ -42,7 +47,7 @@
 #define MONOCMD_GETMETHODSIGNATURE 24
 #define MONOCMD_GETPARENTCLASS 25
 #define MONOCMD_GETSTATICFIELDADDRESSFROMCLASS 26
-#define MONOCMD_GETTYPECLASS 27
+#define MONOCMD_GETFIELDCLASS 27
 #define MONOCMD_GETARRAYELEMENTCLASS 28
 #define MONOCMD_FINDMETHODBYDESC 29
 #define MONOCMD_INVOKEMETHOD 30
@@ -78,6 +83,11 @@
 #define MONOCMD_MONOOBJECTUNBOX 60
 #define MONOCMD_MONOARRAYNEW 61
 #define MONOCMD_ENUMINTERFACESOFCLASS 62
+#define MONOCMD_GETMETHODFULLNAME 63
+#define MONOCMD_TYPEISBYREF 64
+#define MONOCMD_GETPTRTYPECLASS 65
+#define MONOCMD_GETFIELDTYPE 66
+#define MONOCMD_GETTYPEPTRTYPE 67
 
 
 typedef struct {} MonoType;
@@ -149,10 +159,13 @@ typedef int (__cdecl *MONO_FIELD_GET_OFFSET)(void *field);
 typedef char* (__cdecl *MONO_TYPE_GET_NAME)(void *type);
 typedef void* (__cdecl* MONO_TYPE_GET_CLASS)(void* type);
 typedef int (__cdecl *MONO_TYPE_GET_TYPE)(void *type);
+typedef int (__cdecl *MONO_TYPE_IS_BYREF)(void *monotype);
 typedef void* (__cdecl *MONO_TYPE_GET_OBJECT)(void *domain, void *type);
 typedef void* (__cdecl *IL2CPP_TYPE_GET_OBJECT)(void *type);
 typedef void* (__cdecl *MONO_METHOD_GET_OBJECT)(void *domain, void *method, void* klass);
 typedef void* (__cdecl *IL2CPP_METHOD_GET_OBJECT)(void* method, void* klass);
+typedef void* (__cdecl* MONO_PTR_GET_CLASS)(void* monotype);
+typedef void* (__cdecl* MONO_TYPE_GET_PTR_TYPE)(void* ptrmonotype);
 
 
 typedef char* (__cdecl *MONO_TYPE_GET_NAME_FULL)(void *type, int format);
@@ -166,6 +179,7 @@ typedef void* (__cdecl * MONO_FIELD_GET_VALUE_OBJECT)(void *domain, void* field,
 
 
 typedef char* (__cdecl *MONO_METHOD_GET_NAME)(void *method);
+typedef char* (__cdecl *MONO_METHOD_GET_FULL_NAME)(void *method);
 typedef void* (__cdecl *MONO_COMPILE_METHOD)(void *method);
 typedef void (__cdecl *MONO_FREE_METHOD)(void *method);
 
@@ -328,6 +342,7 @@ private:
 
 	MONO_TYPE_GET_NAME mono_type_get_name;
 	MONO_TYPE_GET_TYPE mono_type_get_type;
+	MONO_TYPE_IS_BYREF mono_type_is_byref;
 	MONO_TYPE_GET_OBJECT mono_type_get_object; //return a ReflectionType* object
 	IL2CPP_TYPE_GET_OBJECT il2cpp_type_get_object;
 	MONO_METHOD_GET_OBJECT mono_method_get_object;
@@ -337,9 +352,12 @@ private:
 	MONO_TYPE_GET_NAME_FULL mono_type_get_name_full;
 	MONO_FIELD_GET_FLAGS mono_field_get_flags;
 	MONO_FIELD_GET_VALUE_OBJECT mono_field_get_value_object;
+	MONO_PTR_GET_CLASS mono_ptr_class_get;
+	MONO_TYPE_GET_PTR_TYPE mono_type_get_ptr_type;
 
 	MONO_METHOD_GET_FLAGS mono_method_get_flags;
 	MONO_METHOD_GET_NAME mono_method_get_name;
+	MONO_METHOD_GET_FULL_NAME mono_method_get_full_name;
 	MONO_METHOD_GET_HEADER mono_method_get_header;
 	MONO_METHOD_GET_CLASS mono_method_get_class;
 	MONO_METHOD_SIG mono_method_signature;
@@ -451,6 +469,7 @@ private:
 	void FindClass();
 	void FindMethod();
 	void GetMethodName();
+	void GetMethodFullName();
 	void GetMethodClass();
 	void GetKlassName();
 	void GetClassNamespace();
@@ -470,7 +489,8 @@ private:
 	void UnBoxMonoObject();
 	void GetVTableFromClass();
 	void GetStaticFieldAddressFromClass();
-	void GetTypeClass();
+	void GetFieldClass();
+	void GetFieldType();
 	void GetArrayElementClass();
 	void FindMethodByDesc();
 	void InvokeMethod();
@@ -483,6 +503,7 @@ private:
 	void IsEnumClass();
 	void IsValueTypeClass();
 	void IsSubClassOf();
+	void IsTypeByReference();
 	void GetArrayElementSize();
 	void NewCSArray();
 	void IsIL2CPP();
@@ -491,6 +512,9 @@ private:
 	void SetStaticFieldValue();
 	void GetMonoDataCollectorVersion();
 	void NewString();
+
+	void GetClassFromPointer();
+	void GetTypeFromPointerType();
 
 public:
 	CPipeServer(void);

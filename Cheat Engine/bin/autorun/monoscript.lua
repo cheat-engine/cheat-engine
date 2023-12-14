@@ -21,7 +21,7 @@ local dpiscale=getScreenDPI()/96
 
 mono_timeout=3000 --change to 0 to never timeout (meaning: 0 will freeze your face off if it breaks on a breakpoint, just saying ...)
 
-MONO_DATACOLLECTORVERSION=20230512
+MONO_DATACOLLECTORVERSION=20230830
 
 MONOCMD_INITMONO=0
 MONOCMD_OBJECT_GETCLASS=1
@@ -89,6 +89,11 @@ MONOCMD_GETREFLECTIONMETHODOFMONOMETHOD = 59
 MONOCMD_MONOOBJECTUNBOX = 60
 MONOCMD_MONOARRAYNEW = 61
 MONOCMD_ENUMINTERFACESOFCLASS = 62
+MONOCMD_GETMETHODFULLNAME = 63
+MONOCMD_TYPEISBYREF = 64
+MONOCMD_GETPTRTYPECLASS = 65
+MONOCMD_GETFIELDTYPE = 66
+MONOCMD_GETTYPEPTRTYPE = 67
 
 MONO_TYPE_END        = 0x00       -- End of List
 MONO_TYPE_VOID       = 0x01
@@ -144,6 +149,9 @@ monoTypeToVartypeLookup[MONO_TYPE_R4]=vtSingle
 monoTypeToVartypeLookup[MONO_TYPE_R8]=vtDouble
 monoTypeToVartypeLookup[MONO_TYPE_STRING]=vtPointer --pointer to a string object
 monoTypeToVartypeLookup[MONO_TYPE_PTR]=vtPointer
+monoTypeToVartypeLookup[MONO_TYPE_I]=vtPointer --IntPtr
+monoTypeToVartypeLookup[MONO_TYPE_U]=vtPointer
+monoTypeToVartypeLookup[MONO_TYPE_OBJECT]=vtPointer --object
 monoTypeToVartypeLookup[MONO_TYPE_BYREF]=vtPointer
 monoTypeToVartypeLookup[MONO_TYPE_CLASS]=vtPointer
 monoTypeToVartypeLookup[MONO_TYPE_FNPTR]=vtPointer
@@ -166,7 +174,7 @@ monoTypeToCStringLookup[MONO_TYPE_I8]='int64'
 monoTypeToCStringLookup[MONO_TYPE_U8]='unsigned int 64'
 monoTypeToCStringLookup[MONO_TYPE_R4]='single'
 monoTypeToCStringLookup[MONO_TYPE_R8]='double'
-monoTypeToCStringLookup[MONO_TYPE_STRING]='String' --pointer to a string object
+monoTypeToCStringLookup[MONO_TYPE_STRING]='String'
 monoTypeToCStringLookup[MONO_TYPE_PTR]='Pointer'
 monoTypeToCStringLookup[MONO_TYPE_BYREF]='Object'
 monoTypeToCStringLookup[MONO_TYPE_CLASS]='Object'
@@ -1415,6 +1423,10 @@ function mono_class_isValueType(klass)
  return retv==1
 end
 
+function mono_class_isStruct(klass)
+ return mono_class_isValueType(klass) and not(mono_class_isEnum(klass)) and not(mono_class_IsPrimitive(klass))
+end
+
 function mono_class_isSubClassOf(klass,parentklass,checkInterfaces)
  checkInterfaces = checkInterfaces and 1 or 0
  if not klass or klass==0 then return false end
@@ -1548,6 +1560,33 @@ function mono_class_getImage(class)
   return result;   
 end
 
+function mono_ptr_class_get(fieldtype_or_ptrtype)
+--returns the MonoType* object which is a pointer to the given type. Use "mono_class_getFullName" on the returned value to see the difference.
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_GETPTRTYPECLASS)
+  monopipe.writeQword(fieldtype_or_ptrtype)
+  local val = monopipe.readQword()
+  monopipe.unlock()
+  return val
+end
+
+function mono_field_get_type(monofield)
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_GETFIELDTYPE)
+  monopipe.writeQword(monofield)
+  local val = monopipe.readQword()
+  monopipe.unlock()
+  return val
+end
+
+function mono_type_get_ptr_type(ptrtype)
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_GETTYPEPTRTYPE)
+  monopipe.writeQword(ptrtype)
+  local val = monopipe.readQword()
+  monopipe.unlock()
+  return val
+end
 
 function mono_field_getClass(field)
   --if debug_canBreak() then return nil end
@@ -1591,6 +1630,15 @@ function mono_type_get_type(monotype)
   local retv = monopipe.readDword()
   monopipe.unlock()
  return retv
+end
+
+function mono_type_is_byref(monotype)
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_TYPEISBYREF)
+  monopipe.writeQword(monotype)
+  local val = monopipe.readByte()
+  monopipe.unlock()
+  return val == 1
 end
 
 function mono_classtype_get_reflectiontype(monotype)
@@ -2112,7 +2160,7 @@ function mono_class_enumFields(class, includeParents, expandedStructs)
   if expandedStructs then
     for k,v in pairs(mainFields) do
       local lockls = mono_field_getClass(v.field)
-      if ((v.monotype==MONO_TYPE_VALUETYPE) and not(mono_class_isEnum(lockls)) and not(mono_class_isSubClassOf(mono_field_getClass(v.field),class))) and not(v.isStatic or v.isConst) then --does not want to infinitely loop if the struct has some static member of the same class
+      if not(v.isStatic or v.isConst) and mono_class_isStruct(lockls) and not(mono_class_isSubClassOf(lockls,class)) then --does not want to infinitely loop if the struct has some static member of the same class
          local subFields = GetFields(lockls, includeParents, expandedStructs, true)
          --print(v.name, v.typename, fu(v.monotype))
          if #subFields >0 then
@@ -2573,6 +2621,17 @@ function mono_method_getName(method)
   return result;
 end
 
+function mono_method_getFullName(monomethod)
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_GETMETHODFULLNAME)
+  monopipe.writeQword(monomethod)
+  local namelength=monopipe.readWord()
+  local result=monopipe.readString(namelength)
+  monopipe.unlock()
+  return result or ''
+end
+
+
 function mono_method_getHeader(method)
   --if debug_canBreak() then return nil end
   if method==nil then return nil end
@@ -2622,10 +2681,12 @@ function mono_method_get_parameters(method)
   
   --types
   for i=1, paramcount do  
+    result.parameters[i].monotype=monopipe.readQword();
     result.parameters[i].type=monopipe.readDword(); 
   end
   
   --result  
+  result.returnmonotype = monopipe.readQword()
   result.returntype=monopipe.readDword()  
   
   monopipe.unlock()
@@ -3097,11 +3158,18 @@ function mono_invoke_method(domain, method, object, args)
     mono_writeObject(args[i].type, args[i].value)
   end
   
-  local result=mono_readObject()
+  local result =mono_readObject()
   --print(type(result),result)
   if monopipe then
+	  local exception = nil
+	  if monopipe.readByte() == 1 then
+		if monopipe.readByte() == 1 then
+			local excplen = monopipe.readWord()
+			exception = monopipe.readString(excplen)
+		end
+	  end
     monopipe.unlock()
-    return result      
+    return result, exception      
   else
     --something bad happened
     LaunchMonoDataCollector()
@@ -3386,9 +3454,6 @@ function monoform_createInstanceOfClass(sender)
     end  
   end  
 end
-
-
-
 
 --[[
 function monoform_miCreateObject(sender)
@@ -3995,7 +4060,15 @@ end
 
 function miMonoActivateClick(sender)
   if monopipe then
-    monopipe.OnTimeout()
+	  if isKeyPressed(VK_CONTROL) then
+		monopipe.lock()
+		monopipe.writeByte(MONOCMD_TERMINATE)
+		monopipe.unlock()
+		monopipe.OnTimeout()
+		print('dll ejected')
+	  else
+		monopipe.OnTimeout()
+	  end
   else  
     if LaunchMonoDataCollector()==0 then
       showMessage(translate("Failure to launch  "))
@@ -4493,23 +4566,56 @@ end
 
 mono_StringStruct=nil
   
-function monoform_exportStructInternal(s, caddr, recursive, static, structmap, makeglobal)
+function monofrom_addPointerStructure(parentstructure, thiselement, field, recursive, static, structmap, loopnumber)
+  --This function will add sub-strutures to the fields that are c Pointers
+  --to disable, set " monoSettings.Value["MaxPointerChildStructs"] = "" "
+  assert(field.monotype==MONO_TYPE_PTR, 'Error: WAIT! How did I end up here!?')
+  local kls = mono_field_getClass(field.field)
+  if not kls or not readPointer(kls) then return end
+  kls = mono_class_get_type(kls)
+  kls = mono_type_get_ptr_type(kls)
+  if not kls or not readPointer(kls) then return end
+  local pat = mono_type_get_type(kls)
+  kls = mono_type_get_class(kls)
+  kls = pat==MONO_TYPE_GENERICINST and mono_class_getParent(kls) or kls
+  if not kls or not readPointer(kls) then return end
+  local subflds = mono_class_enumFields(kls,1)
+  if #subflds==0 then return end
+  local subofst; -- the offset of very first non-static, non-const field needs to be subtracted from similar fields
+  for k,v in ipairs(subflds) do
+    if not v.isStatic and not v.isConst then
+      subofst = subofst or v.offset
+      break
+    end
+  end
+  local structure = createStructure("")
+  monoform_exportStructInternal(structure, kls, recursive, static, structmap, nil, subofst, loopnumber-1)
+  print(structure.Count, field.name)
+  if structure.Count > 0 then
+    thiselement.ChildStruct = structure
+    thiselement.ChildStructStart = 0
+  else
+    structure.destroy()
+  end
+  --print(#subflds, subflds[1].offset,mono_class_getFullName(kls), mono_class_getFullName(mono_field_getClass(field.field)))
+end
+
+function monoform_exportStructInternal(s, caddr, recursive, static, structmap, makeglobal, minusoffset, loopnumber)
   --print("monoform_exportStructInternal")
+  if not(tonumber(monoSettings.Value["MaxPointerChildStructs"])) then
+    monoSettings.Value["MaxPointerChildStructs"] = "2"
+  end
 
   if (monopipe==nil) or (caddr==0) or (caddr==nil) then return nil end
 
- -- print("b")
-
   local className = mono_class_getFullName(caddr)
   --print('Populating '..className)
-
-  -- handle Array as separate case
 
   if string.sub(className,-2)=='[]' then
     local elemtype = mono_class_getArrayElementClass(caddr)
     return monoform_exportArrayStructInternal(s, caddr, elemtype, recursive, structmap, makeglobal, true)
   end
-
+  minusoffset = minusoffset or 0
 
   local hasStatic = false
   structure_beginUpdate(s)
@@ -4529,14 +4635,16 @@ function monoform_exportStructInternal(s, caddr, recursive, static, structmap, m
       if fieldname~=nil then
         e.Name=fieldname
       end
-      e.Offset=fields[i].offset
+      e.Offset=fields[i].offset - minusoffset
       e.Vartype=mono_class_isEnum(mono_field_getClass( fields[i].field )) and vtDword or monoTypeToVarType(ft)
       --print(string.format("  Field: %d: %d: %d: %s", e.Offset, e.Vartype, ft, fieldname))
 
+      loopnumber = loopnumber or tonumber(monoSettings.Value["MaxPointerChildStructs"])
       if ft==MONO_TYPE_STRING or ft==MONO_TYPE_CHAR then
         --e.Vartype=vtUnicodeString
         e.Bytesize = 999
-
+      elseif ft == MONO_TYPE_PTR and loopnumber > 0 then
+        monofrom_addPointerStructure(s, e, fields[i], recursive, static, structmap, loopnumber)
 --[[        e.Vartype=vtPointer
 --print(string.format("  Field: %d: %d: %d: %s", e.Offset, e.Vartype, ft, fieldname))
 
@@ -4609,6 +4717,50 @@ function monoform_exportArrayStruct(arraytype, elemtype, typename, recursive, st
   return monoform_exportArrayStructInternal(acs, arraytype, elemtype, recursive, structmap, makeglobal, reload)  
 end
 
+function mono_structfields_getStartOffset(fields)
+  --this function get the first non-static, non-const field and gets its offset to subtract from all the offsets of fields
+  --this is done since structs as a memeber element in a class are not pointers, rather simple values!
+  for k,v in pairs(fields) do
+    if not(v.isConst) and not(v.isStatic) then
+      return v.offset
+    end
+  end
+end
+
+function monoform_addCSStructElements(structure, klass, parentstructname, offsetInStructure, prename, postname, preklassName, postClassName)
+  parentstructname = type(parentstructname)=='string' and #parentstructname>0 and parentstructname..'.' or ''
+  offsetInStructure = tonumber(offsetInStructure) or 0 --for arrays of the same struct
+  prename = prename or "" --the text to add before the name of the element
+  postname = postname or "" --text to add after the name of the element
+  preklassName = preklassName or "" --the text to add before the klassname (in paranthesis) of the element
+  postklassName = postklassName or "" --text to add after the klassname (in paranthesis) of the element
+
+  local subfield = mono_class_enumFields(klass)
+  local suboffset = mono_structfields_getStartOffset(subfield)
+  if not suboffset then
+    suboffset = targetIs64Bit() and 0x10 or 0x8
+  end
+  for k,v in pairs(subfield) do
+    if not(v.isConst) and not(v.isStatic) then
+      local fieldClass = mono_field_getClass( v.field )
+      local klsname = mono_class_getName(fieldClass)
+      local eloffset = offsetInStructure+v.offset-suboffset
+      if mono_class_isStruct(fieldClass) then
+        monoform_addCSStructElements(structure, fieldClass, v.name, eloffset, prename, postname, klsname..'.')
+      else
+        local nm = v.name..'('..preklassName..klsname..postklassName..')'
+        local ce=structure.addElement()
+        ce.Name=string.format("%s%s%s",prename,parentstructname..nm,postname)
+        ce.Offset=eloffset
+        ce.Vartype= mono_class_isEnum(fieldClass) and vtDword or monoTypeToVarType( v.monotype ) --vtPointer
+        if ce.Vartype == vtDword then
+          ce.DisplayMethod = 'dtSignedInteger'
+        end
+      end
+    end
+  end
+end
+
 function monoform_exportArrayStructInternal(acs, arraytype, elemtype, recursive, structmap, makeglobal, reload)
   --print("monoform_exportArrayStructInternal")
   --print(fu(arraytype),mono_class_getFullName(arraytype))
@@ -4628,35 +4780,22 @@ function monoform_exportArrayStructInternal(acs, arraytype, elemtype, recursive,
 
       local j
       local psize = arraytype and mono_array_element_size(arraytype) or nil
-	  psize = psize and psize or (targetIs64Bit() and 8 or 4)
+      psize = psize and psize or (targetIs64Bit() and 8 or 4)
 
-        local start
-        if targetIs64Bit() then
-          start=0x20
-        else
-          start=0x10
-        end
+      local start
+      if targetIs64Bit() then
+        start=0x20
+      else
+        start=0x10
+      end
       local elementkls = mono_class_getArrayElementClass(arraytype)
       local elementmonotype = mono_type_get_type(mono_class_get_type(elementkls))
-      local isStruct = mono_class_isValueType(elementkls) and not(mono_class_IsPrimitive(elementkls)) and not(mono_class_isEnum(elementkls))
+      local isStruct = mono_class_isStruct(elementkls)--mono_class_isValueType(elementkls) and not(mono_class_IsPrimitive(elementkls)) and not(mono_class_isEnum(elementkls))
       --print(fu(elementkls),mono_class_getFullName(elementkls),fu(elementmonotype))
       if isStruct  then
          --print("yep, a struct")
-         local subfield = mono_class_enumFields(elementkls)
-         local suboffset = subfield[1].offset == 0x10 and 0x10 or 0
-         for k,v in pairs(subfield) do
-          if not(v.isConst) and not(v.isStatic) then
-            local nm = v.name..'('..mono_class_getName(mono_field_getClass(v.field))..')'
-            for j=0, 9 do -- Arbitrarily add 10 elements
-              ce=acs.addElement()
-              ce.Name=string.format("[%d]%s",j,nm)
-              ce.Offset=j*psize+start+v.offset-suboffset
-              ce.Vartype= monoTypeToVarType( v.monotype ) --vtPointer
-	      if ce.Vartype == vtDword then
-		     ce.DisplayMethod = 'dtSignedInteger'
-	      end
-            end
-          end
+         for j=0, 9 do -- Arbitrarily add 10 elements
+           monoform_addCSStructElements(acs, elementkls, "", j*psize+start, '['..j..']', "")
          end
       else
         for j=0, 9 do -- Arbitrarily add 10 elements
