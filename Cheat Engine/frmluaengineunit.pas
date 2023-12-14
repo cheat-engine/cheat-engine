@@ -1436,6 +1436,18 @@ begin
   i:=mScript.Keystrokes.FindCommand(ecSelectAll);
   if i<>-1 then mScript.Keystrokes[i].ShortCut:=TextToShortCut('Meta+A');
 
+  i:=mScript.Keystrokes.FindCommand(ecLineStart);
+  if i<>-1 then mScript.Keystrokes[i].ShortCut:=TextToShortCut('Meta+Left');
+
+  i:=mScript.Keystrokes.FindCommand(ecLineEnd);
+  if i<>-1 then mScript.Keystrokes[i].ShortCut:=TextToShortCut('Meta+Right');
+
+  i:=mScript.Keystrokes.FindCommand(ecEditorTop);
+  if i<>-1 then mScript.Keystrokes[i].ShortCut:=TextToShortCut('Meta+Up');
+
+  i:=mScript.Keystrokes.FindCommand(ecEditorBottom);
+  if i<>-1 then mScript.Keystrokes[i].ShortCut:=TextToShortCut('Meta+Down');
+
 
   MenuItem3.ShortCutKey2:=TextToShortCut('Meta+S');
 
@@ -1443,6 +1455,8 @@ begin
   MenuItem2.ShortCut:=TextToShortCut('Meta+O');
   MenuItem3.ShortCut:=TextToShortCut('Meta+S');
   miSaveCurrentScriptAs.ShortCut:=TextToShortCut('Meta+Alt+S');
+
+
 
    {$endif}
 end;

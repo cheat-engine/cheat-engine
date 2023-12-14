@@ -15,9 +15,11 @@ function ContinueDebugEvent(dwProcessId: DWORD; dwThreadId: DWORD; dwContinueSta
 function SetThreadContext(hThread: THandle; const lpContext: TContext; isFrozenThread: Boolean=false): BOOL; overload;
 function SetThreadContext(hThread: THandle; const lpContext: TARMCONTEXT; isFrozenThread: Boolean=false): BOOL; overload;
 function SetThreadContext(hThread: THandle; const lpContext: TARM64CONTEXT; isFrozenThread: Boolean=false): BOOL; overload;
+function SetThreadContext(hThread: THandle; lpContext: pointer; isFrozenThread: Boolean=false): BOOL; overload;
 function GetThreadContext(hThread: THandle; var lpContext: TContext; isFrozenThread: Boolean=false): BOOL; overload;
 function GetThreadContext(hThread: THandle; var lpContext: TARMCONTEXT; isFrozenThread: Boolean=false): BOOL; overload;
 function GetThreadContext(hThread: THandle; var lpContext: TARM64CONTEXT; isFrozenThread: Boolean=false): BOOL; overload;
+function GetThreadContext(hThread: THandle; lpContext: pointer; isFrozenThread: Boolean=false): BOOL; overload;
 function GetThreadContextArm(hThread: THandle; var lpContext: TARMCONTEXT; isFrozenThread: Boolean=false): BOOL;
 function SetThreadContextArm(hThread: THandle; const lpContext: TARMCONTEXT; isFrozenThread: Boolean=false): BOOL;
 function GetThreadContextArm64(hThread: THandle; var lpContext: TARM64CONTEXT; isFrozenThread: Boolean=false): BOOL;
@@ -58,6 +60,15 @@ begin
     result:=NewKernelHandler.SetThreadContext(hThread, lpcontext);
 end;
 
+function SetThreadContext(hThread: THandle; lpContext: pointer; isFrozenThread: Boolean=false): BOOL;
+begin
+  if CurrentDebuggerInterface<>nil then
+    result:=CurrentDebuggerInterface.SetThreadContext(hThread, lpContext, isFrozenThread)
+  else
+    result:=NewKernelHandler.SetThreadContext(hThread, PContext(lpcontext)^);
+
+end;
+
 function SetThreadContext(hThread: THandle; const lpContext: TARMCONTEXT; isFrozenThread: Boolean=false): BOOL;
 begin
   result:=SetThreadContextArm(hThread, lpContext, isFrozenThread);
@@ -67,8 +78,6 @@ function SetThreadContext(hThread: THandle; const lpContext: TARM64CONTEXT; isFr
 begin
   result:=SetThreadContextArm64(hThread, lpContext, isFrozenThread);
 end;
-
-
 
 
 
@@ -126,6 +135,14 @@ begin
     result:=NewKernelHandler.GetThreadContext(hThread, lpContext);
 end;
 
+function GetThreadContext(hThread: THandle; lpContext: pointer; isFrozenThread: Boolean=false): BOOL; overload;
+begin
+  if CurrentDebuggerInterface<>nil then
+    result:=CurrentDebuggerInterface.GetThreadContext(hThread, lpContext, isFrozenThread)
+  else
+    result:=NewKernelHandler.GetThreadContext(hThread, PContext(lpContext)^);
+end;
+
 function GetThreadContext(hThread: THandle; var lpContext: TARMCONTEXT; isFrozenThread: Boolean=false): BOOL; overload;
 begin
   result:=GetThreadContextArm(hThread, lpContext, isFrozenThread);
@@ -135,6 +152,8 @@ function GetThreadContext(hThread: THandle; var lpContext: TARM64CONTEXT; isFroz
 begin
   result:=GetThreadContextArm64(hThread, lpContext, isFrozenThread);
 end;
+
+
 
 function DebugActiveProcess(dwProcessId: DWORD): WINBOOL;
 begin

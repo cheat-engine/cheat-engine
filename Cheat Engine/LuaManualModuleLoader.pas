@@ -15,7 +15,7 @@ procedure initializeLuaModuleLoader;
 implementation
 
 {$IFDEF windows}
-uses ManualModuleLoader, lua, lauxlib, lualib, LuaClass, LuaHandler, LuaObject;
+uses ManualModuleLoader, lua, lauxlib, lualib, LuaClass, LuaHandler, LuaObject, luafile;
 
 function moduleloader_createModuleLoader(L: PLua_State): integer; cdecl;
 var
@@ -27,36 +27,62 @@ var
 
   usetimeout: boolean=false;
   timeout: integer;
+
+  paramoffset: integer;
+
+  o: TObject;
+  ms: tmemorystream absolute o;
 begin
   result:=0;
+  paramoffset:=0;
   if lua_gettop(L)>=1 then
   begin
-    filename:=Lua_ToString(L,1);
-    try
-      ml:=TModuleLoader.create(filename);
-      ml.createSymbolListHandler;
-    except
-      on e: exception do
+    if lua_isstring(L,1) then
+    begin
+      filename:=Lua_ToString(L,1);
+      try
+        ml:=TModuleLoader.create(filename);
+        ml.createSymbolListHandler;
+      except
+        on e: exception do
+        begin
+          lua_pushnil(L);
+          lua_pushstring(L,e.message);
+          exit(2);
+        end;
+      end;
+    end
+    else
+    if lua_isuserdata(L,1) then
+    begin
+      o:=lua_toceuserdata(L, 1);
+      if o is TLuafile then
+        o:=tluafile(o).stream;
+
+      if o is TMemoryStream then       //(memstream, filename, executeEntrypoint, timeout)
       begin
-        lua_pushnil(L);
-        lua_pushstring(L,e.message);
-        exit(2);
+        if lua_gettop(L)>=2 then
+          filename:=Lua_ToString(L,2);
+
+        ml:=TModuleLoader.create(ms, filename);
+        ml.createSymbolListHandler;
+        paramoffset:=1;
       end;
     end;
 
-    if lua_gettop(L)>=2 then
-      executeEntryPoint:=lua_toboolean(L,2)
+    if lua_gettop(L)>=2+paramoffset then
+      executeEntryPoint:=lua_toboolean(L,2+paramoffset)
     else
       executeEntryPoint:=true;
 
-    if lua_gettop(L)>=3 then
+    if lua_gettop(L)>=3+paramoffset then
     begin
-      if lua_isnil(L,3) then
+      if lua_isnil(L,3+paramoffset) then
         useTimeout:=false
       else
       begin
         useTimeout:=true;
-        timeout:=lua_tointeger(L,3);
+        timeout:=lua_tointeger(L,3+paramoffset);
       end;
     end
     else

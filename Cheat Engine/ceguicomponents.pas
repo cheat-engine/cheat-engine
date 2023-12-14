@@ -13,7 +13,7 @@ uses
   dialogs, JvDesignSurface, DOM, typinfo, LResources, JvDesignImp, JvDesignUtils,
   graphics, math, xmlread,xmlwrite, WSStdCtrls, custombase85, PropEdits,
   ComponentEditors, CEListviewItemEditor, TreeViewPropEdit, menus, MenuIntf, LCLProc,
-  Calendar, CECustomButton, betterControls;
+  Calendar, CECustomButton, laz.VirtualTrees, synedit, betterControls;
 
 type TCEPageControl=class(TPageControl);
 type
@@ -982,7 +982,7 @@ end;  }
 
 implementation
 
-uses luahandler,luacaller, formdesignerunit, CheckLst, colorbox;
+uses luahandler,luacaller, formdesignerunit, CheckLst, colorbox, SynCompletion;
 
 resourcestring
   rsInvalidFormData = 'Invalid formdata';
@@ -1644,6 +1644,10 @@ initialization
   registerclass(TApplicationProperties); //might be usefull...
   registerclass(TColorListBox);
   registerclass(TLazVirtualStringTree);
+  registerclass(TSynEdit);
+  registerclass(TSynCompletion);
+  registerclass(TSynAutoComplete);
+
 
 
 

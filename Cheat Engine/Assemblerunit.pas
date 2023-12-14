@@ -3597,6 +3597,11 @@ begin
       if (t[2]='O') and (t[3]='R') then //could be WORD
         exit((t='WORD') or (t='WORD PTR'));
     end;
+
+    'P': //PTR
+    begin
+      exit(t='PTR');
+    end;
   end;
 end;
 
@@ -3615,6 +3620,11 @@ var i,j,err,err2: integer;
 begin
   if length(token)=0 then exit(false); //empty string
 
+  if token[1]='#' then
+  begin
+    val(copy(token,1),i,err); //just an integer
+    if err=0 then exit(true);
+  end;
 
   quotechar:=#0;
 
@@ -4976,6 +4986,16 @@ begin
               v:=0;
               ReadProcessMemory(processhandle,pointer(address+i-1), @b, 1, br);
               add(bytes, b);
+            end
+            else
+            if (length(tokens[i])>=1) and (tokens[i][1] in ['-','+']) then
+            begin
+              //increase/decrease by
+              v:=0;
+              ReadProcessMemory(processhandle,pointer(address+i-1), @b, 1, br);
+              j:=HexStrToInt(tokens[i]);
+              b:=b+j;
+              add(bytes,b);
             end
             else
               add(bytes,[HexStrToInt(tokens[i])]);
@@ -8307,6 +8327,7 @@ begin
   end;
 
   finally
+
     if result then
     begin
       //insert rex prefix if needed
@@ -8317,53 +8338,56 @@ begin
 
         if opcodes[j].W1 then
           REX_W:=true;
+      end;
 
-        if opcodes[j].hasvex then
+      if opcodes[j].hasvex then
+      begin
+        //setup a vex prefix. Check if a 2 byte or 3 byte prefix is needed
+        //3 byte is needed when mmmmmm(vexLeadingOpcode>1) or rex.X/B or W are used
+
+        //vexOpcodeExtension: oe_F2; vexLeadingOpcode: lo_0f
+
+        bigvex:=(opcodes[j].vexLeadingOpcode>lo_0f) or REX_B or REX_X or REX_W;
+
+        if bigvex=false then
         begin
-          //setup a vex prefix. Check if a 2 byte or 3 byte prefix is needed
-          //3 byte is needed when mmmmmm(vexLeadingOpcode>1) or rex.X/B or W are used
+          //2byte vex
+          setlength(bytes,length(bytes)+2);
+          for i:=length(bytes)-1 downto RexPrefixLocation+2 do
+            bytes[i]:=bytes[i-2];
 
-          //vexOpcodeExtension: oe_F2; vexLeadingOpcode: lo_0f
+          bytes[RexPrefixLocation]:=$c5; //2 byte VEX
+          PVex2Byte(@bytes[RexPrefixLocation+1])^.pp:=integer(opcodes[j].vexOpcodeExtension);
+          PVex2Byte(@bytes[RexPrefixLocation+1])^.L:=opcodes[j].vexl;
+          PVex2Byte(@bytes[RexPrefixLocation+1])^.vvvv:=VEXvvvv;
+          PVex2Byte(@bytes[RexPrefixLocation+1])^.R:=ifthen(REX_R,0,1);
+          if relativeAddressLocation<>-1 then inc(relativeAddressLocation,2);
+        end
+        else
+        begin
+          //3byte vex
+          setlength(bytes,length(bytes)+3);
+          for i:=length(bytes)-1 downto RexPrefixLocation+3 do
+            bytes[i]:=bytes[i-3];
 
-          bigvex:=(opcodes[j].vexLeadingOpcode>lo_0f) or REX_B or REX_X or REX_W;
+          bytes[RexPrefixLocation]:=$c4; //3 byte VEX
+          PVex3Byte(@bytes[RexPrefixLocation+1])^.mmmmm:=integer(opcodes[j].vexLeadingOpcode);
+          PVex3Byte(@bytes[RexPrefixLocation+1])^.B:=ifthen(REX_B,0,1);
+          PVex3Byte(@bytes[RexPrefixLocation+1])^.X:=ifthen(REX_X,0,1);
+          PVex3Byte(@bytes[RexPrefixLocation+1])^.R:=ifthen(REX_R,0,1);
+          PVex3Byte(@bytes[RexPrefixLocation+1])^.pp:=integer(opcodes[j].vexOpcodeExtension);
+          PVex3Byte(@bytes[RexPrefixLocation+1])^.L:=opcodes[j].vexl;
+          PVex3Byte(@bytes[RexPrefixLocation+1])^.vvvv:=VEXvvvv;
+          PVex3Byte(@bytes[RexPrefixLocation+1])^.W:=ifthen(REX_W,1,0); //not inverted
 
-          if bigvex=false then
-          begin
-            //2byte vex
-            setlength(bytes,length(bytes)+2);
-            for i:=length(bytes)-1 downto RexPrefixLocation+2 do
-              bytes[i]:=bytes[i-2];
-
-            bytes[RexPrefixLocation]:=$c5; //2 byte VEX
-            PVex2Byte(@bytes[RexPrefixLocation+1])^.pp:=integer(opcodes[j].vexOpcodeExtension);
-            PVex2Byte(@bytes[RexPrefixLocation+1])^.L:=opcodes[j].vexl;
-            PVex2Byte(@bytes[RexPrefixLocation+1])^.vvvv:=VEXvvvv;
-            PVex2Byte(@bytes[RexPrefixLocation+1])^.R:=ifthen(REX_R,0,1);
-            if relativeAddressLocation<>-1 then inc(relativeAddressLocation,2);
-          end
-          else
-          begin
-            //3byte vex
-            setlength(bytes,length(bytes)+3);
-            for i:=length(bytes)-1 downto RexPrefixLocation+3 do
-              bytes[i]:=bytes[i-3];
-
-            bytes[RexPrefixLocation]:=$c4; //3 byte VEX
-            PVex3Byte(@bytes[RexPrefixLocation+1])^.mmmmm:=integer(opcodes[j].vexLeadingOpcode);
-            PVex3Byte(@bytes[RexPrefixLocation+1])^.B:=ifthen(REX_B,0,1);
-            PVex3Byte(@bytes[RexPrefixLocation+1])^.X:=ifthen(REX_X,0,1);
-            PVex3Byte(@bytes[RexPrefixLocation+1])^.R:=ifthen(REX_R,0,1);
-            PVex3Byte(@bytes[RexPrefixLocation+1])^.pp:=integer(opcodes[j].vexOpcodeExtension);
-            PVex3Byte(@bytes[RexPrefixLocation+1])^.L:=opcodes[j].vexl;
-            PVex3Byte(@bytes[RexPrefixLocation+1])^.vvvv:=VEXvvvv;
-            PVex3Byte(@bytes[RexPrefixLocation+1])^.W:=ifthen(REX_W,1,0); //not inverted
-
-            if relativeAddressLocation<>-1 then inc(relativeAddressLocation,3);
-          end;
-
-          RexPrefix:=0;  //vex and rex can not co-exist
+          if relativeAddressLocation<>-1 then inc(relativeAddressLocation,3);
         end;
 
+        RexPrefix:=0;  //vex and rex can not co-exist
+      end;
+
+      if processhandler.is64bit then
+      begin
         if RexPrefix<>0 then
         begin
           if RexPrefixLocation=-1 then raise EAssemblerException.create(rsAssemblerError);
@@ -8405,33 +8429,33 @@ begin
 
 
       end;
+    end;
+  end;
+
+  if not result then
+  begin
+    if (errorifnotfound<>'') then
+    begin
+      if (skiprangecheck=false) then
+        raise EAssemblerExceptionOffsetTooBig.Create(errorifnotfound)
+      else
+        exit(true);  //just a syntaxcheck. Everything is ok except the range
+    end;
+  end;
+
+  if needsAddressSwitchPrefix then //add it
+  begin
+    if canDoAddressSwitch then
+    begin
+      //put 0x67 in front
+      setlength(bytes,length(bytes)+1);
+      for i:=length(bytes)-1 downto 1 do
+        bytes[i]:=bytes[i-1];
+
+      bytes[0]:=$67;
     end
     else
-    begin
-      if (errorifnotfound<>'') then
-      begin
-        if (skiprangecheck=false) then
-          raise EAssemblerExceptionOffsetTooBig.Create(errorifnotfound)
-        else
-          exit(true);  //just a syntaxcheck. Everything is ok except the range
-
-      end;
-    end;
-
-    if needsAddressSwitchPrefix then //add it
-    begin
-      if canDoAddressSwitch then
-      begin
-        //put 0x67 in front
-        setlength(bytes,length(bytes)+1);
-        for i:=length(bytes)-1 downto 1 do
-          bytes[i]:=bytes[i-1];
-
-        bytes[0]:=$67;
-      end
-      else
-        raise EAssemblerException.create('Invalid address');
-    end;
+      raise EAssemblerException.create('Invalid address');
   end;
 end;
 

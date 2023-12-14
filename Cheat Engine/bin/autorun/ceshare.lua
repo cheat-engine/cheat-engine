@@ -30,7 +30,7 @@ else
 end
 ceshare.xmlParser = require("xmlSimple").newParser()
 
-
+--
 package.path=package.path..';'..ceshare.path..[[?.lua]]
 
 function loadCEShare()

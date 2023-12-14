@@ -16,10 +16,12 @@ uses
      {$endif}
      dialogs,forms,classes,LCLIntf, LCLProc, sysutils,registry,ComCtrls, menus,
      formsettingsunit, cefuncproc,AdvancedOptionsUnit, MemoryBrowserFormUnit,
-     memscan,plugin, hotkeyhandler,frmProcessWatcherUnit, newkernelhandler,
+     memscan,plugin, hotkeyhandler,frmProcessWatcherUnit, NewKernelHandler,
      debuggertypedefinitions, commonTypeDefs, betterControls;
 
-const ceversion=7.5;
+const
+  ceversion=7.51;
+  strVersionPart='7.5.1';
 {$ifdef altname}  //i'd use $MACRO ON but fpc bugs out
   strCheatEngine='Runtime Modifier'; //if you change this, also change it in first.pas
   strCheatTable='Code Table';   //because it contains code.... duh.....
@@ -41,7 +43,8 @@ const ceversion=7.5;
 {$endif}
 
 resourcestring
-  cename = strCheatEngine+' 7.5';
+  cename = strCheatEngine;
+  cenamewithversion = strCheatEngine+' '+strVersionPart;
   rsCheatEngine = strCheatEngine;
   rsPleaseWait = 'Please Wait!';
 
@@ -54,10 +57,9 @@ const beta=''; //empty this for a release
 
 var
   CEnorm:string;
-  CERegion: string;
-  CESearch: string;
-  CERegionSearch: string;
-  CEWait: string;
+  CEVersionName: string;
+
+
 
 resourcestring
   strStart='Start';
@@ -119,7 +121,7 @@ implementation
 
 uses KernelDebugger,mainunit, DebugHelper, CustomTypeHandler, ProcessList, Globals,
      frmEditHistoryUnit, DBK32functions, frameHotkeyConfigUnit, UnexpectedExceptionsHelper,
-     TypInfo, StdCtrls;
+     TypInfo, StdCtrls, symbolsync;
 
 procedure UpdateToolsMenu;
 var i: integer;
@@ -171,6 +173,10 @@ begin
         with formsettings do
         begin
           LoadingSettingsFromRegistry:=true;
+
+          if reg.ValueExists('RunAsAdmin') then
+            cbAlwaysAttemptToLaunchAsAdmin.Checked:=reg.ReadBool('RunAsAdmin');
+
 
           if reg.ValueExists('Disable DarkMode Support') then
             cbDisableDarkModeSupport.checked:=reg.ReadBool('Disable DarkMode Support');
@@ -631,7 +637,7 @@ begin
 
 
           if reg.ValueExists('Center on popup') then
-            formsettings.cbCenterOnPopup.checked:=reg.readbool('Center on popup');
+            formsettings.frameHotkeyConfig.cbCenterOnPopup.checked:=reg.readbool('Center on popup');
 
           if reg.ValueExists('Update interval') then
             mainform.updatetimer.Interval:=reg.readInteger('Update interval');
@@ -745,6 +751,9 @@ begin
             cbProcessIcons.Checked:=reg.ReadBool('Get process icons');
           GetProcessIcons:=cbProcessIcons.Checked;
 
+          if reg.ValueExists('Ask to clear list on process opening') then
+            cbAskToClearListOnOpen.Checked:=reg.ReadBool('Ask to clear list on process opening');
+
           if reg.ValueExists('Pointer appending') then
             cbOldPointerAddMethod.checked:=reg.ReadBool('Pointer appending');
 
@@ -801,7 +810,7 @@ begin
 
 
           if reg.ValueExists('Hide all windows') then
-            cbHideAllWindows.Checked:=reg.ReadBool('Hide all windows');
+            frameHotkeyConfig.cbHideAllWindows.Checked:=reg.ReadBool('Hide all windows');
 
           if reg.ValueExists('Really hide all windows') then
             temphideall:=reg.ReadBool('Really hide all windows');
@@ -820,6 +829,40 @@ begin
           Scan_MEM_PRIVATE:=cbMemPrivate.checked;
           Scan_MEM_IMAGE:=cbMemImage.Checked;
           Scan_MEM_MAPPED:=cbMemMapped.Checked;
+
+
+          if reg.ValueExists('SymbolSync') then
+            cbSynchronizeSymbols.checked:=reg.ReadBool('SymbolSync');
+
+          if reg.ValueExists('SymbolSync_ClearSymbolsOnNewProcess') then
+            cbClearSymbolsOnProcessOpen.Checked:=reg.readbool('SymbolSync_ClearSymbolsOnNewProcess');
+
+          if reg.ValueExists('SymbolSync_DontDeleteSymbols') then
+            cbDontDeleteSymbols.Checked:=reg.readbool('SymbolSync_DontDeleteSymbols');
+
+          if reg.ValueExists('SymbolSync_SynchronizePeriodically') then
+            cbSymbolSyncInterval.checked:=reg.ReadBool('SymbolSync_SynchronizePeriodically');
+
+          if reg.ValueExists('SymbolSync_SynchronizeInterval') then
+            symsync_Interval:=reg.ReadInteger('SymbolSync_SynchronizeInterval')
+          else
+            symsync_Interval:=10;
+
+          syncsymbols:=cbSynchronizeSymbols.checked;
+          symsync_ClearSymbolListWhenOpeningADifferentProcess:=cbClearSymbolsOnProcessOpen.checked;
+          symsync_DontDeleteSymbolsWhenSynchronizing:=cbDontDeleteSymbols.checked;
+
+          if cbSymbolSyncInterval.checked then
+          begin
+            if syncsymbols then
+              EnableSymbolSyncThread
+            else
+              DisableSymbolSyncThread;
+          end
+          else
+            DisableSymbolSyncThread;
+
+
 
           if reg.ValueExists('Can Step Kernelcode') then
             cbCanStepKernelcode.checked:=reg.ReadBool('Can Step Kernelcode');
@@ -899,6 +942,25 @@ begin
 
           if reg.ValueExists('Use Kernel Debugger') then
             cbKdebug.checked:=reg.ReadBool('Use Kernel Debugger');
+          {$endif}
+
+          if reg.ValueExists('Use GDBServer Debugger') then
+            cbUseGDBServer.checked:=reg.ReadBool('Use GDBServer Debugger');
+
+          if reg.ValueExists('Launch GDB server') then
+            cbLaunchGDBServer.checked:=reg.ReadBool('Launch GDB server');
+
+          if reg.ValueExists('GDBServer launch command') then
+            edtGDBServerCommand.text:=reg.ReadString('GDBServer launch command');
+
+          if reg.ValueExists('GDBPort') then
+            edtGDBPort.text:=reg.ReadString('GDBPort');
+
+          if reg.ValueExists('GDBWriteCode') then
+            cbGDBWriteCode.checked:=reg.ReadBool('GDBWriteCode');
+
+
+          {$ifdef windows}
 
           if reg.ValueExists('Use DBVM Debugger') then
             cbUseDBVMDebugger.checked:=reg.ReadBool('Use DBVM Debugger');
@@ -928,12 +990,35 @@ begin
             waitafterguiupdate:=reg.ReadBool('Wait After Gui Update');
           cbWaitAfterGuiUpdate.checked:=waitafterguiupdate;
 
+
           {$ifdef darwin}
-          cbUseMacDebugger.checked:=true;
+          if reg.ValueExists('UseMacDebugger') then
+            cbUseMacDebugger.checked:=reg.readBool('UseMacDebugger');
+
+          if reg.ValueExists('UseRosettaDebugserver') then
+            cbUseRosettaDebugserver.checked:=reg.ReadBool('UseRosettaDebugserver');
+
+          if reg.ValueExists('AttachDebuggerToRosettaOnProcessOpen') then
+            cbAttachDebuggerToRosettaOnProcessOpen.checked:=reg.ReadBool('AttachDebuggerToRosettaOnProcessOpen');
+
+          if reg.ValueExists('AskToAttachToRosetta') then
+            cbAskToAttachToRosetta.checked:=reg.ReadBool('AskToAttachToRosetta');
+
+          if reg.ValueExists('RosettaDebugserverLaunchCommand') then
+            edtRosettaDebugserverLaunchCommand.text:=reg.ReadString('RosettaDebugserverLaunchCommand');
+
+          if reg.ValueExists('RosettaDebugserverPort') then
+            edtRosettaDebugserverPort.text:=reg.ReadString('RosettaDebugserverPort');
+
+
+
 
           if reg.ValueExists('Use TaskLevel debugger') then
             useTaskLevelDebug:=reg.ReadBool('Use TaskLevel debugger');
 
+
+          if not (cbUseMacDebugger.checked or cbUseGDBServer.checked) then
+            cbUseMacDebugger.checked:=true;
           {$endif}
 
 
@@ -1212,10 +1297,7 @@ begin
   Application.Title:=CENorm;
 
 
-  CERegion:=cenorm+' - '+rsPleaseWait;
-  CESearch:=CERegion;
-  CERegionSearch:= CERegion;
-  CEWait:= ceregion;
+
   {$ifdef darwin}
   {$ifdef CPUX86_64}
   if MacIsArm64 then

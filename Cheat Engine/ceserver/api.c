@@ -152,11 +152,26 @@ pthread_mutex_t debugsocketmutex;
 
 int VerboseLevel=0;
 
-int MEMORY_SEARCH_OPTION = 2; //0=file, 1=ptrace, 2=use process_vm_readv
+int MEMORY_SEARCH_OPTION = 2; //0=file, 1=ptrace, 2=use process_vm_readv, 3=use process_vm_readv2
 int ATTACH_PID = 0;
 int ATTACH_TO_ACCESS_MEMORY = 0;
 int ATTACH_TO_WRITE_MEMORY = 1;
 unsigned char SPECIFIED_ARCH = 9;
+
+#ifdef SYS_process_vm_readv
+//BEcause of comment: "Please implement this version of process_vm_readv as the original is detected"  I doubt this would work better, but whatever, here it is
+ssize_t process_vm_readv2(pid_t process_id, struct iovec *io_local, struct iovec *io_remote, int len, int flags) {
+    if (process_id < 0) return FALSE;
+    return syscall(SYS_process_vm_readv, process_id, io_local, len, io_remote, len, 0);
+}
+
+ssize_t process_vm_writev2(pid_t process_id, struct iovec *io_local, struct iovec *io_remote, int len, int flags) {
+    if (process_id < 0) return FALSE;
+    return syscall(SYS_process_vm_writev, process_id, io_local, len, io_remote, len, 0);
+}
+#endif
+
+
 
 //Implementation for shared library version ceserver.
 int debug_log(const char * format , ...)
@@ -2842,7 +2857,7 @@ int WriteProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
     }
 
 
-    if ((MEMORY_SEARCH_OPTION == 2) && (process_vm_writev))
+    if (((MEMORY_SEARCH_OPTION == 2) && (process_vm_writev)) || (MEMORY_SEARCH_OPTION == 3))
     {
       struct iovec local;
       struct iovec remote;
@@ -2862,7 +2877,14 @@ int WriteProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
       remote.iov_base=lpAddress;
       remote.iov_len=size;
 
-      written=process_vm_writev(p->pid,&local,1,&remote,1,0);
+      PROCESS_VM_WRITEV write_v;
+      if (MEMORY_SEARCH_OPTION==2)
+        write_v=process_vm_writev;
+      else
+        write_v=process_vm_writev2;
+
+
+      written=write_v(p->pid,&local,1,&remote,1,0);
       if (written==-1)
       {
        debug_log("process_vm_writev(%p, %d) failed: %s\n", lpAddress, size, strerror(errno));
@@ -3287,9 +3309,16 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
   //  debug_log("hProcess=%d, lpAddress=%p, buffer=%p, size=%d\n", hProcess, lpAddress, buffer, size);
 
-    if (MEMORY_SEARCH_OPTION == 2)
+    if ((MEMORY_SEARCH_OPTION == 2) || (MEMORY_SEARCH_OPTION == 3))
     {
-      if (process_vm_readv)
+
+      PROCESS_VM_READV readv=NULL;
+      if (MEMORY_SEARCH_OPTION == 2)
+        readv=process_vm_readv;
+      else
+        readv=process_vm_readv2;
+
+      if (readv)
       {
         struct iovec local;
         struct iovec remote;
@@ -3314,7 +3343,7 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
         if (canreadnow)
         {
-          bread=process_vm_readv(p->pid,&local,1,&remote,1,0);
+          bread=readv(p->pid,&local,1,&remote,1,0);
           if (bread==-1)
           {
            // debug_log("process_vm_readv(%x, %d) failed: %s\n", lpAddress, size, strerror(errno));
@@ -4679,6 +4708,7 @@ uint64_t getTickCount()
   r += ts.tv_sec * 1000;
   return r;
 }
+
 
 void initAPI()
 {

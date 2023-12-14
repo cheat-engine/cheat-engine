@@ -73,6 +73,7 @@ type
   private
     address: qword;
     opcode: uint32;
+    syntaxcheck: boolean;
 
     procedure InitARM64Support;
 
@@ -102,9 +103,9 @@ type
 implementation
 
 {$ifndef armdev}
-uses math, NewKernelHandler,ProcessHandlerUnit,StringHashList;
+uses math, NewKernelHandler,ProcessHandlerUnit,StringHashList, symbolhandler;
 {$else}
-uses StringHashList, math, windows, Rtti, RttiUtils, TypInfo;
+uses StringHashList, math, Rtti, RttiUtils, TypInfo;
 {$endif}
 
 
@@ -166,11 +167,19 @@ const
   );
 
   ArmInstructionsUnconditionalBranchReg: array of TOpcode= (
-     (mnemonic:'BR';  params:((ptype:pt_xreg; offset:5)); mask:%11111111111111111111110000011111; value: %11010110000111110000000000000000),
-     (mnemonic:'BLR';  params:((ptype:pt_xreg; offset:5)); mask:%11111111111111111111110000011111; value: %11010110001111110000000000000000),
-     (mnemonic:'RET';  params:((ptype:pt_xreg; offset:5; maxval:31; extra: 0; optional:true; defvalue:30)); mask:%11111111111111111111110000011111; value: %11010110010111110000000000000000),
-     (mnemonic:'ERET';  params:(); mask:%11111111111111111111111111111111; value: %11010110100111110000001111100000),
-     (mnemonic:'DRPS';  params:(); mask:%11111111111111111111111111111111; value: %11010110101111110000001111100000)
+    (mnemonic:'ERET';  params:(); mask:%11111111111111111111111111111111; value: %11010110100111110000001111100000),
+    (mnemonic:'DRPS';  params:(); mask:%11111111111111111111111111111111; value: %11010110101111110000001111100000),
+
+    (mnemonic:'RETAA';  params:(); mask:%11111111111111111111111111111111; value: %11010110010111110000101111111111),
+    (mnemonic:'RETAB';  params:(); mask:%11111111111111111111111111111111; value: %11010110010111110000111111111111),
+
+    (mnemonic:'BR';  params:((ptype:pt_xreg; offset:5)); mask:%11111111111111111111110000011111; value: %11010110000111110000000000000000),
+    (mnemonic:'BLR';  params:((ptype:pt_xreg; offset:5)); mask:%11111111111111111111110000011111; value: %11010110001111110000000000000000),
+    (mnemonic:'RET';  params:((ptype:pt_xreg; offset:5; maxval:31; extra: 0; optional:true; defvalue:30)); mask:%11111111111111111111110000011111; value: %11010110010111110000000000000000)
+
+
+     //
+
   );
 
   ArmInstructionsExceptionGen: array of TOpcode= (
@@ -259,13 +268,36 @@ const
                                                                                                       value:%11010101000000110100000011111111),
 
 
+   (mnemonic:'NOP';     params:(); mask:%11111111111111111111111111111111;                                   value:%11010101000000110010000000011111 ),
+   (mnemonic:'YIELD';   params:(); mask:%11111111111111111111111111111111;                                   value:%11010101000000110010000000111111 ),
+   (mnemonic:'WFE';     params:(); mask:%11111111111111111111111111111111;                                   value:%11010101000000110010000001011111 ),
+   (mnemonic:'WFI';     params:(); mask:%11111111111111111111111111111111;                                   value:%11010101000000110010000001111111 ),
 
-   (mnemonic:'NOP';     params:(); mask:%11111111111111111111111111111111; value:%11010101000000110010000000011111 ),
-   (mnemonic:'YIELD';   params:(); mask:%11111111111111111111111111111111; value:%11010101000000110010000000111111 ),
-   (mnemonic:'WFE';     params:(); mask:%11111111111111111111111111111111; value:%11010101000000110010000001011111 ),
-   (mnemonic:'WFI';     params:(); mask:%11111111111111111111111111111111; value:%11010101000000110010000001111111 ),
-   (mnemonic:'SEV';     params:(); mask:%11111111111111111111111111111111; value:%11010101000000110010000010011111 ),
-   (mnemonic:'SEVL';    params:(); mask:%11111111111111111111111111111111; value:%11010101000000110010000010111111 ),
+   (mnemonic:'SEV';     params:(); mask:%11111111111111111111111111111111;                                   value:%11010101000000110010000010011111 ),
+   (mnemonic:'SEVL';    params:(); mask:%11111111111111111111111111111111;                                   value:%11010101000000110010000010111111 ),
+   (mnemonic:'XPACLRI'; params:(); mask:%11111111111111111111111111111111;                                   value:%11010101000000110010000011111111 ),
+   (mnemonic:'PACIA1716';params:(); mask:%11111111111111111111111111111111;                                  value:%11010101000000110010000100011111 ),
+   (mnemonic:'PACIB1716';params:(); mask:%11111111111111111111111111111111;                                  value:%11010101000000110010000101011111 ),
+   (mnemonic:'AUTIA1716';params:(); mask:%11111111111111111111111111111111;                                  value:%11010101000000110010000110011111 ),
+   (mnemonic:'AUTIB1716';params:(); mask:%11111111111111111111111111111111;                                  value:%11010101000000110010000111011111 ),
+
+   (mnemonic:'ESB';     params:(); mask:%11111111111111111111111111111111;                                   value:%11010101000000110010001000011111 ),
+   (mnemonic:'PSB';     params:(); mask:%11111111111111111111111111111111;                                   value:%11010101000000110010001000111111 ),
+   (mnemonic:'TSB';     params:(); mask:%11111111111111111111111111111111;                                   value:%11010101000000110010001001011111 ),
+   (mnemonic:'CSDB';    params:(); mask:%11111111111111111111111111111111;                                   value:%11010101000000110010001010011111 ),
+
+   (mnemonic:'PACIAZ';  params:(); mask:%11111111111111111111111111111111;                                   value:%11010101000000110010001100011111 ),
+   (mnemonic:'PACIASP'; params:(); mask:%11111111111111111111111111111111;                                   value:%11010101000000110010001100111111 ),
+   (mnemonic:'PACIBZ';  params:(); mask:%11111111111111111111111111111111;                                   value:%11010101000000110010001101011111 ),
+   (mnemonic:'PACIBSP'; params:(); mask:%11111111111111111111111111111111;                                   value:%11010101000000110010001101111111 ),
+   (mnemonic:'AUTIAZ';  params:(); mask:%11111111111111111111111111111111;                                   value:%11010101000000110010001110011111 ),
+   (mnemonic:'AUTHASP'; params:(); mask:%11111111111111111111111111111111;                                   value:%11010101000000110010001110111111 ),
+   (mnemonic:'AUTIBZ';  params:(); mask:%11111111111111111111111111111111;                                   value:%11010101000000110010001111011111 ),
+   (mnemonic:'AUTIBSP'; params:(); mask:%11111111111111111111111111111111;                                   value:%11010101000000110010001111111111 ),
+
+   (mnemonic:'BTI';     params:((ptype:pt_imm;offset:6;maxval:3)); mask:%11111111111111111111111100111111;   value:%11010101000000110010010000011111 ),
+
+
    (mnemonic:'HINT';    params:((ptype:pt_imm;offset:5;maxval:127)); mask:%11111111111111111111000000011111; value:%11010101000000110010000000011111),
 
    (mnemonic:'CLREX';   params:((ptype:pt_imm;offset:8;maxval:15; extra: 0; optional:true; defvalue:15)); mask:%11111111111111111111000011111111; value:%11010101000000110011000001011111),
@@ -320,13 +352,13 @@ const
     (mnemonic:'LDAR';   params:((ptype:pt_xreg; offset: 0),(ptype: pt_xreg; offset:5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index)); mask:%11111111111111111111110000000000; value: %11001000110111111111110000000000)
   );
   ArmInstructionsLoadRegisterLiteral: array of TOpcode=(
-    (mnemonic:'LDR'; params:((ptype:pt_wreg; offset: 0),(ptype: pt_label; offset: 19; maxval:$7ffff)); mask:%11111111000000000000000000000000; value: %00011000000000000000000000000000),
-    (mnemonic:'LDR'; params:((ptype:pt_sreg; offset: 0),(ptype: pt_label; offset: 19; maxval:$7ffff)); mask:%11111111000000000000000000000000; value: %00011100000000000000000000000000),
-    (mnemonic:'LDR'; params:((ptype:pt_xreg; offset: 0),(ptype: pt_label; offset: 19; maxval:$7ffff)); mask:%11111111000000000000000000000000; value: %01011000000000000000000000000000),
-    (mnemonic:'LDR'; params:((ptype:pt_dreg; offset: 0),(ptype: pt_label; offset: 19; maxval:$7ffff)); mask:%11111111000000000000000000000000; value: %01011100000000000000000000000000),
-    (mnemonic:'LDRSW'; params:((ptype:pt_xreg; offset: 0),(ptype: pt_label; offset: 19; maxval:$7ffff)); mask:%11111111000000000000000000000000; value: %10011000000000000000000000000000),
-    (mnemonic:'LDR'; params:((ptype:pt_qreg; offset: 0),(ptype: pt_label; offset: 19; maxval:$7ffff)); mask:%11111111000000000000000000000000; value: %10011100000000000000000000000000),
-    (mnemonic:'PRFM'; params:((ptype:pt_prfop; offset: 0),(ptype: pt_label; offset: 19; maxval:$7ffff)); mask:%11111111000000000000000000000000; value: %11011000000000000000000000000000)
+    (mnemonic:'LDR'; params:((ptype:pt_wreg; offset: 0),(ptype: pt_label; offset: 5; maxval:$7ffff)); mask:%11111111000000000000000000000000; value: %00011000000000000000000000000000),
+    (mnemonic:'LDR'; params:((ptype:pt_sreg; offset: 0),(ptype: pt_label; offset: 5; maxval:$7ffff)); mask:%11111111000000000000000000000000; value: %00011100000000000000000000000000),
+    (mnemonic:'LDR'; params:((ptype:pt_xreg; offset: 0),(ptype: pt_label; offset: 5; maxval:$7ffff)); mask:%11111111000000000000000000000000; value: %01011000000000000000000000000000),
+    (mnemonic:'LDR'; params:((ptype:pt_dreg; offset: 0),(ptype: pt_label; offset: 5; maxval:$7ffff)); mask:%11111111000000000000000000000000; value: %01011100000000000000000000000000),
+    (mnemonic:'LDRSW'; params:((ptype:pt_xreg; offset: 0),(ptype: pt_label; offset: 5; maxval:$7ffff)); mask:%11111111000000000000000000000000; value: %10011000000000000000000000000000),
+    (mnemonic:'LDR'; params:((ptype:pt_qreg; offset: 0),(ptype: pt_label; offset: 5; maxval:$7ffff)); mask:%11111111000000000000000000000000; value: %10011100000000000000000000000000),
+    (mnemonic:'PRFM'; params:((ptype:pt_prfop; offset: 0),(ptype: pt_label; offset: 5; maxval:$7ffff)); mask:%11111111000000000000000000000000; value: %11011000000000000000000000000000)
   );
   ArmInstructionsLoadStoreNoAllocatePairOffset: array of TOpcode=(
     (mnemonic:'STNP'; params:((ptype:pt_wreg; offset:0),(ptype:pt_wreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul4;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %00101000000000000000000000000000),
@@ -936,7 +968,7 @@ const
     (mnemonic:'SMNEGL'; params:((ptype:pt_xreg; offset: 0),(ptype:pt_wreg; offset: 5),(ptype:pt_wreg; offset: 16)   ); mask:%11111111111000001111110000000000;  value:%10011011001000001111110000000000),
     (mnemonic:'SMSUBL'; params:((ptype:pt_xreg; offset: 0),(ptype:pt_wreg; offset: 5),(ptype:pt_wreg; offset: 16),(ptype:pt_xreg; offset: 10)  ); mask:%11111111111000001000000000000000;  value:%10011011001000001000000000000000),
 
-    (mnemonic:'SMULH'; params:((ptype:pt_xreg; offset: 0),(ptype:pt_xreg; offset: 5),(ptype:pt_xreg; offset: 16)  ); mask:%11111111111000001111110000000000;  value:%10011011010000001111100000000000),
+    (mnemonic:'SMULH'; params:((ptype:pt_xreg; offset: 0),(ptype:pt_xreg; offset: 5),(ptype:pt_xreg; offset: 16)  ); mask:%11111111111000001111110000000000;  value:%10011011010000000111110000000000),
 
 
     (mnemonic:'UMULL'; params:((ptype:pt_xreg; offset: 0),(ptype:pt_wreg; offset: 5),(ptype:pt_wreg; offset: 16) ); mask:%11111111111000001111110000000000;  value:%10011011101000000111110000000000),
@@ -2655,13 +2687,13 @@ function highestbit(v: dword): integer;
 var i: integer;
 begin
   case v of
-     $1ff: exit(9);
-     $3fff: exit(14);
-     $7fff: exit(15);
-     $ffff: exit(16);
-    $1ffff: exit(17);
-    $3ffff: exit(18);
-    $7ffff: exit(19);
+     $1ff: exit(8);
+     $3fff: exit(13);
+     $7fff: exit(14);
+     $ffff: exit(15);
+    $1ffff: exit(16);
+    $3ffff: exit(17);
+    $7ffff: exit(18);
     $7ffffff: exit(26);
     else
     begin
@@ -2920,7 +2952,7 @@ end;
 
 function TArm64Instructionset.ParseParametersForDisassembler(plist: TAParametersList): boolean;
 var
-  i: integer;
+  i,j: integer;
   v,v2,v3: dword;
   qv,qv2: qword;
 
@@ -3183,11 +3215,20 @@ begin
       pt_label:
       begin
         v:=(opcode shr plist[i].offset) and plist[i].maxval;
-        v:=v shl 2;
-        qv2:=SignExtend(v,highestbit(plist[i].maxval)+2);
+        j:=highestbit(plist[i].maxval);
+        qv2:=SignExtend(v,j);
+        qv2:=qv2 shl 2;
+
+        j:=highestbit(plist[i].maxval);
+
         qv:=address+qv2;
 
+
+        {$ifdef armdev}
         p:=inttohex(qv,8);
+        {$else}
+        p:=symhandler.getNameFromAddress(qv);
+        {$endif}
       end;
 
       pt_addrlabel:
@@ -3204,7 +3245,11 @@ begin
           qv:=address+v;
         end;
 
+        {$ifdef armdev}
         p:=inttohex(qv,8);
+        {$else}
+        p:=symhandler.getNameFromAddress(qv);
+        {$endif}
       end;
 
       pt_pstatefield_SP: p:='SPSEL';
@@ -3822,13 +3867,11 @@ begin
   result:=result+' - ';
   if x>0 then
   begin
-    for i:=0 to length(LastDisassembleData.bytes)-1 do
-      result:=result+inttohex(LastDisassembleData.Bytes[i],2)+' ';
+    result:=result+opcode.ToHexString(8)+' ';
   end
   else
   begin
-    for i:=0 to length(LastDisassembleData.bytes)-1 do
-      result:=result+'?? ';
+    result:=result+'???????? ';
   end;
 
   result:=result+' - ';
@@ -3861,6 +3904,13 @@ begin
      ((param[1] in ['0'..'9','A'..'F']) and (TryStrToInt64('$'+param,i64)))
   then
     result:=result+[pt_label, pt_addrlabel, pt_systemreg];
+
+  {$ifndef armdev}
+  symhandler.getAddressFromName(param,false,r);
+  if not r then
+    result:=result+[pt_label, pt_addrlabel];
+
+  {$endif}
 
 
   if tlbilist.Find(param)<>-1 then
@@ -4490,12 +4540,19 @@ begin
     begin
       if paramstr[1]='#' then paramstr:=paramstr.Substring(1);
 
+      {$ifdef armdev}
       qv:=StrToInt64('$'+paramstr);
+      {$else}
+      qv:=symhandler.getAddressFromName(paramstr);
+      {$endif}
 
-      outputdebugstring(format('assembling pt_label.  origin=%.8x target destination=%.8x',[address, qv]));
+      if syntaxcheck then qv:=address and $fffffffff0;
+
+
+      outputdebugstring(pchar(format('assembling pt_label.  origin=%.8x target destination=%.8x',[address, qv])));
       qv:=qv-address;
 
-      outputdebugstring(format('offset=%x abs offset=%x',[qv, abs(int64(qv))]));
+      outputdebugstring(pchar(format('offset=%x abs offset=%x',[qv, abs(int64(qv))])));
 
 
       if address and %11 >0 then exit;
@@ -4510,7 +4567,12 @@ begin
 
     pt_addrlabel:
     begin
+      {$ifdef armdev}
       qv:=StrToInt64('$'+paramstr);
+      {$else}
+      qv:=symhandler.getAddressFromName(paramstr);
+      {$endif}
+      if syntaxcheck then qv:=address and $fffffffff0;
 
 
       if param.extra=0 then
@@ -5366,7 +5428,13 @@ var
   match: boolean;
 begin
   InitARM64Support;
-  outputdebugstring('Assembling ARM64 instruction '+instruction+' at '+inttohex(_address,8));
+
+  syntaxcheck:=_address=0;
+
+  if syntaxcheck then
+    outputdebugstring(pchar('Syntaxcheck: Assembling ARM64 instruction '+instruction+' at '+inttohex(_address,8)))
+  else
+    outputdebugstring(pchar('Assembling ARM64 instruction '+instruction+' at '+inttohex(_address,8)));
   result:=0;
   parameters:=[];
 

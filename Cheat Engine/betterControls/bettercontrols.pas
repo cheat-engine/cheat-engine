@@ -13,7 +13,7 @@ uses
   newScrollBox, {$ifndef bc_skipsynedit}newSynEdit,{$endif}
   newPageControl, newtabcontrol, newStatusBar,
   newCheckListBox, newCheckGroup, newColorBox, newDirectoryEdit, NewHintwindow,
-  newToggleBox, newvirtualstringtree,
+  newToggleBox, {$ifndef bc_skipvirtualstringtree}newvirtualstringtree,{$endif}
   Graphics, Themes, UxTheme, bettercontrolColorSet;
 {$else}
 uses {macport,} graphics,math, bettercontrolColorSet;
@@ -53,7 +53,9 @@ type
   THintWindowClass =class of TNewHintwindow;
 
   TToggleBox=class(TNewToggleBox);
+  {$ifndef bc_skipvirtualstringtree}
   TLazVirtualStringTree=class(TNewLazVirtualStringTree);
+  {$endif}
 
 {$endif}
 var
@@ -91,6 +93,7 @@ var
 
 
   procedure registerDarkModeHintHandler;
+  procedure registerDarkModeFormAddHandler;
   {$endif}
 
   {$ifdef darwin}
@@ -205,22 +208,42 @@ end;
 
 
 type
-  TBCHintHandler=class
+  TBCFormEventHandler=class
   private
     procedure ShowHintEvent(var HintStr: string; var CanShow: Boolean; var HintInfo: THintInfo);
+    procedure FormAddedEvent(Sender: TObject; Form: TCustomForm);
   end;
 
-procedure TBCHintHandler.ShowHintEvent(var HintStr: string; var CanShow: Boolean; var HintInfo: THintInfo);
+procedure TBCFormEventHandler.ShowHintEvent(var HintStr: string; var CanShow: Boolean; var HintInfo: THintInfo);
 begin
   if ShouldAppsUseDarkMode then
     HintInfo.HintColor:=ColorSet.TextBackground;
 end;
 
-procedure registerDarkModeHintHandler;
-var hh: TBCHintHandler;
+procedure TBCFormEventHandler.FormAddedEvent(Sender: TObject; Form: TCustomForm);
 begin
-  hh:=TBCHintHandler.Create;
+  {if ShouldAppsUseDarkMode then
+  begin
+    form.color:=$242424;
+    if form.font.color=clDefault then
+      form.font.color:=colorset.FontColor;
+  end;  }
+
+  //todo
+end;
+
+procedure registerDarkModeHintHandler;
+var hh: TBCFormEventHandler;
+begin
+  hh:=TBCFormEventHandler.Create;
   application.AddOnShowHintHandler(hh.ShowHintEvent);
+end;
+
+procedure registerDarkModeFormAddHandler;
+var hh: TBCFormEventHandler;
+begin
+  hh:=TBCFormEventHandler.Create;
+  screen.AddHandlerFormAdded(hh.FormAddedEvent);
 end;
 
 var

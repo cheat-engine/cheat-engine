@@ -7,7 +7,7 @@
 
 
                                 //yyyymmdd
-#define MONO_DATACOLLECTORVERSION 20230409 
+#define MONO_DATACOLLECTORVERSION 20230512 
 
 #define MONO_TYPE_NAME_FORMAT_IL  0
 #define MONO_TYPE_NAME_FORMAT_REFLECTION  1
@@ -73,7 +73,11 @@
 #define MONOCMD_GETCLASSTYPE 55
 #define MONOCMD_GETCLASSOFTYPE 56
 #define MONOCMD_GETTYPEOFMONOTYPE 57
-#define MONOCMD_GETREFLECTIONTYPEOFCLASSTYPE 58					 
+#define MONOCMD_GETREFLECTIONTYPEOFCLASSTYPE 58
+#define MONOCMD_GETREFLECTIONMETHODOFMONOMETHOD 59
+#define MONOCMD_MONOOBJECTUNBOX 60
+#define MONOCMD_MONOARRAYNEW 61
+#define MONOCMD_ENUMINTERFACESOFCLASS 62
 
 
 typedef struct {} MonoType;
@@ -122,6 +126,7 @@ typedef char* (__cdecl *MONO_CLASS_NAME_FROM_TOKEN)(void *image, UINT32 token);
 typedef void* (__cdecl *MONO_CLASS_GET_METHODS)(void *klass, void *iter);
 typedef void* (__cdecl *MONO_CLASS_GET_METHOD_FROM_NAME)(void *klass, char *methodname, int paramcount);
 typedef void* (__cdecl *MONO_CLASS_GET_FIELDS)(void *klass, void *iter);
+typedef void* (__cdecl *MONO_CLASS_GET_INTERFACES)(void *klass, void *iter);
 typedef void* (__cdecl *MONO_CLASS_GET_PARENT)(void *klass);
 typedef void* (__cdecl *MONO_CLASS_GET_IMAGE)(void *klass);
 typedef void* (__cdecl *MONO_CLASS_VTABLE)(void *domain, void *klass);
@@ -146,6 +151,8 @@ typedef void* (__cdecl* MONO_TYPE_GET_CLASS)(void* type);
 typedef int (__cdecl *MONO_TYPE_GET_TYPE)(void *type);
 typedef void* (__cdecl *MONO_TYPE_GET_OBJECT)(void *domain, void *type);
 typedef void* (__cdecl *IL2CPP_TYPE_GET_OBJECT)(void *type);
+typedef void* (__cdecl *MONO_METHOD_GET_OBJECT)(void *domain, void *method, void* klass);
+typedef void* (__cdecl *IL2CPP_METHOD_GET_OBJECT)(void* method, void* klass);
 
 
 typedef char* (__cdecl *MONO_TYPE_GET_NAME_FULL)(void *type, int format);
@@ -201,6 +208,7 @@ typedef void* (__cdecl *MONO_IMAGE_LOADED)(void *aname);
 typedef void* (__cdecl *MONO_STRING_NEW)(void *domain, const char *text);
 typedef char* (__cdecl *MONO_STRING_TO_UTF8)(void*);
 typedef void* (__cdecl *MONO_ARRAY_NEW)(void *domain, void *eclass, uintptr_t n);
+typedef void* (__cdecl *IL2CPP_ARRAY_NEW)(void *eclass, uintptr_t n);
 typedef int (__cdecl *MONO_ARRAY_ELEMENT_SIZE)(void * klass);
 typedef void* (__cdecl *MONO_OBJECT_TO_STRING)(void *object, void **exc);
 typedef void* (__cdecl *MONO_OBJECT_NEW)(void *domain, void *klass);
@@ -304,6 +312,7 @@ private:
 
 	MONO_CLASS_NUM_FIELDS mono_class_num_fields;
 	MONO_CLASS_GET_FIELDS mono_class_get_fields;
+	MONO_CLASS_GET_INTERFACES mono_class_get_interfaces;
 
 	MONO_CLASS_NUM_METHODS mono_class_num_methods;
 	MONO_CLASS_GET_METHODS mono_class_get_methods;
@@ -321,6 +330,8 @@ private:
 	MONO_TYPE_GET_TYPE mono_type_get_type;
 	MONO_TYPE_GET_OBJECT mono_type_get_object; //return a ReflectionType* object
 	IL2CPP_TYPE_GET_OBJECT il2cpp_type_get_object;
+	MONO_METHOD_GET_OBJECT mono_method_get_object;
+	IL2CPP_METHOD_GET_OBJECT il2cpp_method_get_object;
 	MONO_TYPE_IS_STRUCT mono_type_is_struct;
 	MONO_TYPE_GET_CLASS mono_type_get_class;													  
 	MONO_TYPE_GET_NAME_FULL mono_type_get_name_full;
@@ -363,6 +374,7 @@ private:
 	MONO_STRING_NEW mono_string_new;
 	MONO_STRING_TO_UTF8 mono_string_to_utf8;
 	MONO_ARRAY_NEW mono_array_new;
+	IL2CPP_ARRAY_NEW il2cpp_array_new;
 	MONO_ARRAY_ELEMENT_SIZE mono_array_element_size;
 	MONO_OBJECT_TO_STRING mono_object_to_string;
 	MONO_OBJECT_NEW mono_object_new;
@@ -429,6 +441,7 @@ private:
 	void EnumClassesInImage();
 	void EnumClassesInImageEx();
 	void EnumFieldsInClass();
+	void EnumImplementedInterfacesOfClass();
 	void EnumMethodsInClass();
 	void CompileMethod();
 	void GetMethodHeader();
@@ -453,6 +466,8 @@ private:
 	void GetClassOfType();
 	void GetTypeOfMonoType();
 	void GetReflectionTypeOfClassType();
+	void GetReflectionMethodOfMethod();
+	void UnBoxMonoObject();
 	void GetVTableFromClass();
 	void GetStaticFieldAddressFromClass();
 	void GetTypeClass();
@@ -469,6 +484,7 @@ private:
 	void IsValueTypeClass();
 	void IsSubClassOf();
 	void GetArrayElementSize();
+	void NewCSArray();
 	void IsIL2CPP();
 	void FillOptionalFunctionList(); //mainly for unixbased systems
 	void GetStaticFieldValue();

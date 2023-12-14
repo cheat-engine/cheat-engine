@@ -38,10 +38,12 @@ type TModuleLoader=class
     importlist: TStringHashList;
     procedure cleanupExportList;
     function FindKernelModuleExport(modulename: string; exportname: string): ptruint;
+    procedure createFromMemoryStream(memstream: tmemorystream);
   public
     Exporttable: TStringlist;
     procedure createSymbolListHandler;
     constructor create(filename: string);
+    constructor create(memstream: tmemorystream; filename: string='<memstream>.dll');
   published
     property BaseAddress: ptruint read destinationBase;
     property Loaded: boolean read FLoaded;
@@ -67,6 +69,7 @@ var
 begin
   module:=ExtractFileName(filename);
   fSymbolList:=TSymbolListHandler.create;
+  fSymbolList.name:=filename;
 
   fSymbolList.AddModule(module,filename,destinationbase,modulesize,is64bit);
 
@@ -104,7 +107,31 @@ begin
   result:=0;
 end;
 
+constructor TModuleLoader.create(memstream: tmemorystream; filename: string='<memstream>.dll');
+begin
+  inherited create;
+
+  self.filename:=filename;
+  createFromMemoryStream(memstream);
+end;
+
 constructor TModuleLoader.create(filename: string);
+var m: TMemoryStream;
+begin
+  inherited create;
+
+  self.filename:=filename;
+
+  m:=tmemorystream.create;
+  try
+    m.LoadFromFile(filename);
+    createFromMemoryStream(m);
+  finally
+    m.free;
+  end;
+end;
+
+procedure TModuleLoader.createFromMemoryStream(memstream: tmemorystream);
 var
   i,j,k: integer;
   filemap: TMemorystream;
@@ -134,11 +161,6 @@ var
   processhandle: thandle;
   mi: TModuleInfo;
 begin
-  inherited create;
-
-
-  self.filename:=filename;
-
   exporttable:=tstringlist.create;
 
   pid:=processid;
@@ -148,15 +170,9 @@ begin
     
   processhandle:=dbk32functions.OP(ifthen<dword>(GetSystemType<=6,$1f0fff, process_all_access), true, pid);
 
-  filemap:=tmemorystream.Create;
+  filemap:=memstream;
+  filemap.Position:=0;
   try
-    //showmessage('Loading '+filename);
-
-
-    //todo: add a filesearch if no patch is given
-
-    filemap.LoadFromFile(filename);
-    
     if PImageDosHeader(filemap.Memory)^.e_magic<>IMAGE_DOS_SIGNATURE then
       raise exception.create(rsMMLNotAValidFile);
 
@@ -422,8 +438,6 @@ begin
       tempmap.free;
     end;
   finally
-    filemap.free;
-
     cleanupExportList;
   end;
 end;

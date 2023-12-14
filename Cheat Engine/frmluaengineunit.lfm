@@ -83,7 +83,7 @@ object frmLuaEngine: TfrmLuaEngine
         Style = tbsDivider
       end
       object tbStopDebug: TToolButton
-        Left = 51
+        Left = 52
         Hint = 'Stop'
         Top = 2
         Caption = 'tbStopDebug'
@@ -157,6 +157,7 @@ object frmLuaEngine: TfrmLuaEngine
         OnMouseMove = mScriptMouseMove
         OnMouseLink = mScriptMouseLink
         BookMarkOptions.BookmarkImages = ilSyneditDebug
+        BorderStyle = bsNone
         Gutter.Width = 53
         Gutter.MouseActions = <        
           item

@@ -6,7 +6,11 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ExtCtrls, math, LuaCanvas, FPImage, FPCanvas, FPImgCanv, FPReadPNG, FPWritePNG, betterControls;
+  ExtCtrls, math, LuaCanvas, FPImage, FPCanvas, FPImgCanv, FPReadPNG, FPWritePNG
+  {$ifdef laztrunk}
+  , LazFileUtils
+  {$endif}
+  , betterControls;
 
 resourcestring
   rsSSAreYouSureYouWishToThrowAwayTheseSnapshots = 'Are you sure you wish to throw away these snapshots?';

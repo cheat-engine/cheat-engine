@@ -141,7 +141,7 @@ type
     { Private declarations }
     loadedPosition: boolean;
     setcountwidth: boolean;
-    fdbvmwatchid: integer;
+    fdebuggerinterfacewatchid: integer;
     {$ifdef windows}
     dbvmwatchpollthread: TDBVMWatchPollThread;
     {$endif}
@@ -154,7 +154,7 @@ type
     procedure addInfo(Coderecord: TCoderecord);
     procedure moreinfo;
     function getSelection: string;
-    procedure setdbvmwatchid(id: integer);
+    procedure setdebuggerinterfacewatchid(id: integer);
     procedure ChangedAddressClose(Sender: TObject; var CloseAction: TCloseAction);
   public
     { Public declarations }
@@ -176,7 +176,7 @@ type
 
     procedure AddRecord;
     procedure setChangedAddressCount(address :ptruint);
-    property dbvmwatchid: integer read fdbvmwatchid write setdbvmwatchid;
+    property debuggerinterfacewatchid: integer read fdebuggerinterfacewatchid write setdebuggerinterfacewatchid;
   end;
 
 
@@ -572,14 +572,20 @@ begin
   coderecord.size:=address2-address;
   coderecord.opcode:=opcode;
   coderecord.description:=desc;
-  coderecord.context:=currentthread.context;
+  coderecord.context:=currentthread.context;  //this makes a copy, so no worries about pointers
   coderecord.LastDisassembleData:=ldi;
   coderecord.savestack;
   coderecord.hitcount:=1;
   coderecord.diffcount:=0;
 
-  getmem(coderecord.ipt.log, iptlogsize);
-  copymemory(coderecord.ipt.log, iptlog, iptlogsize);
+  if iptlogsize<>0 then
+  begin
+    getmem(coderecord.ipt.log, iptlogsize);
+    copymemory(coderecord.ipt.log, iptlog, iptlogsize);
+  end
+  else
+    coderecord.ipt.log:=nil;
+
   coderecord.ipt.size:=iptlogsize;
 
 
@@ -613,10 +619,10 @@ begin
   end;
 
 
-  if dbvmwatchid<>-1 then
+  if debuggerinterfacewatchid<>-1 then
   begin
-    dbvm_watch_delete(dbvmwatchid);
-    dbvmwatchid:=-1;
+    dbvm_watch_delete(debuggerinterfacewatchid);
+    debuggerinterfacewatchid:=-1;
   end;
 
   if dbvmwatch_unlock<>0 then
@@ -627,10 +633,10 @@ begin
   {$endif}
 end;
 
-procedure TFoundCodeDialog.setdbvmwatchid(id: integer);
+procedure TFoundCodeDialog.setdebuggerinterfacewatchid(id: integer);
 begin
   {$IFDEF windows}
-  fdbvmwatchid:=id;
+  fdebuggerinterfacewatchid:=id;
 
   if id<>-1 then
   begin
@@ -1292,7 +1298,7 @@ begin
     setcountwidth:=true;
   end;
 
-  fdbvmwatchid:=-1;
+  fdebuggerinterfacewatchid:=-1;
 
   countsortdirection:=1;
   addresssortdirection:=1;

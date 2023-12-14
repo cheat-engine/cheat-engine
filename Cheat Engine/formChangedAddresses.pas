@@ -159,7 +159,7 @@ type
     faddress: ptruint;
     defaultcolor: TColor;
 
-    fdbvmwatchid: integer;
+    fdebuggerinterfacewatchid: integer;
     {$ifdef windows}
     dbvmwatchpollthread: TDBVMWatchExecutePollThread;
     {$endif}
@@ -175,7 +175,7 @@ type
     procedure stopdbvmwatch;
     procedure refetchValues(specificaddress: ptruint=0;countonly: boolean=false);
     procedure setAddress(a: ptruint);
-    procedure setdbvmwatchid(id: integer);
+    procedure setdebuggerinterfacewatchid(id: integer);
   public
     { Public declarations }
     equation: string;
@@ -195,7 +195,7 @@ type
     procedure clearFilter;
     procedure AddRecord;
     property address: ptruint read fAddress write setAddress;
-    property dbvmwatchid: integer read fdbvmwatchid write setdbvmwatchid;
+    property debuggerinterfacewatchid: integer read fdebuggerinterfacewatchid write setdebuggerinterfacewatchid;
   end;
 
 
@@ -1464,7 +1464,7 @@ procedure TfrmChangedAddresses.FormCreate(Sender: TObject);
 var x: array of integer;
     i: integer;
 begin
-  fdbvmwatchid:=-1;
+  fdebuggerinterfacewatchid:=-1;
   currentFilterFunc:=-1;
   okbutton.caption:=rsStop;
 
@@ -1502,10 +1502,10 @@ begin
     freeandnil(dbvmwatchpollthread);
   end;
 
-  if dbvmwatchid<>-1 then
+  if debuggerinterfacewatchid<>-1 then
   begin
-    dbvm_watch_delete(dbvmwatchid);
-    dbvmwatchid:=-1;
+    dbvm_watch_delete(debuggerinterfacewatchid);
+    debuggerinterfacewatchid:=-1;
   end;
 
   if dbvmwatch_unlock<>0 then
@@ -1516,10 +1516,10 @@ begin
   {$ENDIF}
 end;
 
-procedure TfrmChangedAddresses.setdbvmwatchid(id: integer);
+procedure TfrmChangedAddresses.setdebuggerinterfacewatchid(id: integer);
 begin
   {$IFDEF windows}
-  fdbvmwatchid:=id;
+  fdebuggerinterfacewatchid:=id;
 
   if id<>-1 then
   begin

@@ -671,7 +671,7 @@ begin
 
   SurfaceList:=tlist.create;
 
-  GlobalDesignHook:=TPropertyEditorHook.Create;
+  GlobalDesignHook:=TPropertyEditorHook.Create(self);
   GlobalDesignHook.AddHandlerCreateMethod(onCreateMethod);
   GlobalDesignHook.AddHandlerGetMethodName(ogm);
   GlobalDesignHook.AddHandlerGetMethods(onGetMethods);
