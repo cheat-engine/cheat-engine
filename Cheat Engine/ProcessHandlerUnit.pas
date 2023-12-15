@@ -27,6 +27,7 @@ type
 type TProcessHandler=class
   private
     fis64bit: boolean;
+    fIsAndroid: boolean;
     fprocesshandle: THandle;
     fpointersize: integer;
     fSystemArchitecture: TSystemArchitecture;
@@ -43,6 +44,7 @@ type TProcessHandler=class
     procedure overridePointerSize(newsize: integer);
 
     property is64Bit: boolean read fIs64Bit write setIs64bit;
+    property isAndroid: boolean read fIsAndroid;
     property pointersize: integer read fPointersize;
     property processhandle: THandle read fProcessHandle write setProcessHandle;
     property SystemArchitecture: TSystemArchitecture read fSystemArchitecture write fSystemArchitecture;
@@ -62,7 +64,8 @@ implementation
 {$ifdef jni}
 uses networkinterface, networkInterfaceApi;
 {$else}
-uses LuaHandler, mainunit, networkinterface, networkInterfaceApi, ProcessList, lua, FileUtil;
+uses LuaHandler, mainunit, networkInterface, networkInterfaceApi, ProcessList, lua,
+  FileUtil, globals;
 {$endif}
 
 procedure TProcessHandler.overridePointerSize(newsize: integer);
@@ -107,6 +110,7 @@ begin
   c:=getConnection;
   if c<>nil then
   begin
+    fIsAndroid:=c.isAndroid;
     arch:=c.getArchitecture(fprocesshandle);
     case arch of
       0:   //i386
@@ -143,11 +147,26 @@ begin
   end
   else
   begin
+    fIsAndroid:=false;
     //outputdebugstring('setProcessHandle not windows');
 
     {$ifdef darwin}
+    outputdebugstring('setProcessHandle');
     if MacIsArm64 then  //rosetta2 or I finally ported it to full armv8
-      fSystemArchitecture:=archArm;
+    begin
+      if isProcessTranslated(processid) then
+      begin
+        outputdebugstring('rosetta. So x86');
+        fSystemArchitecture:=archX86;
+        globals.SystemSupportsWritableExecutableMemory:=true;
+      end
+      else
+      begin
+        outputdebugstring('not rosetta. So pure ARM');
+        fSystemArchitecture:=archArm;
+        globals.SystemSupportsWritableExecutableMemory:=false;
+      end;
+    end;
     {$else}
     fSystemArchitecture:=archX86;
     {$endif}

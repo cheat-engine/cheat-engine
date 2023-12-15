@@ -3,23 +3,33 @@ unit symbolsync;
 {$mode ObjFPC}{$H+}
 
 //xml format:
-//<process pid:int name: string>
-//  <symbol name: string address: integer donotsave: boolean size: integer></symbol>
-//  <symbol name: string address: integer donotsave: boolean size: integer></symbol>
-//  ....
-//  <symbollist name: string uniquename: string>
-//    <module name: string address: integer length: integer></module>
-//    <symbol name: string address: integer length: integer modulename: string></symbol>
-//    <symbol name: string address: integer length: integer></symbol>
-//    ...
-//  </symbollist>
-//</process>
+//<symbols>
+//  <process pid:int name: string>
+//    <symbol name: string address: integer donotsave: boolean size: integer></symbol>
+//    <symbol name: string address: integer donotsave: boolean size: integer></symbol>
+//    ....
+//    <symbollist name: string uniquename: string>
+//      <module name: string address: integer length: integer></module>
+//      <symbol name: string address: integer length: integer modulename: string></symbol>
+//      <symbol name: string address: integer length: integer></symbol>
+//      ...
+//    </symbollist>
+//  </process>
+//  ...
+//</symbols>
 
 
 interface
 
 uses
-  jwawindows, windows, Classes, SysUtils, XMLRead, XMLWrite, DOM, NewKernelHandler;
+  Classes, SysUtils,
+  {$ifdef windows}
+  jwawindows, windows,
+  {$endif}
+  {$ifdef darwin}
+  macport,macportdefines,
+  {$endif}
+  XMLRead, XMLWrite, DOM, NewKernelHandler;
 
 function SyncSymbolsNow(retrieveOnly: boolean=false):boolean; //collect all non-table saved symbols and store them in the symbol database file. Check if the last sync time is higher than the previous one, and if so, load added entries in the (synchronized) symbollist , else write the current symbols to the database and delete older entries that are not there anymore
 
@@ -30,7 +40,7 @@ implementation
 
 uses LazFileUtils, ProcessHandlerUnit, FileUtil, Globals, mainunit2,
   symbolhandler, symbolhandlerstructs, SymbolListHandler, ProcessList,
-  maps, syncobjs;
+  maps, syncobjs, forms;
 
 type
   TSymbolSyncThread=class(TThread)
@@ -55,17 +65,29 @@ end;
 
 procedure TSymbolSyncThread.Execute;
 begin
-  Priority:=tpIdle;
-  while not terminated do
-  begin
-    if symsync_Interval=0 then
-      symsync_Interval:=1;
+  try
+    {$ifdef THREADNAMESUPPORT}
+    SetThreadDebugName(GetCurrentThreadId, 'Symbol synchronize thread');
+    {$endif}
+    Priority:=tpIdle;
+    while not terminated do
+    begin
+      if symsync_Interval=0 then
+        symsync_Interval:=1;
 
-    if canceled.WaitFor(symsync_Interval*1000)=wrSignaled then break;
-    if (lastsync=0) or (processid=0) then continue;
+      if canceled.WaitFor(symsync_Interval*1000)=wrSignaled then break;
+      if (lastsync=0) or (processid=0) then continue;
 
-    if SyncSymbols then
-      SyncSymbolsNow(false)
+      if SyncSymbols then
+      begin
+        if symhandler<>nil then
+          SyncSymbolsNow(false);
+      end;
+    end;
+  except
+    on e: exception do
+      if assigned(application.OnException) then
+        application.OnException(self, e);
   end;
 end;
 
@@ -237,20 +259,18 @@ var
   symbolpath: string;
   symbolfilepath: string;
 
-  fs: TFilestream;
+  fs: TFilestream=nil;
   trycount: integer;
 
-  d: TXMLDocument;
-  n: TDomElement;
+  d: TXMLDocument=nil;
+  n,symbolsyncnode, processnode: TDomElement;
   usedtempdir: string;
 
   HasBeenUpdatedSinceLastSync: boolean;
 
-  ths: THandle;
-  pe: TProcessEntry32;
-  pidlookup: TMap=nil;
+
   pname: string;
-  t: pchar;
+  t: string;
   mi: TMapIterator;
 
   i: integer;
@@ -266,7 +286,9 @@ var
   symfileage: longint;
 
   updated: boolean;
-  madeChanges: boolean;
+  madeChanges: boolean=false;
+  s: string;
+  sa: TStringArray;
 begin
 
   if (length(trim(tempdiralternative))>2) and dontusetempdir then
@@ -283,8 +305,19 @@ begin
   while trycount<10 do
   begin
     try
+      {$ifdef unix}
+      fs:=TFileStream.Create(symbolfilepath+'.lock', fmOpenRead);
+      try
+        pid:=fs.ReadDWord;
+
+        if (pid<>GetCurrentProcessId) and pidexists(pid) then raise EFilerError.create('Another process has a lock on the symbolfile. Waiting');
+      finally
+        fs.free;
+      end;
+      {$endif}
+
       fs:=TFileStream.Create(symbolfilepath+'.lock', fmCreate, fmShareExclusive);
-      fs.WriteAnsiString(GetCurrentProcessId.ToString+'.'+GetCurrentThreadId.ToString);
+      fs.WriteDword(GetCurrentProcessId);
       break;
     except
       //try again
@@ -310,6 +343,8 @@ begin
     DeleteFileUTF8(symbolfilepath);
 
     d:=TXMLDocument.Create;
+    symbolsyncnode:=TDOMElement(d.CreateElement('symbolsync'));
+    d.AppendChild(symbolsyncnode);
   end;
 
   if retrieveonly then //only set when on openprocess
@@ -325,28 +360,19 @@ begin
 
 
     //delete process entries that do not exist anymore (or wrong pid)
-    pidlookup:=tmap.Create(itu8,sizeof(pchar));
-    ths:=CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS,0);
-    if (ths<>0) and (ths<>INVALID_HANDLE_VALUE) then
-    begin
+    pidlookup_init;
 
-      if Process32First(ths, pe) then
-      repeat
-        if pe.th32ProcessID=0 then continue;
 
-        pname:=pchar(@pe.szExeFile[0]);
-        pname:=extractfilename(pname);
 
-        t:=strnew(pchar(pname));
-        pid:=pe.th32ProcessID;
-        pidlookup.Add(pid, t);
-      until Process32Next(ths,pe)=false;
-
-      closehandle(ths);
-    end;
+   // outputdebugstring('after processlist');
 
     updated:=false;
-    nodelist:=d.GetChildNodes;
+    symbolsyncnode:=TDomElement(d.FindNode('symbolsync'));
+    if symbolsyncnode<>nil then
+      nodelist:=symbolsyncnode.ChildNodes
+    else
+      nodelist:=nil;
+
     i:=0;
     if nodelist<>nil then
     begin
@@ -364,22 +390,21 @@ begin
           begin
             pid:=pidstring.ToInt64;
             deleteEntry:=true;
-            if pidlookup.GetData(pid,t) then
-            begin
-              if namestring=t then
-                deleteEntry:=false;
-            end;
+
+            if namestring=getpidname(pid) then deleteEntry:=false;
 
             if deleteEntry then
             begin
               nodelist[i].Free;
+              madeChanges:=true;
               continue;
             end
             else
             begin
               if pid=processid then
               begin
-                madeChanges:=SyncSymbolsFromNode(nodelist[i], HasBeenUpdatedSinceLastSync);
+                if SyncSymbolsFromNode(nodelist[i], HasBeenUpdatedSinceLastSync) then
+                  madeChanges:=true;
                 updated:=true;
               end;
             end;
@@ -396,12 +421,15 @@ begin
       //create a new node
       pid:=processid;
 
-      if pidlookup.GetData(pid,t) then
+      t:=getpidname(pid);
+      if t<>'' then
       begin
-        n:=TDOMElement(d.AppendChild(d.CreateElement('process')));
-        n.SetAttribute('pid', processid.ToString);
-        n.SetAttribute('name', t);
-        madeChanges:=SyncSymbolsFromNode(n, false);
+        processnode:=TDOMElement(symbolsyncnode.AppendChild(d.CreateElement('process')));
+        processnode.AttribStrings['pid']:=processid.ToString;
+        processnode.AttribStrings['name']:=t;
+
+        if SyncSymbolsFromNode(processnode, false) then
+          madeChanges:=true;
       end;
     end;
 
@@ -420,29 +448,16 @@ begin
 
     lastsync:=FileAge(symbolfilepath);
 
+
   finally
     fs.Size:=0;
     fs.free;
 
-    DeleteFile(symbolfilepath+'.lock');
+    DeleteFile(pchar(symbolfilepath+'.lock'));
 
-    if pidlookup<>nil then
-    begin
-      mi:=TMapIterator.Create(pidlookup);
-      mi.First;
-      while not mi.EOM do
-      begin
-        t:=nil;
-        mi.GetData(t);
-        if t<>nil then
-          StrDispose(t);
 
-        mi.Next;
-      end;
-
-      mi.free;
-      pidlookup.Free;
-    end;
+    if d<>nil then
+      freeandnil(d);
 
   end;
 

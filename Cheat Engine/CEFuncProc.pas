@@ -191,7 +191,7 @@ procedure Log(s: string);
 {$endif}
 
 
-function requiresAdmin: boolean;
+function requiresAdmin(featurename: string=''): boolean;
 function relaunchAsAdmin(params: widestring): boolean;
 
 
@@ -363,7 +363,8 @@ uses disassembler,CEDebugger,debughelper, symbolhandler, symbolhandlerstructs,
      frmProcessWatcherUnit, KernelDebugger, formsettingsunit, MemoryBrowserFormUnit,
      savedscanhandler, networkInterface, networkInterfaceApi, vartypestrings,
      processlist, Parsers, Globals, xinput, luahandler, LuaClass, LuaObject,
-     UnexpectedExceptionsHelper, LazFileUtils, autoassembler, Clipbrd, mainunit2, cpuidUnit, OpenSave;
+     UnexpectedExceptionsHelper, LazFileUtils, autoassembler, Clipbrd, mainunit2,
+     cpuidUnit, OpenSave, GDBServerDebuggerInterface, DebuggerInterfaceAPIWrapper;
 
 
 resourcestring
@@ -422,7 +423,7 @@ resourcestring
   rsPosition = ' Position';
   rsThisCanTakeSomeTime = 'This can take some time if you are missing the '
     +'PDB''s and CE will look frozen. Are you sure?';
-  rsAskToRestartForAdmin = 'This function requires administrator rights. '
+  rsAskToRestartForAdmin = '%s requires administrator rights. '
     +'Relaunch CE using admin rights?';
 
 function ProcessID: dword;
@@ -2794,14 +2795,26 @@ begin
   end
   else
   begin
-    ntsuspendProcess(processhandle);
+    if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+      TGDBServerDebuggerInterface(CurrentDebuggerInterface).suspendProcess
+    else
+      ntsuspendProcess(processhandle);
+
     v:=VirtualProtectEx(processhandle, pointer(address),size,PAGE_READWRITE,original);
     if v then
     begin
-      result:=writeprocessmemory(processhandle,pointer(address),buffer,size,s);
+      if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) and GDBWriteProcessMemoryCodeOnly then
+        TGDBServerDebuggerInterface(CurrentDebuggerInterface).writeBytes(address, buffer,size)
+      else
+        result:=writeprocessmemory(processhandle,pointer(address),buffer,size,s);
+
       result:=result or VirtualProtectEx(processhandle, pointer(address),size,original,a);
     end;
-    ntresumeProcess(processhandle);
+
+    if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+      TGDBServerDebuggerInterface(CurrentDebuggerInterface).resumeProcess
+    else
+      ntresumeProcess(processhandle);
   end;
 end;
 
@@ -3883,6 +3896,7 @@ type
   TRequireAdminDialog=class
   private
   public
+    feature: string;
     result: boolean;
     procedure showDialog;
   end;
@@ -3891,12 +3905,20 @@ procedure TRequireAdminDialog.showDialog;
 var i: integer;
 begin
   result:=false;
+  {$ifdef windows}
   for i:=1 to ParamCount do
     if ParamStr(i)='relaunchAsAdmin' then exit; //weird, but should prevent infinite loops in case this happens
 
   if askAboutRunningAsAdmin then
   begin
-    if MessageDlg(rsAskToRestartForAdmin, mtConfirmation, [mbYes, mbNo], 0)<>mryes then exit;
+    if feature<>'' then
+    begin
+      if MessageDlg(format(rsAskToRestartForAdmin, [feature]), mtConfirmation, [mbYes, mbNo], 0)<>mryes then exit;
+    end
+    else
+    begin
+      if MessageDlg(format(rsAskToRestartForAdmin, ['This function']), mtConfirmation, [mbYes, mbNo], 0)<>mryes then exit;
+    end;
   end;
 
 
@@ -3910,9 +3932,10 @@ begin
     end;
 
   end;
+  {$endif}
 end;
 
-function requiresAdmin: boolean;
+function requiresAdmin(featurename: string=''): boolean;
 var d: TRequireAdminDialog;
 begin
   result:=runningAsAdmin;
@@ -3920,6 +3943,7 @@ begin
   if not result then
   begin
     d:=TRequireAdminDialog.Create;
+    d.feature:=featurename;
     if MainThreadID=GetCurrentThreadId then
       d.showDialog
     else
@@ -3938,6 +3962,7 @@ initialization
   StackStartCacheCS:=TCriticalSection.Create;
 
   askAboutRunningAsAdmin:=false;
+  {$ifdef windows}
   runningAsAdmin:=IsWindowsAdmin;
   if runningAsAdmin then
   begin
@@ -3947,6 +3972,7 @@ initialization
     else
       CloseServiceHandle(h);
   end;
+  {$endif}
 
   if not assigned(OpenProcess) then
   begin

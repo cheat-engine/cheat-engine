@@ -4,10 +4,15 @@ unit speedhack2;
 
 interface
 
-uses Classes,LCLIntf, SysUtils, NewKernelHandler,CEFuncProc, symbolhandler, symbolhandlerstructs,
+uses Classes,LCLIntf, SysUtils, NewKernelHandler,CEFuncProc, symbolhandler, symbolhandlerstructs,  lua, lauxlib, lualib,
      autoassembler, dialogs,Clipbrd, commonTypeDefs, controls{$ifdef darwin},macport, FileUtil{$endif};
 
-type TSpeedhack=class
+type
+  TSpeedHackSetSpeedEvent=function(speed: single; out r: boolean; out error: string): boolean of object;
+  TSpeedHackActivateEvent=function(out r: boolean; out error: string): boolean of object;
+
+
+  TSpeedhack=class
   private
     fProcessId: dword;
     initaddress: ptrUint;
@@ -22,14 +27,61 @@ type TSpeedhack=class
 
 var speedhack: TSpeedhack;
 
+function registerSpeedhackCallbacks(OnActivate: TSpeedHackActivateEvent; OnSetSpeed: TSpeedHackSetSpeedEvent): integer;
+procedure unregisterSpeedhackCallbacks(id: integer);
+
 implementation
 
-uses frmAutoInjectUnit, networkInterface, networkInterfaceApi, ProcessHandlerUnit, Globals;
+uses frmAutoInjectUnit, networkInterface, networkInterfaceApi, ProcessHandlerUnit,
+     Globals, luahandler, luacaller;
 
 resourcestring
   rsFailureEnablingSpeedhackDLLInjectionFailed = 'Failure enabling speedhack. (DLL injection failed)';
   rsFailureConfiguringSpeedhackPart = 'Failure configuring speedhack part';
   rsFailureSettingSpeed = 'Failure setting speed';
+
+type
+  TSpeedhackCallback=record
+    OnActivate: TSpeedHackActivateEvent;
+    OnSetSpeed: TSpeedHackSetSpeedEvent;
+  end;
+
+var
+  speedhackCallbacks: array of TSpeedhackCallback;
+
+
+function registerSpeedhackCallbacks(OnActivate: TSpeedHackActivateEvent; OnSetSpeed: TSpeedHackSetSpeedEvent): integer;
+var i: integer;
+begin
+  for i:=0 to length(speedhackCallbacks)-1 do
+  begin
+    if not (assigned(speedhackCallbacks[i].OnActivate) or assigned(speedhackCallbacks[i].OnSetSpeed)) then
+    begin
+      speedhackCallbacks[i].OnActivate:=OnActivate;
+      speedhackCallbacks[i].OnSetSpeed:=OnSetSpeed;
+      exit(i);
+    end;
+  end;
+
+  result:=length(speedhackCallbacks);
+  setlength(speedhackCallbacks, result+1);
+
+  speedhackCallbacks[result].OnActivate:=OnActivate;
+  speedhackCallbacks[result].OnSetSpeed:=OnSetSpeed;
+end;
+
+procedure unregisterSpeedhackCallbacks(id: integer);
+begin
+  if id<length(speedhackCallbacks) then
+  begin
+    CleanupLuaCall(TMethod(speedhackCallbacks[id].OnActivate));
+    CleanupLuaCall(TMethod(speedhackCallbacks[id].OnSetSpeed));
+    speedhackCallbacks[id].OnActivate:=nil;
+    speedhackCallbacks[id].OnSetSpeed:=nil;
+  end;
+end;
+
+
 
 constructor TSpeedhack.create;
 var i: integer;
@@ -60,7 +112,26 @@ var i: integer;
     NoQPC: boolean=false;
     NoGetTickCount64: boolean=false;
 
+    r: boolean;
+    error: string;
+
 begin
+  for i:=0 to length(speedhackCallbacks)-1 do
+  begin
+    if assigned(speedhackCallbacks[i].OnActivate) then
+    begin
+      if speedhackCallbacks[i].OnActivate(r,error) then
+      begin
+        //it got handled
+        if r=false then
+          raise exception.create(error);
+
+        fprocessid:=processhandlerunit.processid;
+        exit;
+      end;
+    end;
+  end;
+
   initaddress:=0;
 
   if processhandler.isNetwork then
@@ -499,7 +570,6 @@ var script: tstringlist;
 begin
   if fprocessid=processhandlerunit.ProcessID then
   begin
-
     try
       setSpeed(1);
     except
@@ -507,7 +577,8 @@ begin
   end;
 
   //do not undo the speedhack script (not all games handle a counter that goes back)
- 
+
+  inherited destroy;
 end;
 
 function TSpeedhack.getSpeed: single;
@@ -519,10 +590,26 @@ begin
 end;
 
 procedure TSpeedhack.setSpeed(speed: single);
-var x: single;
-    script: Tstringlist;
-
+var
+  x: single;
+  script: Tstringlist;
+  i: integer;
+  r: boolean;
+  error: string;
 begin
+  for i:=0 to length(speedhackCallbacks)-1 do
+  begin
+    if assigned(speedhackCallbacks[i].OnSetSpeed) then
+    begin
+      if speedhackCallbacks[i].OnSetSpeed(speed,r,error) then
+      begin
+        if not r then raise exception.create(error);
+        lastspeed:=speed;
+        exit;
+      end;
+    end;
+  end;
+
   if processhandler.isNetwork then
   begin
     getConnection.speedhack_setSpeed(processhandle, speed);
@@ -560,9 +647,6 @@ begin
       script.add('dd '+inttohex(pdword(@x)^,8));
 
       try
-
-  //      showmessage(script.Text);
-       // Clipboard.AsText:=script.text;
         autoassemble(script,false);
       except
         raise exception.Create(rsFailureSettingSpeed);
@@ -577,23 +661,5 @@ begin
 
 end;
 
-{
-alloc(bla,2048)
-alloc(newspeed,4);
-
-bla:
-sub rsp,28
-
-movss xmm0,[newspeed]
-call speedhack_initializeSpeed
-
-add rsp,28
-ret
-
-newspeed:
-dd (float)-1.0
-
-createthread(bla)
-}
 
 end.

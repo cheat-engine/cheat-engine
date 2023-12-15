@@ -67,6 +67,7 @@ form editor: save objectinspector treeview height
 binary type hotkey: increase value by doesn't work
 
 ceshare list filter search has an error
+ceshare comments is white in dark mode ce
 
 macos: luaserver
 macos: pointerscan column click sorting
@@ -88,6 +89,14 @@ ceshare: search gives errors
 
 file->assign to cheat table with lua code gives error if no dll is injected yet  (todo2: luaclient stuff to injected c code)
 
+add a temp symbol file that holds the most recent PID's and registered symbols in them so that when CE closes it remembers where the allocated code is
+
+In structure dissect add a option to get all the vtable methods and open code filter with them filled in
+
+structure dissect: Multiselect and then del doesn't delete the entries
+structure dissect: when all entries are deleted, you can't insert
+
+javainfo window is not centered
 
 ---
 

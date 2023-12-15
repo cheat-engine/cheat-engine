@@ -198,6 +198,18 @@ var
   runningAsAdmin: boolean;
   askAboutRunningAsAdmin: boolean;
 
+  SyncSymbols: boolean;
+  symsync_ClearSymbolListWhenOpeningADifferentProcess: boolean;
+  symsync_DontDeleteSymbolsWhenSynchronizing: boolean;
+  symsync_Interval: integer;
+
+  GDBReadProcessMemory: boolean;
+  GDBWriteProcessMemory: boolean;
+  GDBWriteProcessMemoryCodeOnly: boolean;
+
+  cedebugsymbolspresent: boolean;
+  threadsafetycheck: boolean;
+
 implementation
 
 

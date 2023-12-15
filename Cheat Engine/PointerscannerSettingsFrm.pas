@@ -1044,6 +1044,10 @@ begin
 
     if lblOffsetListMaxDeviation<>nil then
       lblOffsetListMaxDeviation.free;
+
+    edtOffsetListMaxDeviation:=nil;
+    lblOffsetListMaxDeviation:=nil;
+
   end;
 
   updatepositions;

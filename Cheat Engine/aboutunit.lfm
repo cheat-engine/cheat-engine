@@ -14,7 +14,7 @@ object About: TAbout
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.2.0.4'
+  LCLVersion = '2.2.2.0'
   object GroupBox1: TGroupBox
     Left = 0
     Height = 310
@@ -23,31 +23,33 @@ object About: TAbout
     Align = alClient
     AutoSize = True
     Caption = 'Cheat Engine'
-    ClientHeight = 291
-    ClientWidth = 478
+    ClientHeight = 290
+    ClientWidth = 484
     TabOrder = 0
     object Label2: TLabel
       AnchorSideTop.Control = Label6
       AnchorSideTop.Side = asrBottom
       Left = 5
-      Height = 16
-      Top = 145
-      Width = 107
+      Height = 15
+      Top = 143
+      Width = 92
       BorderSpacing.Left = 5
       BorderSpacing.Top = 9
       Caption = 'Special thanks to:'
+      ParentColor = False
     end
     object Label5: TLabel
       AnchorSideLeft.Control = GroupBox1
       AnchorSideTop.Control = Panel3
       AnchorSideTop.Side = asrBottom
       Left = 5
-      Height = 16
-      Top = 233
-      Width = 263
+      Height = 15
+      Top = 227
+      Width = 231
       BorderSpacing.Left = 5
       BorderSpacing.Top = 10
       Caption = 'And all the other people that helped me out'
+      ParentColor = False
     end
     object Image1: TImage
       AnchorSideLeft.Control = GroupBox1
@@ -377,12 +379,13 @@ object About: TAbout
       AnchorSideTop.Control = Image1
       AnchorSideTop.Side = asrBottom
       Left = 5
-      Height = 16
+      Height = 15
       Top = 98
-      Width = 180
+      Width = 156
       BorderSpacing.Left = 5
       BorderSpacing.Top = 8
       Caption = 'Script engine powered by Lua'
+      ParentColor = False
     end
     object lblDBVM: TLabel
       AnchorSideLeft.Control = GroupBox1
@@ -392,13 +395,14 @@ object About: TAbout
       AnchorSideBottom.Control = GroupBox1
       AnchorSideBottom.Side = asrBottom
       Left = 5
-      Height = 16
-      Top = 254
-      Width = 432
+      Height = 15
+      Top = 247
+      Width = 436
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Left = 5
       BorderSpacing.Top = 5
       Caption = 'your system may or may not support dbvm'
+      ParentColor = False
       OnMouseDown = lblDBVMClick
     end
     object Button1: TButton
@@ -410,10 +414,10 @@ object About: TAbout
       AnchorSideRight.Side = asrBottom
       AnchorSideBottom.Control = GroupBox1
       AnchorSideBottom.Side = asrBottom
-      Left = 437
-      Height = 20
-      Top = 270
-      Width = 40
+      Left = 441
+      Height = 25
+      Top = 264
+      Width = 42
       Anchors = [akRight, akBottom]
       AutoSize = True
       BorderSpacing.Right = 1
@@ -426,34 +430,34 @@ object About: TAbout
       AnchorSideTop.Control = GroupBox1
       AnchorSideRight.Control = GroupBox1
       AnchorSideRight.Side = asrBottom
-      Left = 392
-      Height = 38
+      Left = 397
+      Height = 43
       Top = 0
-      Width = 86
+      Width = 87
       Anchors = [akTop, akRight]
       AutoSize = True
-      ClientHeight = 38
-      ClientWidth = 86
+      ClientHeight = 43
+      ClientWidth = 87
       TabOrder = 1
       object Panel2: TPanel
         Left = 4
-        Height = 30
+        Height = 35
         Top = 4
-        Width = 78
+        Width = 79
         Align = alClient
         AutoSize = True
         BorderSpacing.Around = 3
-        ClientHeight = 30
-        ClientWidth = 78
+        ClientHeight = 35
+        ClientWidth = 79
         TabOrder = 0
         object Button2: TButton
           AnchorSideLeft.Control = Panel2
           AnchorSideTop.Control = Panel2
           Left = 6
-          Height = 20
+          Height = 25
           Hint = 'If you like Cheat Engine and want to contribute something to the development, join CE''s Patreon'
           Top = 6
-          Width = 66
+          Width = 67
           AutoSize = True
           BorderSpacing.Left = 2
           BorderSpacing.Top = 2
@@ -472,9 +476,9 @@ object About: TAbout
       AnchorSideTop.Control = Label2
       AnchorSideTop.Side = asrBottom
       Left = 5
-      Height = 60
-      Top = 163
-      Width = 403
+      Height = 57
+      Top = 160
+      Width = 356
       AutoSize = True
       BorderSpacing.Left = 5
       BorderSpacing.Top = 2
@@ -485,113 +489,128 @@ object About: TAbout
       ChildSizing.VerticalSpacing = 4
       ChildSizing.Layout = cclLeftToRightThenTopToBottom
       ChildSizing.ControlsPerLine = 5
-      ClientHeight = 60
-      ClientWidth = 403
+      ClientHeight = 57
+      ClientWidth = 356
       TabOrder = 2
       object Label21: TLabel
         Left = 2
-        Height = 16
+        Height = 15
         Top = 2
-        Width = 85
+        Width = 75
         Caption = 'Metael'
+        ParentColor = False
       end
       object Label22: TLabel
-        Left = 96
-        Height = 16
+        Left = 86
+        Height = 15
         Top = 2
-        Width = 67
+        Width = 57
         Caption = 'wh1t3y'
+        ParentColor = False
       end
       object Label23: TLabel
-        Left = 172
-        Height = 16
+        Left = 152
+        Height = 15
         Top = 2
-        Width = 72
+        Width = 63
         Caption = 'A. Wiseman'
+        ParentColor = False
       end
       object Label24: TLabel
-        Left = 253
-        Height = 16
+        Left = 224
+        Height = 15
         Top = 2
-        Width = 79
+        Width = 68
         Caption = 'SWAT-Squad'
+        ParentColor = False
       end
       object Label25: TLabel
-        Left = 341
-        Height = 16
+        Left = 301
+        Height = 15
         Top = 2
-        Width = 60
+        Width = 53
         Caption = 'Psy'
+        ParentColor = False
       end
       object Label26: TLabel
         Left = 2
-        Height = 16
-        Top = 22
-        Width = 85
+        Height = 15
+        Top = 21
+        Width = 75
         Caption = 'Kickclock'
+        ParentColor = False
       end
       object Label27: TLabel
-        Left = 96
-        Height = 16
-        Top = 22
-        Width = 67
+        Left = 86
+        Height = 15
+        Top = 21
+        Width = 57
         Caption = 'Recifense'
+        ParentColor = False
       end
       object Label28: TLabel
-        Left = 172
-        Height = 16
-        Top = 22
-        Width = 72
+        Left = 152
+        Height = 15
+        Top = 21
+        Width = 63
         Caption = 'Geri'
+        ParentColor = False
       end
       object Label29: TLabel
-        Left = 253
-        Height = 16
-        Top = 22
-        Width = 79
+        Left = 224
+        Height = 15
+        Top = 21
+        Width = 68
         Caption = 'Emperor'
+        ParentColor = False
       end
       object Label30: TLabel
-        Left = 341
-        Height = 16
-        Top = 22
-        Width = 60
+        Left = 301
+        Height = 15
+        Top = 21
+        Width = 53
         Caption = 'Jgoemat'
+        ParentColor = False
       end
       object Label31: TLabel
         Left = 2
-        Height = 16
-        Top = 42
-        Width = 85
+        Height = 15
+        Top = 40
+        Width = 75
         Caption = 'mgr.inz.Player'
+        ParentColor = False
       end
       object Label32: TLabel
-        Left = 96
-        Height = 16
-        Top = 42
-        Width = 67
+        Left = 86
+        Height = 15
+        Top = 40
+        Width = 57
         Caption = 'justa_dude'
+        ParentColor = False
       end
       object Label33: TLabel
-        Left = 172
-        Height = 16
-        Top = 42
-        Width = 72
+        Left = 152
+        Height = 15
+        Top = 40
+        Width = 63
         Caption = 'SER[G]ANT'
+        ParentColor = False
       end
       object Label34: TLabel
-        Left = 253
-        Height = 16
-        Top = 42
-        Width = 79
+        Left = 224
+        Height = 15
+        Top = 40
+        Width = 68
         Caption = 'Atom0s'
+        ParentColor = False
       end
       object Label3: TLabel
-        Left = 341
-        Height = 16
-        Top = 42
-        Width = 60
+        Left = 301
+        Height = 15
+        Top = 40
+        Width = 53
         Caption = 'supMarco'
+        ParentColor = False
       end
     end
     object Panel4: TPanel
@@ -600,26 +619,27 @@ object About: TAbout
       AnchorSideTop.Control = Image1
       AnchorSideTop.Side = asrCenter
       Left = 95
-      Height = 32
-      Top = 29
-      Width = 94
+      Height = 30
+      Top = 30
+      Width = 80
       AutoSize = True
       BorderSpacing.Left = 20
       BevelOuter = bvNone
-      ClientHeight = 32
-      ClientWidth = 94
+      ClientHeight = 30
+      ClientWidth = 80
       TabOrder = 3
       object Label8: TLabel
         AnchorSideLeft.Control = Panel4
         AnchorSideTop.Control = Panel4
         Cursor = crHandPoint
         Left = 0
-        Height = 16
+        Height = 15
         Top = 0
-        Width = 49
+        Width = 42
         Caption = 'Website'
         Font.Color = clBlue
         Font.Style = [fsUnderline]
+        ParentColor = False
         ParentFont = False
         OnClick = Label8Click
       end
@@ -629,12 +649,13 @@ object About: TAbout
         AnchorSideTop.Side = asrBottom
         Cursor = crHandPoint
         Left = 0
-        Height = 16
-        Top = 16
-        Width = 94
+        Height = 15
+        Top = 15
+        Width = 80
         Caption = 'Message Board'
         Font.Color = clBlue
         Font.Style = [fsUnderline]
+        ParentColor = False
         ParentFont = False
         OnClick = Label9Click
       end
@@ -643,22 +664,24 @@ object About: TAbout
       AnchorSideLeft.Control = GroupBox1
       AnchorSideLeft.Side = asrCenter
       AnchorSideTop.Control = GroupBox1
-      Left = 180
-      Height = 16
+      Left = 191
+      Height = 15
       Top = 0
-      Width = 118
+      Width = 102
       Caption = 'Made by: Dark Byte'
+      ParentColor = False
     end
     object Label6: TLabel
       AnchorSideLeft.Control = Label10
       AnchorSideTop.Control = Label10
       AnchorSideTop.Side = asrBottom
       Left = 5
-      Height = 16
-      Top = 120
-      Width = 188
+      Height = 15
+      Top = 119
+      Width = 166
       BorderSpacing.Top = 6
       Caption = 'C Compiler by Tiny C-Compiler'
+      ParentColor = False
     end
   end
 end

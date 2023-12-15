@@ -145,7 +145,7 @@ loadPOFile(path): Loads a .PO file used for translation
 translate(string): Returns a translation of the string. Returns the same string if it can't be found
 translateID(translationid: string, originalstring: string OPTIONAL): Returns a translation of the string id
 
-convertToUTF8(string/bytetable, originalcodepagenumber): Conversts a given string/bytearray into a utf8 converted from the gtiven codepage number
+convertToUTF8(string/bytetable, originalcodepagenumber): Conversts a given string/bytearray into a utf8 converted from the given codepage number
 ansiToUTF8(string): Converts a string in Ansi encoding to UTF8
 UTF8ToAnsi(string): Converts a string in UTF8 encoding to Ansi
 Note: GUI components mainly show in UTF8, some other functions use Ansi, try to find out which ones...
@@ -209,7 +209,7 @@ autoAssemble(text, disableInfo OPTIONAL)
 
 autoAssembleCheck(text, enable, targetself) : Checks the script for syntax errors. Returns true on succes, false with an error message on failure
 
-compile(text, address OPTIONAL, targetself OPTIONAL) : Compiles C code and returns a table with the addresses of the symbols on success, or nil with a secondary result containing the errormessage
+compile(text, address OPTIONAL, targetself OPTIONAL, kernelmode OPTIONAL, nodebug OPTIONAL) : Compiles C code and returns a table with the addresses of the symbols on success, or nil with a secondary result containing the errormessage
 compile({indexedtable containing scripts}, address OPTIONAL, targetself OPTIONAL) ) : ^ but allows multiple scripts to be compiled into one
 compileFiles({filelist}, address OPTIONAL, targetself OPTIONAL) ): ^ but takes an indexed list of files
 compileTCCLib() - Compiles the TCC library functions some C code may need to function internally
@@ -380,6 +380,9 @@ function onTableLoad(before): If defined this function will be called twice when
 
 function onLuaError(errorstring): if defined this function will be called when a lua error happens. The string returned will be the error shown
 
+function onPointerMapGenerationStart(): Called when a pointermap is about to be generated. The specific thread that calls tyhis will do so.  (Use this to adjust the readProcessMemory output)
+function onPointerMapGenerationFinish(): Called when a pointermap has finished being generated
+
 
 getOpenedProcessID() : Returns the currently opened process. If none is open, returns 0
 getOpenedProcessHandle(): Returns the handle of the currently opened process
@@ -457,6 +460,15 @@ readFromClipboard():  Reads the text from the clipboard
 
 speedhack_setSpeed(speed) : Enables the speedhack if needed and sets the specific speed
 speedhack_getSpeed(): Returns the last set speed
+
+registerSpeedhackCallbacks(
+  OnActivate()     : Handled, result, errormsg - Called when the speedhack gets activated.   Return true if you handled it. False if you wish to let CE's default handler handle it. If true, the 2nd result is success or failure. And on failure, the 3th result is the error message shown to the user
+  OnSetSpeed(speed): Handled, result, errormsg - Called when the speedhack speed gets set.   '  '  '
+): CallbackID - Registers callbacks for use in the speedhack
+
+unregisterSpeedhackCallbacks(CallbackID) - Unregisters callbacks for the speedhack
+
+
 
 injectDLL(filename, skipsymbolreloadwait OPTIONAL): Injects a dll or dylib, and returns true on success
 injectLibrary(filepath, skipsymbolreloadwait OPTIONAL): Same as injectDLL, just sounds better
@@ -587,6 +599,10 @@ targetIs64Bit(): Returns true if the target process is 64-bit, false if 32-bit
 targetIsX86(): Returns true if the target process is x86 based
 targetIsArm(): Returns true if the target process is arm based 
 targetIsAndroid(): Returns true if the target process is running on the Android OS
+targetIsRosetta(): Returns true if the target process is running inside the rosetta emulator (macos only)
+
+getABI(): Returns 0 for windows calling convention. Returns 1 for unix/linux calling convention
+
 
 getCheatEngineDir(): Returns the folder Cheat Engine is located at
 getCheatEngineProcessID(): Returns the processid of cheat engine
@@ -742,7 +758,7 @@ createProcess(path, parameters OPTIONAL, debug OPTIONAL, breakonentrypoint OPTIO
 debugProcess(interface OPT): starts the debugger for the currently opened process (won't ask the user) Optional interface: 0=default, 1=windows debug, 2=VEHDebug, 3=Kerneldebug
 
 debug_isDebugging(): Returns true if the debugger has been started
-debug_getCurrentDebuggerInterface() : Returns the current debuggerinterface used (1=windows, 2=VEH 3=Kernel, nil=no debugging active)
+debug_getCurrentDebuggerInterface() : Returns the current debuggerinterface used (1=windows, 2=VEH 3=Kernel, 4=mac native, 5=gdb, nil=no debugging active)
 debug_canBreak(): Returns true if there is a possibility the target can stop on a breakpoint. 6.4+
 debug_isBroken(): Returns true if the debugger is currently halted on a thread
 debug_isStepping(): Returns true if the debugger was single stepping an instruction earlier
@@ -1333,6 +1349,7 @@ properties
   CanUndo: boolean
   CharWidth: integer READONLY
   LineHeight: integer READONLY
+  CaretX, CaretY: integer
 
 methods
   CopyToClipboard()
@@ -2286,6 +2303,7 @@ properties
   SelCount: integer- The number of records that are selected
   SelectedRecord: MemoryRecord - The main selected record
   MemoryRecord[]: MemoryRecord - Array to access the individial memory records
+  List: The internal Treeview control of the addresslist
   [] = MemoryRecord - Default accessor
 
   CheckboxActiveSelectedColor: color
@@ -2477,9 +2495,9 @@ createFoundList(memscan)
 
 properties
   Count: integer - Number of results found
-  Address[index] : string - Returns the address as a string at the given index
-  Value[index]: string - Returns the value as a string at the given index
-  [index]: string - Same as Address
+  Address[index] : string - Returns the address as a string at the given index (index starts at 0)
+  Value[index]: string - Returns the value as a string at the given index (index starts at 0)
+  [index]: string - Same as Address (index starts at 0)
 
 methods
   initialize() : Call this when a memscan has finished scanning. This will open the results for reading
@@ -2520,6 +2538,7 @@ Disassemblerview class: (Inheritance: Panel->CustomControl->WinControl->Control-
 properties
   SelectedAddress: integer - The currently selected address in the disassemblerview
   SelectedAddress2: integer - The secondary selected address in the disassemblerview
+  SelectionSize: integer - The size of the selected area
   TopAddress: Integer - The first address to show
   ShowJumplines: boolean - Determines if the jumplines should be shown
   HideFocusRect: boolean - If set to true the focus rectangle won't be shown
@@ -3279,6 +3298,7 @@ SymbolList class
 
 Global functions
   createSymbolList() : Creates an empty symbollist
+  createSymbolList(initlist :{name,address}, name: string OPTIONAL) : creates a symbollist with addresses initialized based on a lua table that is build using name:address (like the result of compile)  If name is provided automatically register the list under that name
   getMainSymbolList(): Returns the symhandler internal symbol list (Note: This does not contain .net, modulelist, or other info)
   enumRegisteredSymbolLists() : Returns a table containing all the registered symbollists
 
@@ -3717,6 +3737,7 @@ methods
 
 ModuleLoader(Inheritance: -)
 loadModule(pathtodll, executeEntryPoint OPTIONAL default=true, timeout OPTIONAL default=nil=infinite)
+loadModule(memorystream or tablefile, internalfilename, executeEntryPoint OPTIONAL default=true, timeout OPTIONAL default=nil=infinite)
 
 properties:
   loaded: boolean - true if successfuly mapped
@@ -4142,6 +4163,17 @@ methods
   getFirstChild(node): node - returns the first child of a node
   getNextSibling(node): node - gets the next sibling
   getNodeLevel(node): integer - gets the level at which this node resided (it does this by calling getNodeParent until it hits nil)
+
+GDBServerDebuggerIntaace functions: (only functional when using the gdb server debugger interface)
+  gdb_connected(): returns true when connected
+  gdb_stopped(): returns true if the target is suspended by gdb
+  gdb_break(): sends a ctrl+c to the gdb server which tells it to stop the target
+  gdb_command(string, timeout OPTIONAL): Sends a command to the gdb server and wait for timeout in milliseconds for a reply (default is 2000) if the string is empty only receive data
+  gdb_getcurrentstopreason(): returns the current stopreason.  Nil if not stopped
+  gdb_setCurrentInstructionpointer(address)
+  gdb_getCurrentInstructionpointer(address)
+  
+
 
 ----CEServer----
 connectToCEServer(hostname,port) - Connects to the given host and port. On success, most commands subsequent will be handled by the server. Like processlist, memory reading, etc...

@@ -21,7 +21,7 @@
           pthread_mutexattr_init(&attr);
 		  pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
 
-		  pthread_mutex_init(&L->l_G->lock, &attr);
+		  pthread_mutex_init(&(L->l_G->lock), &attr);
 #endif
 		  L->l_G->lock_init = 1;
 	  }
@@ -43,7 +43,7 @@
 #ifdef WIN32
 	  EnterCriticalSection((CRITICAL_SECTION*)(&L->l_G->lock));
 #else
-	  pthread_mutex_lock(&L->l_G->lock);
+      while (pthread_mutex_lock(&(L->l_G->lock))) ;
 #endif
   }
 
@@ -55,8 +55,8 @@
 	    LuaLockInitial(L);
 
 #ifdef WIN32
-	  LeaveCriticalSection((CRITICAL_SECTION*)(&L->l_G->lock));
+	  LeaveCriticalSection((CRITICAL_SECTION*)(&(L->l_G->lock)));
 #else
-	  pthread_mutex_unlock(&L->l_G->lock);
+	  while (pthread_mutex_unlock(&L->l_G->lock));
 #endif
   }

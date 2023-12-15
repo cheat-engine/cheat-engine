@@ -120,9 +120,10 @@ uses
   autoassemblercode, CSharpCompiler, newhintwindow, memrecDataStructures,
   LuaCECustomButton, DBVMDebuggerInterface, frmCR3SwitcherUnit, tcclib,
   sourcecodehandler, frmSourceDisplayUnit, disassemblerarm64, contexthandler,
-  DisAssemblerARM32, frmAnchorEditor, disassemblerArm32Thumb, iptnative, 
-  iptlogdisplay, LuaVirtualStringTree, userbytedisassembler, 
-LuaNetworkInterface, libcepack;
+  DisAssemblerARM32, frmAnchorEditor, disassemblerArm32Thumb, iptnative,
+  iptlogdisplay, LuaVirtualStringTree, userbytedisassembler,
+  LuaNetworkInterface, libcepack, symbolsync, gdbserverconnectdialog,
+  GDBServerDebuggerInterface;
 
 {$R cheatengine.res}
 {$IFDEF windows}
@@ -341,6 +342,15 @@ begin
 
     if r.OpenKey('\Software\'+strCheatEngine,false) then
     begin
+      if r.ValueExists('RunAsAdmin') then
+      begin
+        if r.readbool('RunAsAdmin') then
+        begin
+          askAboutRunningAsAdmin:=false;
+          requiresAdmin;
+        end;
+      end;
+
       if r.ValueExists('Override Default Font') then
       begin
         if r.ReadBool('Override Default Font') then
