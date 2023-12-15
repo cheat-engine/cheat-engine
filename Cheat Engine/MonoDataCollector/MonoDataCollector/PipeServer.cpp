@@ -521,6 +521,7 @@ void CPipeServer::InitMono()
 
 				mono_method_get_name = (MONO_METHOD_GET_NAME)GetProcAddress(hMono, "il2cpp_method_get_name");
 				mono_method_get_full_name = (MONO_METHOD_GET_FULL_NAME)GetProcAddress(hMono, "il2cpp_method_get_full_name");
+				mono_method_get_full_name = mono_method_get_full_name ? mono_method_get_full_name : (MONO_METHOD_GET_FULL_NAME)GetProcAddress(hMono, "mono_method_full_name");//7FF91A729E20 - GameAssembly.mono_method_full_name
 				mono_method_get_full_name = mono_method_get_full_name ? mono_method_get_full_name : (MONO_METHOD_GET_FULL_NAME)GetProcAddress(hMono, "mono_method_get_full_name");
 				mono_method_get_class = (MONO_METHOD_GET_CLASS)GetProcAddress(hMono, "il2cpp_method_get_class");
 				mono_method_get_header = (MONO_METHOD_GET_HEADER)GetProcAddress(hMono, "il2cpp_method_get_header");
@@ -1697,7 +1698,7 @@ void CPipeServer::GetMethodParameters()
 			for (i = 0; i < paramcount; i++)
 			{
 				void* paramtype = il2cpp_method_get_param(method, i);
-
+				WriteQword((UINT64)paramtype);
 				if (paramtype)
 					WriteDword(mono_type_get_type(paramtype));
 				else
