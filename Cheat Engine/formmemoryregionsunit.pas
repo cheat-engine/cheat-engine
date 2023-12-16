@@ -14,11 +14,14 @@ uses
   LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls,CEFuncProc, ComCtrls, Menus,OpenSave,NewKernelHandler, LResources, betterControls;
 
-type tmoreinfo = record
-  address: ptrUint;
-  size: dword;
-  isreadable: boolean;
-end;
+type
+  tmoreinfo = record
+    address: ptrUint;
+    size: qword;
+    isreadable: boolean;
+  end;
+
+  PMoreInfo=^TMoreInfo;
 
 type
 
@@ -39,6 +42,9 @@ type
     procedure FormShow(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure ListView1ColumnClick(Sender: TObject; Column: TListColumn);
+    procedure ListView1Compare(Sender: TObject; Item1, Item2: TListItem;
+      Data: Integer; var Compare: Integer);
     procedure ListView1Resize(Sender: TObject);
     procedure Saveselectedregions1Click(Sender: TObject);
     procedure SelectAllReadableMemory1Click(Sender: TObject);
@@ -47,7 +53,6 @@ type
     procedure PopupMenu1Popup(Sender: TObject);
   private
     { Private declarations }
-    moreinfo: array of tmoreinfo;
   public
     { Public declarations }
   end;
@@ -124,6 +129,8 @@ var address: PtrUInt;
 
   {  meminfo: TWIN32_MEMORY_REGION_INFORMATION;
     meminfosize: size_t; }
+    li: TListitem;
+    mi: PMoreInfo;
 begin
   {$ifdef windows}
   if DBKLoaded then
@@ -135,8 +142,10 @@ begin
   {$endif}
   listview1.BeginUpdate;
   try
+    for i:=0 to listview1.items.Count-1 do
+      freemem(listview1.items[i].Data);
 
-   listview1.Clear;
+    listview1.Clear;
 
     //query the process for the memory regions
     address:=0;
@@ -144,13 +153,15 @@ begin
 
     while (GetRegionInfo(processhandle,pointer(address),mbi,sizeof(mbi), mappedfilename)<>0) and ((address+mbi.RegionSize)>address) do
     begin
-      setlength(moreinfo,length(moreinfo)+1);
-      moreinfo[length(moreinfo)-1].address:=ptrUint(mbi.BaseAddress);
-      moreinfo[length(moreinfo)-1].size:=mbi.RegionSize;
-      moreinfo[length(moreinfo)-1].isreadable:=(mbi.State=mem_commit) and ((mbi.Protect and page_guard)=0) and ((mbi.protect and page_noaccess)=0);
+      getmem(mi, sizeof(tmoreinfo));
+      mi^.address:=ptrUint(mbi.BaseAddress);
+      mi^.size:=mbi.RegionSize;
+      mi^.isreadable:=(mbi.State=mem_commit) and ((mbi.Protect and page_guard)=0) and ((mbi.protect and page_noaccess)=0);
 
+      li:=ListView1.Items.Add;
+      li.Data:=mi;
 
-      ListView1.Items.Add.Caption:=IntToHex(PtrUInt(mbi.BaseAddress),8);
+      li.Caption:=IntToHex(PtrUInt(mbi.BaseAddress),8);
 
       temp:='';
       if (PAGE_READONLY and mbi.AllocationProtect)=PAGE_READONLY then temp:=rsRead;
@@ -164,7 +175,7 @@ begin
       if (PAGE_GUARD and mbi.AllocationProtect)=PAGE_GUARD then temp:=temp+'+'+rsGuard;
       if (PAGE_NOCACHE	and mbi.AllocationProtect)=PAGE_NOCACHE then temp:=temp+'+'+rsNoCache;
       if (PAGE_WRITECOMBINE and mbi.AllocationProtect)=PAGE_WRITECOMBINE then temp:=temp+'+'+rsWriteCombine;
-      listview1.Items[listview1.Items.Count-1].SubItems.add(temp);
+      li.SubItems.add(temp);
 
       case mbi.State of
         MEM_COMMIT : temp:=rsCommit;
@@ -188,21 +199,21 @@ begin
       {$ifdef darwin}
       temp:=temp+' ('+inttostr(mbi.macprotect)+')';
       {$endif}
-      listview1.Items[listview1.Items.Count-1].SubItems.add(temp);
+      li.SubItems.add(temp);
 
       {$ifdef darwin}
       temp:=inttostr(mbi.MaxProtect);
-      listview1.Items[listview1.Items.Count-1].SubItems.add(temp);
+      li.SubItems.add(temp);
       {$endif}
 
-      if mbi._Type=MEM_IMAGE	then listview1.Items[listview1.Items.Count-1].SubItems.add(rsImage) else
-      if mbi._Type=MEM_MAPPED then listview1.Items[listview1.Items.Count-1].SubItems.add(rsMapped) else
-      if mbi._Type=MEM_PRIVATE	then listview1.Items[listview1.Items.Count-1].SubItems.add(rsPrivate) else
-      listview1.Items[listview1.Items.Count-1].SubItems.add('-');
+      if mbi._Type=MEM_IMAGE	then li.SubItems.add(rsImage) else
+      if mbi._Type=MEM_MAPPED then li.SubItems.add(rsMapped) else
+      if mbi._Type=MEM_PRIVATE	then li.SubItems.add(rsPrivate) else
+      li.SubItems.add('-');
 
       // regionlist.Items.Add(str);
 
-      listview1.Items[listview1.Items.Count-1].SubItems.add(inttohex(mbi.regionsize,1));
+      li.SubItems.add(inttohex(mbi.regionsize,1));
 
      // if mbi._Type=MEM_MAPPED then
      { if assigned(QueryVirtualMemoryInformation) then
@@ -214,7 +225,7 @@ begin
         end;
       end; }
 
-      listview1.Items[listview1.Items.Count-1].SubItems.Add(mappedfilename);
+      li.SubItems.Add(mappedfilename);
 
 
 
@@ -243,6 +254,7 @@ begin
   ci:=listview1.Columns.Add;
   ci.Index:=4;
   ci.Caption:='Max Protect';
+  ci.Tag:=7;
   {$endif}
 end;
 
@@ -255,6 +267,60 @@ procedure TFormMemoryRegions.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
   action:=cafree;
+end;
+
+procedure TFormMemoryRegions.ListView1ColumnClick(Sender: TObject; Column: TListColumn);
+begin
+
+end;
+
+procedure TFormMemoryRegions.ListView1Compare(Sender: TObject; Item1,
+  Item2: TListItem; Data: Integer; var Compare: Integer);
+var
+  c: integer;
+  s1,s2: string;
+  q: Int64;
+begin
+  c:=listview1.SortColumn;
+
+  if c=0 then
+  begin
+    if PMoreInfo(item1.Data)^.address=PMoreInfo(item2.Data)^.address then
+    begin
+      compare:=0;
+      exit;
+    end;
+
+    if PMoreInfo(item1.Data)^.address>PMoreInfo(item2.Data)^.address then
+      compare:=1
+    else
+      compare:=-1;
+  end
+  else
+  if c={$ifdef darwin}6{$else}5{$endif} then
+  begin
+    if PMoreInfo(item1.Data)^.size=PMoreInfo(item2.Data)^.size then
+    begin
+      compare:=0;
+      exit;
+    end;
+
+    if PMoreInfo(item1.Data)^.size>PMoreInfo(item2.Data)^.size then
+      compare:=1
+    else
+      compare:=-1;
+  end
+  else
+  begin
+    s1:=item1.SubItems[c-1];
+    s2:=item2.SubItems[c-1];
+    compare:=CompareStr(s1,s2);
+  end;
+
+  if listview1.SortDirection=sdDescending then
+    compare:=-compare;
+
+
 end;
 
 procedure TFormMemoryRegions.ListView1Resize(Sender: TObject);
@@ -271,6 +337,7 @@ procedure TFormMemoryRegions.Saveselectedregions1Click(Sender: TObject);
 var f:TSearchRec;
     r: word;
     i,nr: integer;
+    mi: PMoreInfo;
 begin
 
   if savedialog1.execute then
@@ -303,7 +370,9 @@ begin
         while (nr<10000) and (fileexists(savedialog1.FileName+'.m'+format('%.4d',[nr]))) do inc(nr);
 
         if nr=10000 then raise exception.Create(rsThereIsNoFreeSlot);
-        savecem(savedialog1.FileName+'.m'+format('%.4d',[nr]),moreinfo[i].address,moreinfo[i].size);
+
+        mi:=PMoreInfo(listview1.Items[i].Data);
+        savecem(savedialog1.FileName+'.m'+format('%.4d',[nr]), mi^.address,mi^.size);
       end;
     end
     finally
@@ -322,7 +391,10 @@ begin
     listview1.Items[i].Selected:=false;
 
   for i:=0 to listview1.Items.Count-1 do
-    if moreinfo[i].isreadable then listview1.Items[i].Selected:=true;
+  begin
+    if PMoreInfo(listview1.Items[i].Data)^.isreadable then
+      listview1.Items[i].Selected:=true;
+  end;
 end;
 
 procedure TFormMemoryRegions.Setselectedregionstobewritable1Click(
@@ -340,17 +412,26 @@ begin
     if listview1.Items[i].Selected then
     begin
       //change this memory's protection
-      MakeWritable(moreinfo[i].address,moreinfo[i].size,copyonwrite);
+      MakeWritable(PMoreInfo(listview1.Items[i].Data)^.address,PMoreInfo(listview1.Items[i].Data)^.size,copyonwrite);
     end;
 
   {$endif}
 end;
 
 procedure TFormMemoryRegions.ListView1DblClick(Sender: TObject);
+var li: TListItem;
+    mi: PMoreInfo;
 begin
-
-  if (listview1.SelCount<>0) then
-    MemoryBrowser.memoryaddress:=moreinfo[listview1.itemindex].address;
+  if (listview1.SelCount<>0) and (listview1.ItemIndex<>-1) then
+  begin
+    li:=listview1.Items[listview1.ItemIndex];
+    if li<>nil then
+    begin
+      mi:=pmoreinfo(li.Data);
+      if mi<>nil then
+        MemoryBrowser.memoryaddress:=mi^.address;
+    end;
+  end;
 
 end;
 
