@@ -86,7 +86,7 @@ void ErrorFilter(int signr, siginfo_t* info, void* uap)
 	char s[200];
 	snprintf(s, 200, "Errorfilter %d", signr);
 	OutputDebugString(s);
-	ucontext_t* uap_c = (ucontext_t*)uap;
+	//ucontext_t* uap_c = (ucontext_t*)uap;
 	//check if it's the serverthread, and if so, change the instruction pointer to ErrorThrow
 	uint64_t tid;
 
