@@ -3597,6 +3597,11 @@ begin
       if (t[2]='O') and (t[3]='R') then //could be WORD
         exit((t='WORD') or (t='WORD PTR'));
     end;
+
+    'P': //PTR
+    begin
+      exit(t='PTR');
+    end;
   end;
 end;
 
@@ -3615,6 +3620,11 @@ var i,j,err,err2: integer;
 begin
   if length(token)=0 then exit(false); //empty string
 
+  if token[1]='#' then
+  begin
+    val(copy(token,1),i,err); //just an integer
+    if err=0 then exit(true);
+  end;
 
   quotechar:=#0;
 
@@ -4976,6 +4986,16 @@ begin
               v:=0;
               ReadProcessMemory(processhandle,pointer(address+i-1), @b, 1, br);
               add(bytes, b);
+            end
+            else
+            if (length(tokens[i])>=1) and (tokens[i][1] in ['-','+']) then
+            begin
+              //increase/decrease by
+              v:=0;
+              ReadProcessMemory(processhandle,pointer(address+i-1), @b, 1, br);
+              j:=HexStrToInt(tokens[i]);
+              b:=b+j;
+              add(bytes,b);
             end
             else
               add(bytes,[HexStrToInt(tokens[i])]);
@@ -8307,6 +8327,7 @@ begin
   end;
 
   finally
+
     if result then
     begin
       //insert rex prefix if needed
@@ -8408,33 +8429,33 @@ begin
 
 
       end;
+    end;
+  end;
+
+  if not result then
+  begin
+    if (errorifnotfound<>'') then
+    begin
+      if (skiprangecheck=false) then
+        raise EAssemblerExceptionOffsetTooBig.Create(errorifnotfound)
+      else
+        exit(true);  //just a syntaxcheck. Everything is ok except the range
+    end;
+  end;
+
+  if needsAddressSwitchPrefix then //add it
+  begin
+    if canDoAddressSwitch then
+    begin
+      //put 0x67 in front
+      setlength(bytes,length(bytes)+1);
+      for i:=length(bytes)-1 downto 1 do
+        bytes[i]:=bytes[i-1];
+
+      bytes[0]:=$67;
     end
     else
-    begin
-      if (errorifnotfound<>'') then
-      begin
-        if (skiprangecheck=false) then
-          raise EAssemblerExceptionOffsetTooBig.Create(errorifnotfound)
-        else
-          exit(true);  //just a syntaxcheck. Everything is ok except the range
-
-      end;
-    end;
-
-    if needsAddressSwitchPrefix then //add it
-    begin
-      if canDoAddressSwitch then
-      begin
-        //put 0x67 in front
-        setlength(bytes,length(bytes)+1);
-        for i:=length(bytes)-1 downto 1 do
-          bytes[i]:=bytes[i-1];
-
-        bytes[0]:=$67;
-      end
-      else
-        raise EAssemblerException.create('Invalid address');
-    end;
+      raise EAssemblerException.create('Invalid address');
   end;
 end;
 

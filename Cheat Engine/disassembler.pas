@@ -1541,7 +1541,7 @@ begin
     bp:=debuggerthread.isBreakpoint(address);
     if bp<>nil then
     begin
-      if bp.breakpointMethod=bpmInt3 then
+      if (bp.breakpointTrigger=bptExecute) and (bp.breakpointMethod in [bpmInt3, bpmGDB]) then
         b:=bp.originalbyte;
     end;
     debuggerthread.unlockbplist;
@@ -1753,7 +1753,7 @@ begin
       end;
 
 
-      if (processhandler.SystemArchitecture=archarm) or (architecture=darchARM) then
+      if  (architecture=darchARM) or ((processhandler.SystemArchitecture=archarm) and (architecture=darchAutoDetect) ) then  //todo: look at the module info
       begin
 
 
@@ -1860,11 +1860,7 @@ begin
         if debuggerthread<>nil then
           for i:=0 to actualread-1 do
             if memory[i]=$cc then
-            begin
-              //memory[i]:=debuggerthread.getrealbyte(offset+i);
-
               repairbreakbyte(offset+i, memory[i]);
-            end;
         {$endif}
 
         debugpart:=4;
@@ -1927,7 +1923,7 @@ begin
 
         debugpart:=5;
 
-        zeromemory(@opcodeflags, sizeof(opcodeflags));
+
 
         RexPrefix:=0;
         if is64bit then
@@ -15721,6 +15717,17 @@ var
   VA,PA: qword;
 begin
   result:='';
+  if processhandler.SystemArchitecture=archArm then
+  begin
+    if length(LastDisassembleData.Bytes)=2 then
+      result:=pword(@LastDisassembleData.Bytes[0])^.ToHexString(4);
+
+    if length(LastDisassembleData.Bytes)=4 then
+      result:=pdword(@LastDisassembleData.Bytes[0])^.ToHexString(8);
+
+    exit;
+  end;
+
   for i:=0 to length(LastDisassembleData.Bytes)-1 do
   begin
     if syntaxhighlighting then

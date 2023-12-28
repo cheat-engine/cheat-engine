@@ -63,6 +63,7 @@ type
   private
     done: TEvent;
     ownersymhandler: TSymHandler;
+    instances: integer; static;
   public
     symbolname: string;
     address: ptruint;
@@ -231,7 +232,7 @@ type
     fshowsymbols: boolean;   ///
     fshowsections: boolean;   ///
 
-    UserdefinedSymbolCallback: TUserdefinedSymbolCallback;
+    UserdefinedSymbolCallback: TUserdefinedSymbolCallback; //warning: called from other threads
     searchpath: string;
 
     globalalloc: pointer; //if set it hold a pointer to the last free memory that was allocated.
@@ -364,6 +365,9 @@ type
     procedure setsearchpath(path:string);
 
     //userdefined symbols
+
+    function SyncSymbols(var symbols: TUserdefinedSymbolsList; var newsymbollists: TSymbolListHandlerArray; dontdelete: boolean; applychanges: boolean): boolean;
+
     function DeleteUserdefinedSymbol(symbolname:string):boolean;
     procedure DeleteAllUserdefinedSymbols;
     function GetUserdefinedSymbolByName(symbolname:string):ptrUint;
@@ -400,6 +404,10 @@ type
     function getMainSymbolList: TSymbolListHandler;
 
     function getLastModuleListUpdateTime: qword; //poll this when using async modulelist updates if you do wish to know when it finishes
+
+
+    procedure refreshGUI;
+
 
     procedure StopSymbolLoaderThread;
 
@@ -510,7 +518,8 @@ uses Assemblerunit, DriverList, LuaHandler, lualib, lua, lauxlib,
   disassemblerComments, StructuresFrm2, networkInterface, networkInterfaceApi,
   ProcessHandlerUnit, Globals, Parsers, MemoryQuery, LuaCaller,
   UnexpectedExceptionsHelper, frmSymbolEventTakingLongUnit, MainUnit, addresslist,
-  MemoryRecordUnit, mainunit2, BetterDLLSearchPath;
+  MemoryRecordUnit, mainunit2, BetterDLLSearchPath, DebuggerInterfaceAPIWrapper,
+  GDBServerDebuggerInterface;
 {$endif}
 
 
@@ -756,12 +765,16 @@ end;
 
 constructor TSymbolLoaderThreadEvent.create(sh: TSymhandler);
 begin
+  InterlockedIncrement(instances);
   ownersymhandler:=sh;
   done:=tevent.Create(nil,true,false,'');
+
+  outputdebugstring('new TSymbolLoaderThreadEvent of type '+classname+'.  instances='+inttostr(instances));
 end;
 
 destructor TSymbolLoaderThreadEvent.destroy;
 begin
+  InterlockedDecrement(instances);
   if done<>nil then
     done.free;
 
@@ -3506,6 +3519,9 @@ var i,j: integer;
   s: string;
 begin
   Log('TSymhandler.reinitialize');
+
+  //if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) and GDBReadProcessMemory and GDBWriteProcessMemory then exit; //not supported atm
+
   if loadmodulelist or force then //if loadmodulelist returns true it has detected a change in the previous modulelist (baseaddresschange or new/deleted module)
   begin
     if force then
@@ -3651,6 +3667,11 @@ end;
 procedure TSymhandler.Waitforsymbolsloaded(apisymbolsonly: boolean=false; specificmodule: string='');
 //6.8.3+:Just make it till the dll list enum and load is done
 begin
+
+  if (MainThreadID=GetCurrentThreadId) and (self<>selfsymhandler) then
+  begin
+    outputdebugstring('mainthread: Waitforsymbolsloaded');
+  end;
   symbolloadervalid.beginread;
 
   if symbolloaderthread<>nil then
@@ -3678,6 +3699,8 @@ begin
   end;
 
   symbolloadervalid.endread;
+  if MainThreadID=GetCurrentThreadId then
+    outputdebugstring('mainthread: Waitforsymbolsloaded done');
 end;
 
 procedure TSymhandler.ReinitializeUserdefinedSymbolList;
@@ -3699,10 +3722,213 @@ begin
 end;
 
 procedure TSymhandler.DeleteAllUserdefinedSymbols;
+var i: integer;
+ l: array of TSymbolListHandler;
 begin
   userdefinedsymbolsCS.enter;
   userdefinedsymbolspos:=0;
   userdefinedsymbolsCS.leave;
+
+  symbollistsMREW.Beginwrite;
+  setlength(l, length(symbollists));
+  for i:=0 to length(symbollists)-1 do
+    l[i]:=symbollists[i];
+
+  for i:=0 to length(l)-1 do
+  begin
+    l[i].unregisterList;
+    if l[i].refcount=0 then
+      l[i].free;
+  end;
+
+  setlength(symbollists,0);
+  symbollistsMREW.Endwrite;
+end;
+
+function TSymhandler.SyncSymbols(var symbols: TUserdefinedSymbolsList; var newsymbollists: TSymbolListHandlerArray; dontdelete: boolean; applychanges: boolean): boolean;
+var
+  i,j: integer;
+  updated: boolean=false;
+  found: boolean;
+
+  newe: TUserdefinedsymbol;
+  newsl: TSymbolListHandler;
+
+  deleteSymbollists, addSymbollists: Tlist;
+begin
+  result:=false;
+
+  //first userdefined symbols
+
+  userdefinedsymbolsCS.enter;
+  try
+
+    //add the missing entries to the symbols list (can also be used to just get the symbols themselves)
+    i:=0;
+    for i:=0 to userdefinedsymbolspos-1 do
+    begin
+      found:=false;
+      for j:=0 to length(symbols)-1 do
+      begin
+        if symbols[j].symbolname=userdefinedsymbols[i].symbolname then
+        begin
+          found:=true;
+          if symbols[j].address<>userdefinedsymbols[j].address then result:=true; //address changes
+          break;
+        end;
+      end;
+
+      if (not found) and dontdelete then
+      begin
+        setlength(symbols, length(symbols)+1);
+        symbols[length(symbols)-1]:=userdefinedsymbols[i];
+        result:=true;  //added a new entry to the xml file
+      end;
+    end;
+
+    //check for newly added symbols (just to notify the ui for changes)
+    for i:=0 to length(symbols)-1 do
+    begin
+      found:=false;
+      for j:=0 to userdefinedsymbolspos-1 do
+        if symbols[i].symbolname=userdefinedsymbols[i].symbolname then
+        begin
+          found:=true;
+          break;
+        end;
+
+      if not found then
+      begin
+        result:=true;
+        break;
+      end;
+    end;
+
+
+    if applychanges then
+    begin
+      if length(userdefinedsymbols)<length(symbols) then
+        setlength(userdefinedsymbols, length(symbols));
+
+      for i:=0 to length(symbols)-1 do
+        userdefinedsymbols[i]:=symbols[i];
+
+      userdefinedsymbolspos:=length(symbols);
+
+    end;
+  finally
+    userdefinedsymbolsCS.Leave;
+  end;
+
+  //now the symbollists
+  if applychanges then
+  begin
+    deleteSymbollists:=tlist.Create;
+    addSymbollists:=tlist.create;
+    symbollistsMREW.Beginwrite;
+
+  end
+  else
+    symbollistsMREW.Beginread;
+
+  try
+    i:=0;
+
+    //first check for entries that are not in the new list
+    for i:=0 to length(symbollists)-1 do
+    begin
+      found:=false;
+      for j:=0 to length(newsymbollists)-1 do
+      begin
+        if symbollists[i].internalname=newsymbollists[j].internalname then
+        begin
+          found:=true;
+          break;
+        end;
+      end;
+
+      if not found then
+      begin
+        result:=true;
+
+        if dontdelete then
+        begin
+          //copy the contents to newsl
+          newsl:=TSymbolListHandler.create(symbollists[i].name, symbollists[i].internalname);
+          newsl.PID:=symbollists[i].pid;
+          newsl.SyncSymbols(symbollists[i], false, true);
+
+          //and add it to the newsymbollists list (so it gets into the xml file)
+          setlength(newsymbollists, length(newsymbollists)+1);
+          newsymbollists[length(newsymbollists)-1]:=newsl;
+        end
+        else
+        begin
+          //delete it
+          if applychanges then
+            deleteSymbollists.Add(symbollists[i]);
+
+        end;
+      end;
+    end;
+
+
+    //create new entries in the symbollists list that matches newsymbollists if needed, and update existing ones
+    for i:=0 to length(newsymbollists)-1 do
+    begin
+      found:=false;
+      for j:=0 to length(symbollists)-1 do
+      begin
+        if symbollists[j].internalname=newsymbollists[i].internalname then  //found a match
+        begin
+          found:=true;
+          if symbollists[j].SyncSymbols(newsymbollists[i], dontdelete, applychanges) then //sync the list itself
+            result:=true;
+          break;
+        end;
+      end;
+
+      if not found then
+      begin
+        result:=true;  //change happened
+
+        if applychanges then //not yet in the list
+        begin
+          //create a new list owned by the symhandler (so refcount=0)
+          newsl:=TSymbolListHandler.create(newsymbollists[i].name, newsymbollists[i].internalname);
+          newsl.PID:=newsymbollists[i].pid;
+          newsl.SyncSymbols(newsymbollists[i], false, true);
+          newsl.refcount:=0;
+          AddSymbolLists.Add(newsl);
+        end;
+      end;
+    end;
+
+
+
+  finally
+    if applychanges then
+    begin
+      for i:=0 to deleteSymbollists.Count-1 do
+      begin
+        TSymbolListHandler(deleteSymbollists[i]).unregisterList;
+        if TSymbolListHandler(deleteSymbollists[i]).refcount<=0 then
+          TSymbolListHandler(deleteSymbollists[i]).Free;
+      end;
+
+      deleteSymbollists.free;
+
+      for i:=0 to addSymbollists.count-1 do
+        AddSymbolList(TSymbolListHandler(AddSymbolLists[i]));
+
+      addSymbollists.Free;
+
+
+      symbollistsMREW.Endwrite;
+    end
+    else
+      symbollistsMREW.Endread;
+  end;
 end;
 
 
@@ -4585,61 +4811,70 @@ var
   moduleNameToFind: string;
   currentModuleName: string;
 begin
+ // OutputDebugString('TSymhandler.getmodulebyname('+modulename+')');
   result:=false;
-  moduleNameToFind:=uppercase(modulename);
+  //try
+    moduleNameToFind:=uppercase(modulename);
 
-  if (length(moduleNameToFind)>0) and (moduleNameToFind[1]='"') then
-  begin
-    moduleNameToFind:=trim(moduleNameToFind);
-    moduleNameToFind:=copy(moduleNameToFind, 2, length(moduleNameToFind)-2);
-  end;
-
-  modulelistMREW.beginread;
-
-  for i:=0 to modulelistpos-1 do
-  begin
-    currentModuleName:=uppercase(modulelist[i].modulename);
-    if currentModuleName=moduleNameToFind then
+    if (length(moduleNameToFind)>0) and (moduleNameToFind[1]='"') then
     begin
-      mi:=modulelist[i];
-      result:=true;
-      break;
+      moduleNameToFind:=trim(moduleNameToFind);
+      moduleNameToFind:=copy(moduleNameToFind, 2, length(moduleNameToFind)-2);
     end;
-  end;
 
-  modulelistMREW.endread;
-  if not result then
-  begin
-    symbollistsMREW.beginread;
-    for i:=length(symbollists)-1 downto 0 do
-    begin
-      result:=symbollists[i].getModuleByName(moduleNameToFind,mi);
-      if result then break;
-    end;
-    symbollistsMREW.Endread;
-  end;
+    modulelistMREW.beginread;
 
-  symbolloadervalid.Beginread;
-  try
-    if (symbolloaderthread<>nil) and (symbolloaderthread.driverlistpos>0) then
+    for i:=0 to modulelistpos-1 do
     begin
-      symbolloaderthread.driverlistMREW.beginread;
-      try
-        for i:=0 to symbolloaderthread.driverlistpos do
-        begin
-          if symbolloaderthread.driverlist[i].modulename=modulename then
-          begin
-            mi:=symbolloaderthread.driverlist[i];
-            exit(true);
-          end;
-        end;
-      finally
-        symbolloaderthread.driverlistMREW.Endread;
+      currentModuleName:=uppercase(modulelist[i].modulename);
+      if currentModuleName=moduleNameToFind then
+      begin
+        mi:=modulelist[i];
+        result:=true;
+        break;
       end;
     end;
-  finally
-    symbolloadervalid.Endread;
-  end;
+
+    modulelistMREW.endread;
+    if not result then
+    begin
+      symbollistsMREW.beginread;
+      for i:=length(symbollists)-1 downto 0 do
+      begin
+        result:=symbollists[i].getModuleByName(moduleNameToFind,mi);
+        if result then break;
+      end;
+      symbollistsMREW.Endread;
+    end;
+
+    symbolloadervalid.Beginread;
+    try
+      if (symbolloaderthread<>nil) and (symbolloaderthread.driverlistpos>0) then
+      begin
+        symbolloaderthread.driverlistMREW.beginread;
+        try
+          for i:=0 to symbolloaderthread.driverlistpos do
+          begin
+            if symbolloaderthread.driverlist[i].modulename=modulename then
+            begin
+              mi:=symbolloaderthread.driverlist[i];
+              exit(true);
+            end;
+          end;
+        finally
+          symbolloaderthread.driverlistMREW.Endread;
+        end;
+      end;
+    finally
+      symbolloadervalid.Endread;
+    end;
+
+  {finally
+    if result then
+      outputdebugstring(modulename+' was found')
+    else
+      outputdebugstring(modulename+' was not found');
+  end; }
 end;
 
 function TSymHandler.getsearchpath:string;
@@ -5044,7 +5279,37 @@ begin
           end
           else
           begin
-            //not a modulename
+            //on first glance not a modulename , check some other possiblities first:
+            //outputdebugstring(tokens[i]+' is not a module');
+
+            if ((i+1)<length(tokens)) and ((tokens[i+1]='-') or (tokens[i+1]='+')) then
+            begin
+              s:=tokens[i];
+              found:=false;
+              for j:=i+1 to length(tokens)-1 do
+              begin
+                if (tokens[j]='*') then break; //impossible for filenames
+                s:=s+tokens[j];
+                if getmodulebyname(s,mi) then
+                begin
+                  found:=true;
+                //  outputdebugstring(s+' is a module');
+                  tokens[i]:=inttohex(ApplyTokenType(mi.baseaddress),8);
+                  for k:=i+1 to j do
+                    tokens[k]:='';
+
+                end;
+                if found then break;
+
+
+              end;
+              if found then continue;
+            end;
+
+           // outputdebugstring('so yeah, '+name+' is not a module');
+
+
+
             if not shallow then
             begin
               result:=callbackCheck(tokens[i], slNotModule);
@@ -5298,8 +5563,11 @@ begin
                     end;
                   end;
 
-                  if waitforsymbols then
+                  if waitforsymbols and (not shallow) then
                   begin
+                    outputdebugstring('going to wait for all symbols loaded because of '+name);
+                    if not shallow then outputdebugstring('shallow=false');
+
                     waitforsymbolsloaded;
                     //check again now that the symbols are loaded
                     si:=symbollist.FindSymbol(tokens[i]);
@@ -5769,10 +6037,6 @@ begin
           try
             if module32first(ths,me32) then
             repeat
-              if me32.GlblcntUsage>0 then
-              asm
-              nop
-              end;
               s:=WinCPToUTF8(pchar(@me32.szModule[0]));
               x:=WinCPToUTF8(pchar(@me32.szExePath[0]));
               if (s[1]<>'[') then //do not extract the filename if it's a 'special' marker
@@ -5810,6 +6074,11 @@ begin
                 if not processhandler.isNetwork then
                 begin
                   {$ifdef darwin}
+                  //if me32.is64bit then
+                 //   outputdebugstring(modulename+' is 64-bit')
+                  //else
+                  //  outputdebugstring(modulename+' is NOT 64-bit');
+
                   newmodulelist[newmodulelistpos].is64bitmodule:=me32.is64bit; //I own this struct now so yes...
                   {$endif}
 
@@ -5855,7 +6124,10 @@ begin
 
 
                   if processhandler.is64Bit<>newmodulelist[newmodulelistpos].is64bitmodule then
+                  begin
+                   // outputdebugstring(newmodulelist[newmodulelistpos].modulename+' does not match process');
                     newmodulelist[newmodulelistpos].modulename:='_'+newmodulelist[newmodulelistpos].modulename;
+                  end;
 
                 end
                 else
@@ -6274,7 +6546,8 @@ begin
     symbollists[length(symbollists)-1]:=sl;
 
     if assigned(UserdefinedSymbolCallback) then
-      UserdefinedSymbolCallback(suSymbolList);
+      UserdefinedSymbolCallback(suSymbolList)
+
   finally
     symbollistsMREW.Endwrite;
   end;
@@ -6282,19 +6555,23 @@ end;
 
 procedure TSymhandler.RemoveSymbolList(sl: TSymbolListHandler);
 var i,j: integer;
+  found: boolean;
 begin
   symbollistsMREW.Beginwrite;
   try
+    found:=false;
     for i:=0 to length(symbollists)-1 do
       if symbollists[i]=sl then
       begin
+        found:=true;
         for j:=i to length(symbollists)-2 do
           symbollists[i]:=symbollists[i+1];
 
         setlength(symbollists, length(symbollists)-1);
       end;
 
-    if assigned(UserdefinedSymbolCallback) then
+
+    if assigned(UserdefinedSymbolCallback) and found then
       UserdefinedSymbolCallback(suSymbolList);
   finally
     symbollistsMREW.Endwrite;
@@ -6342,6 +6619,14 @@ begin
   end;
 end;
 
+procedure TSymhandler.refreshGUI;
+begin
+  if assigned(UserdefinedSymbolCallback) then
+  begin
+    UserdefinedSymbolCallback(suUserdefinedSymbol);
+    UserdefinedSymbolCallback(suSymbolList);
+  end;
+end;
 
 destructor TSymhandler.destroy;
 begin
@@ -6400,7 +6685,7 @@ begin
 
   showmodules:=true;
   showsymbols:=true;
-  ExceptionOnLuaLookup:=true;
+  ExceptionOnLuaLookup:=FALSE;
 
  // log('TSymhandler.create 3');
   symbollist:=TSymbolListHandler.create;

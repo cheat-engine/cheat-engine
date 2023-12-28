@@ -42,9 +42,42 @@ begin
 end;
 
 function createSymbolList(L: Plua_State): integer; cdecl;
+var
+  sl: TSymbollisthandler;
+  sname: string;
+  address: qword;
+
 begin
   result:=1;
-  luaclass_newClass(L, TSymbolListHandler.create);
+  sl:=TSymbolListHandler.create;
+  luaclass_newClass(L, sl);
+  if lua_gettop(L)>=1 then
+  begin
+    //get the table info
+    if lua_istable(L,1) then
+    begin
+      lua_pushnil(L);
+      while lua_next(L, 1)<>0 do
+      begin
+        sl.AddSymbol('', Lua_ToString(L,-2), lua_tointeger(L,-1),1);
+
+        lua_pop(L,1);
+      end;
+
+      if lua_gettop(L)>=2 then
+      begin
+        sl.name:=Lua_ToString(L,2);
+        symhandler.AddSymbolList(sl);
+      end;
+    end
+    else
+    if lua_isstring(L,1) then
+    begin
+      sl.name:=Lua_ToString(L,1);
+      sl.unregisterList;
+      symhandler.AddSymbolList(sl);
+    end;
+  end;
 end;
 
 function SymbolList_clear(L: Plua_State): integer; cdecl;

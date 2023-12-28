@@ -35,8 +35,8 @@ type
     procedure refreshtrace;
   public
     { Public declarations }
-    procedure shadowstacktrace(context: _context; stackcopy: pointer; stackcopysize: integer);
-    procedure stacktrace(threadhandle:thandle;context:pcontext);
+    procedure shadowstacktrace(context: pointer; stackcopy: pointer; stackcopysize: integer);
+    procedure stacktrace(threadhandle:thandle;context:pointer);
   end;
 
 var
@@ -144,7 +144,7 @@ end;
 
 {$endif}
 
-procedure TfrmStacktrace.stacktrace(threadhandle:thandle;context:pcontext);
+procedure TfrmStacktrace.stacktrace(threadhandle:thandle;context:pointer);
 {$ifdef windows}
 var
     cxt:_context;
@@ -162,6 +162,7 @@ var
 
     li: TListitem;
         contexthandler: TContextInfo;
+
     {$endif}
 
 
@@ -182,13 +183,13 @@ begin
       zeromemory(@stackframe,sizeof(TSTACKFRAME_EX));
       stackframe.StackFrameSize:=sizeof(TSTACKFRAME_EX);
 
-      stackframe.AddrPC.Offset:=context^.{$ifdef cpu64}rip{$else}eip{$endif};
+      stackframe.AddrPC.Offset:=contexthandler.InstructionPointerRegister^.getValue(context);
       stackframe.AddrPC.mode:=AddrModeFlat;
 
-      stackframe.AddrStack.Offset:=context^.{$ifdef cpu64}rsp{$else}esp{$endif};
+      stackframe.AddrStack.Offset:=contexthandler.StackPointerRegister^.getValue(context);
       stackframe.AddrStack.Mode:=addrmodeflat;
 
-      stackframe.AddrFrame.Offset:=context^.{$ifdef cpu64}rbp{$else}ebp{$endif};
+      stackframe.AddrFrame.Offset:=contexthandler.FramePointerRegister^.getValue(context);
       stackframe.AddrFrame.Mode:=addrmodeflat;
 
       listview1.items.clear;
@@ -206,9 +207,9 @@ begin
         //   if (debuggerthread<>nil) and (debuggerthread.CurrentThread<>nil) then
 
         ZeroMemory(@wow64ctx, sizeof (wow64ctx));
-        wow64ctx.Eip:=context^.Rip;       //shouldn't be needed though
-        wow64ctx.Ebp:=context^.Rbp;
-        wow64ctx.Esp:=context^.Rsp;
+        wow64ctx.Eip:=contexthandler.InstructionPointerRegister^.getValue(context);   //shouldn't be needed though
+        wow64ctx.Ebp:=contexthandler.FramePointerRegister^.getValue(context);
+        wow64ctx.Esp:=contexthandler.StackPointerRegister^.getValue(context);
         machinetype:=IMAGE_FILE_MACHINE_I386;
 
         copymemory(cp,@wow64ctx,sizeof(wow64ctx));
@@ -280,33 +281,40 @@ begin
   end;
 end;
 
-procedure TfrmStacktrace.shadowstacktrace(context: _context; stackcopy: pointer; stackcopysize: integer);
+procedure TfrmStacktrace.shadowstacktrace(context: pointer; stackcopy: pointer; stackcopysize: integer);
+var ch: TContextInfo;
 begin
+
   {$ifdef windows}
+  ch:=getBestContextHandler;
   useshadow:=true;
-  shadowOrig:=context.{$ifdef cpu64}rsp{$else}esp{$endif};
+
+  shadowOrig:=ch.StackPointerRegister^.getValue(context);
   shadowNew:=ptruint(stackcopy);
   shadowSize:=stackcopysize;
 
 
-  stacktrace(GetCurrentThread, @context);
+  stacktrace(GetCurrentThread, context);
   {$endif}
 end;
 
 
 procedure TfrmStacktrace.miManualStackwalkClick(Sender: TObject);
-var c: _CONTEXT;
+var c: pointer;
     frmManualStacktraceConfig: TfrmManualStacktraceConfig;
+    ch: TContextInfo;
 begin
   {$ifdef windows}
-  zeromemory(@c, sizeof(_CONTEXT));
+  ch:=getBestContextHandler;
+  getmem(c, ch.ContextSize);
+  zeromemory(c, ch.ContextSize);
 
   frmManualStacktraceConfig:=tfrmManualStacktraceConfig.create(self);
   if frmManualStacktraceConfig.showmodal=mrok then
   begin
-    c.{$ifdef cpu64}Rip{$else}eip{$endif}:=frmManualStacktraceConfig.eip;
-    c.{$ifdef cpu64}Rbp{$else}ebp{$endif}:=frmManualStacktraceConfig.ebp;
-    c.{$ifdef cpu64}Rsp{$else}esp{$endif}:=frmManualStacktraceConfig.esp;
+    ch.InstructionPointerRegister.setValue(c, frmManualStacktraceConfig.eip);
+    ch.FramePointerRegister.setValue(c, frmManualStacktraceConfig.ebp);
+    ch.StackPointerRegister.setValue(c, frmManualStacktraceConfig.esp);
 
     if frmManualStacktraceConfig.useshadow then
     begin
@@ -315,7 +323,9 @@ begin
       shadowNew:=frmManualStacktraceConfig.shadownew;
       shadowSize:=frmManualStacktraceConfig.shadowsize;
     end;
-    stacktrace(GetCurrentThreadId, @c);
+    stacktrace(GetCurrentThreadId, c);
+
+    freemem(c);
 
     useShadow:=false;
   end;

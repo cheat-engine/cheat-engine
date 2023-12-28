@@ -287,7 +287,7 @@ function lua_gc(L: Plua_State; what, data: Integer): Integer; cdecl;
 (*
 ** miscellaneous functions
 *)
-function lua_error(L: Plua_State): Integer; cdecl;
+function lua_error(L: Plua_State): Integer; cdecl; noreturn;
 
 function lua_next(L: Plua_State; idx: Integer): Integer; cdecl;
 
@@ -563,7 +563,7 @@ function lua_status(L: Plua_State): Integer; cdecl; external LUA_NAME;
 
 function lua_gc(L: Plua_State; what, data: Integer): Integer; cdecl; external LUA_NAME;
 
-function lua_error(L: Plua_State): Integer; cdecl; external LUA_NAME;
+function lua_error(L: Plua_State): Integer; cdecl; noreturn; external LUA_NAME;
 function lua_next(L: Plua_State; idx: Integer): Integer; cdecl; external LUA_NAME;
 procedure lua_concat(L: Plua_State; n: Integer); cdecl; external LUA_NAME;
 

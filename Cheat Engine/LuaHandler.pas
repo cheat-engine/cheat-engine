@@ -30,7 +30,11 @@ uses
   variants, LazUTF8, zstream, MemoryQuery, LCLVersion
   {$ifdef darwin}
   ,macportdefines
-  {$endif}, betterControls;
+  {$endif},
+  {$ifdef laztrunk}
+  LazFileUtils,
+  {$endif}
+  betterControls;
 
 
 const MAXTABLERECURSIONLOOKUP=2;
@@ -56,12 +60,12 @@ procedure luaL_unref(L: Plua_State; t, ref: Integer); cdecl;
 
 
 procedure Lua_RegisterObject(name: string; o: TObject);
-function CheckIfConditionIsMetContext(threadid: dword; context: PContext; script: string): boolean;
+function CheckIfConditionIsMetContext(threadid: dword; context: pointer; script: string): boolean;
 procedure LUA_DoScript(s: string);
 function LUA_functioncall(routinetocall: string; parameters: array of const): integer;
 procedure LUA_memrec_callback(memrec: pointer; routine: string);
-procedure LUA_SetCurrentContextState(tid: dword; context: PContext; extraregs: boolean=false);
-procedure LUa_GetNewContextState(context: PContext; extraregs: boolean=false);
+procedure LUA_SetCurrentContextState(tid: dword; context: pointer; extraregs: boolean=false);
+procedure LUa_GetNewContextState(context: pointer; extraregs: boolean=false);
 
 function LUA_onBreakpoint(threadid: dword; context: PContext; functionAlreadyPushed: boolean=false): boolean;
 procedure LUA_onNotify(functionid: integer; sender: tobject);
@@ -130,7 +134,7 @@ uses autoassembler, MainUnit, MainUnit2, LuaClass, frmluaengineunit, plugin, plu
   rttihelper, LuaDotNetPipe, LuaRemoteExecutor, windows7taskbar, debugeventhandler,
   tcclib, dotnethost, CSharpCompiler, LuaCECustomButton, feces, process,
   networkInterface, networkInterfaceApi, LuaVirtualStringTree, userbytedisassembler,
-  parsers, LuaNetworkInterface;
+  parsers, LuaNetworkInterface, symbolsync, GDBServerDebuggerInterface, contexthandler;
 
   {$warn 5044 off}
 
@@ -367,6 +371,12 @@ begin
 
           printoutput:=frmLuaEngine.mOutput.Lines;
           usesluaengineform:=true;
+        end;
+
+        if printoutput=nil then  //e.g closing CE
+        begin
+          OutputDebugString('printoutput=nil');
+          exit;
         end;
 
         printoutput.AddText(rsError+error);
@@ -1154,300 +1164,102 @@ begin
 
 end;
 
-procedure LUA_SetCurrentContextState(tid: dword; context: PContext; extraregs: boolean=false);
+procedure LUA_SetCurrentContextState(tid: dword; context: pointer; extraregs: boolean=false);
 var i: integer;
+    ch: TContextInfo;
+    gpr: PContextElementRegisterList;
+
+    fpu,fpu2: PContextElementRegisterList;
 begin
   lua_pushinteger(luavm, tid);
   lua_setglobal(luavm, 'THREADID');
+  ch:=getBestContextHandler;
 
-  if processhandler.SystemArchitecture=archX86 then
+  gpr:=ch.getGeneralPurposeRegisters;
+  for i:=0 to length(gpr^)-1 do
   begin
-    {$ifdef cpu64}
-    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rax{$else}eax{$endif});
-    lua_setglobal(luavm, 'RAX');
-    {$endif}
-    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rax{$else}eax{$endif} and $ffffffff);
-    lua_setglobal(luavm, 'EAX');
+    lua_pushinteger(luavm, gpr^[i].getValue(context));
+    lua_setglobal(luavm, pchar(uppercase(gpr^[i].name)));
+  end;
 
-    {$ifdef cpu64}
-    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rbx{$else}ebx{$endif});
-    lua_setglobal(luavm, 'RBX');
-    {$endif}
-    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rbx{$else}ebx{$endif} and $ffffffff);
-    lua_setglobal(luavm, 'EBX');
-
-
-    {$ifdef cpu64}
-    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rcx{$else}ecx{$endif});
-    lua_setglobal(luavm, 'RCX');
-    {$endif}
-    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rcx{$else}ecx{$endif} and $ffffffff);
-    lua_setglobal(luavm, 'ECX');
-
-    {$ifdef cpu64}
-    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rdx{$else}edx{$endif});
-    lua_setglobal(luavm, 'RDX');
-    {$endif}
-    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rdx{$else}edx{$endif} and $ffffffff);
-    lua_setglobal(luavm, 'EDX');
-
-
-    {$ifdef cpu64}
-    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rsi{$else}esi{$endif});
-    lua_setglobal(luavm, 'RSI');
-    {$endif}
-    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rsi{$else}esi{$endif} and $ffffffff);
-    lua_setglobal(luavm, 'ESI');
-
-
-    {$ifdef cpu64}
-    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rdi{$else}edi{$endif});
-    lua_setglobal(luavm, 'RDI');
-    {$endif}
-    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rdi{$else}edi{$endif} and $ffffffff);
-    lua_setglobal(luavm, 'EDI');
-
-
-    {$ifdef cpu64}
-    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rbp{$else}ebp{$endif});
-    lua_setglobal(luavm, 'RBP');
-    {$endif}
-    lua_pushinteger(luavm, context^.{$ifdef cpu64}RBP{$else}eBP{$endif} and $ffffffff);
-    lua_setglobal(luavm, 'EBP');
-
-
-    {$ifdef cpu64}
-    lua_pushinteger(luavm, context^.{$ifdef cpu64}RSP{$else}eSP{$endif});
-    lua_setglobal(luavm, 'RSP');
-    {$endif}
-    lua_pushinteger(luavm, context^.{$ifdef cpu64}RSP{$else}eSP{$endif} and $ffffffff);
-    lua_setglobal(luavm, 'ESP');
-
-    {$ifdef cpu64}
-    lua_pushinteger(luavm, context^.{$ifdef cpu64}RIP{$else}eIP{$endif});
-    lua_setglobal(luavm, 'RIP');
-    {$endif}
-    lua_pushinteger(luavm, context^.{$ifdef cpu64}RIP{$else}eIP{$endif} and $ffffffff);
-    lua_setglobal(luavm, 'EIP');
-
-    lua_pushinteger(luavm, context^.EFlags);
+  if (processhandler.SystemArchitecture=archX86) and (ch.getGeneralPurposeFlags<>nil) then
+  begin
+    lua_pushinteger(luavm, pdword(ch.getGeneralPurposeFlags^[0].getPointer(context))^);
     lua_setglobal(luavm, 'EFLAGS');
+  end;
 
-
-
-    {$ifdef cpu64}
-    lua_pushinteger(luavm, context^.r8);
-    lua_setglobal(luavm, 'R8');
-
-    lua_pushinteger(luavm, context^.r9);
-    lua_setglobal(luavm, 'R9');
-
-    lua_pushinteger(luavm, context^.r10);
-    lua_setglobal(luavm, 'R10');
-
-    lua_pushinteger(luavm, context^.r11);
-    lua_setglobal(luavm, 'R11');
-
-    lua_pushinteger(luavm, context^.r12);
-    lua_setglobal(luavm, 'R12');
-
-    lua_pushinteger(luavm, context^.r13);
-    lua_setglobal(luavm, 'R13');
-
-    lua_pushinteger(luavm, context^.r14);
-    lua_setglobal(luavm, 'R14');
-
-    lua_pushinteger(luavm, context^.r15);
-    lua_setglobal(luavm, 'R15');
-    {$endif}
-
-    if extraregs then //default off as it's a bit slow
+  if extraregs then //default off as it's a bit slow
+  begin
+    fpu2:=ch.getAlternateFloatingPointRegisters;
+    if fpu2<>nil then
     begin
-      for i:=0 to 7 do
+      for i:=0 to length(fpu2^)-1 do
       begin
-        {$ifdef cpu32}
-        CreateByteTableFromPointer(luavm, @context^.FloatSave.RegisterArea[10*i], 10);
-        {$else}
-        CreateByteTableFromPointer(luavm, @context^.FltSave.FloatRegisters[i], 10);
-        {$endif}
-        lua_setglobal(luavm, pchar('FP'+inttostr(i)));
-      end;
-
-      //xmm regs
-
-      for i:=0 to 15 do
-      begin
-        if (i>=8) and (not processhandler.is64Bit) then break;
-
-        {$ifdef cpu32}
-        CreateByteTableFromPointer(luavm, @context^.ext.XMMRegisters[i], 16);
-        {$else}
-        CreateByteTableFromPointer(luavm, @context^.FltSave.XmmRegisters[i], 16);
-        {$endif}
-        lua_setglobal(luavm, pchar('XMM'+inttostr(i)));
+        CreateByteTableFromPointer(luavm, fpu2^[i].getPointer(context), fpu2^[i].size);
+        lua_setglobal(luavm, pchar(fpu2^[i].name));
       end;
     end;
-  end
-  else
-  begin
-    //todo: ARM
+    //xmm regs
+
+    fpu:=ch.getFloatingPointRegisters;
+    for i:=0 to length(fpu^)-1 do
+    begin
+      CreateByteTableFromPointer(luavm, fpu^[i].getPointer(context), fpu^[i].size);
+      lua_setglobal(luavm, pchar(fpu^[i].name));
+    end;
   end;
+
 end;
 
-procedure LUA_GetNewContextState(context: PContext; extraregs: boolean=false);
+procedure LUA_GetNewContextState(context: pointer; extraregs: boolean=false);
 var
   i: integer;
   t: integer;
+  ch: TContextInfo;
+  gpr: PContextElementRegisterList;
+  fpu,fpu2: PContextElementRegisterList;
 begin
-  lua_getglobal(luavm, 'EFLAGS');
-  context.EFLAGS:=lua_tointeger(luavm, -1);
-  lua_pop(luavm,1);
+  ch:=getBestContextHandler;
 
-  if not processhandler.is64bit then
+  if (processhandler.SystemArchitecture=archX86) and (ch.getGeneralPurposeFlags<>nil) then
   begin
-    lua_getglobal(luavm, 'EAX');
-    context.{$ifdef cpu64}rax{$else}eax{$endif}:=lua_tointeger(luavm, -1);
+    lua_getglobal(luavm, 'EFLAGS');
+    pdword(ch.getGeneralPurposeFlags^[0].getPointer(context))^:=lua_tointeger(luavm, -1);
     lua_pop(luavm,1);
+  end;
 
-    lua_getglobal(luavm, 'EBX');
-    context.{$ifdef cpu64}rbx{$else}ebx{$endif}:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'ECX');
-    context.{$ifdef cpu64}rcx{$else}ecx{$endif}:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'EDX');
-    context.{$ifdef cpu64}rdx{$else}edx{$endif}:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'ESI');
-    context.{$ifdef cpu64}rsi{$else}esi{$endif}:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'EDI');
-    context.{$ifdef cpu64}rdi{$else}edi{$endif}:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'EBP');
-    context.{$ifdef cpu64}rbp{$else}ebp{$endif}:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'ESP');
-    context.{$ifdef cpu64}rsp{$else}esp{$endif}:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-
-    lua_getglobal(luavm, 'EIP');
-    context.{$ifdef cpu64}rip{$else}eip{$endif}:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-  end
-  else
+  gpr:=ch.getGeneralPurposeRegisters;
+  for i:=0 to length(gpr^)-1 do
   begin
-  {$ifdef cpu64}
-    lua_getglobal(luavm, 'RAX');
-    context.RAX:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'RBX');
-    context.RBX:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'RCX');
-    context.RCX:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'RDX');
-    context.RDX:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'RSI');
-    context.RSI:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'RDI');
-    context.RDI:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'RBP');
-    context.RBP:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'RSP');
-    context.RSP:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'RIP');
-    context.RIP:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'R8');
-    context.R8:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'R9');
-    context.R9:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'R10');
-    context.R10:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'R11');
-    context.R11:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'R12');
-    context.R12:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'R13');
-    context.R13:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'R14');
-    context.R14:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-
-    lua_getglobal(luavm, 'R15');
-    context.R15:=lua_tointeger(luavm, -1);
-    lua_pop(luavm,1);
-  {$endif}
+    lua_getglobal(luavm, pchar(uppercase(gpr^[i].name)));
+    gpr^[i].setValue(context, lua_tointeger(luavm, -1));
   end;
 
   if extraregs then
   begin
-    for i:=0 to 7 do
+    fpu2:=ch.getAlternateFloatingPointRegisters;
+    for i:=0 to length(fpu2^)-1 do
     begin
-      lua_getglobal(luavm, pchar('FP'+inttostr(i)));
+      lua_getglobal(luavm, pchar(uppercase(fpu2^[i].name)));
       if not lua_isnil(luavm, -1) then
       begin
         t:=lua_gettop(LuaVM);
-        {$ifdef cpu32}
-        readBytesFromTable(luavm, t, @context.FloatSave.RegisterArea[10*i], 10);
-        {$else}
-        readBytesFromTable(luavm, t, @context.FltSave.FloatRegisters[i], 10);
-        {$endif}
+        readBytesFromTable(luavm, t, fpu2^[i].getPointer(context), fpu2^[i].size);
       end;
       lua_pop(luavm,1);
     end;
 
-    for i:=0 to 15 do
-    begin
-      if (i>=8) and (not processhandler.is64Bit) then break;
 
-      lua_getglobal(luavm, pchar('XMM'+inttostr(i)));
+    fpu:=ch.getFloatingPointRegisters;
+    for i:=0 to length(fpu^)-1 do
+    begin
+      lua_getglobal(luavm, pchar(uppercase(fpu^[i].name)));
       if not lua_isnil(luavm, -1) then
       begin
         t:=lua_gettop(LuaVM);
-        {$ifdef cpu32}
-        readBytesFromTable(luavm, t, @context.ext.XMMRegisters[i], 16);
-        {$else}
-        readBytesFromTable(luavm, t, @context.FltSave.XmmRegisters[i], 16);
-        {$endif}
+        readBytesFromTable(luavm, t, fpu^[i].getPointer(context), fpu^[i].size);
       end;
-
+      lua_pop(luavm,1);
     end;
   end;
 end;
@@ -1539,98 +1351,66 @@ var i,e: integer;
   oldstack: integer;
   l: Plua_State;
 begin
- // OutputDebugString(inttohex(qword(GetCurrentThreadId),1)+':LUA_functioncall calling '+routinetocall);
- { if GetCurrentThreadId<>MainThreadID then
-  begin
-    OutputDebugString('Not main thread');
-    l:=lua_newthread(luavm);
-  end
-  else  }
-    l:=luavm;
-
+  l:=luavm;
 
   result:=-1;
   oldstack:=lua_gettop(l);
 
- // OutputDebugString('LUA_functioncall: oldstack='+inttostr(oldstack));
+  try
+    lua_getglobal(l, pchar(routinetocall));
+    p:=lua_gettop(l);
 
- // if luacs.TryEnter then
-  begin
-    try
-      //check if the routine exists
-    //  OutputDebugString('LUA_functioncall: calling getglobal');
-
-      lua_getglobal(l, pchar(routinetocall));
-
-     // OutputDebugString('LUA_functioncall: after getglobal');
-
-      p:=lua_gettop(l);
-     // OutputDebugString('LUA_functioncall: newstack='+inttostr(p));
-
-      if p<>oldstack then
+    if p<>oldstack then
+    begin
+      if lua_isfunction(l, -1) then
       begin
-        if lua_isfunction(l, -1) then
+        //routine exists, fill in the parameters
+        for i:=0 to length(parameters)-1 do
         begin
-          //OutputDebugString('LUA_functioncall: function exists');
-          //OutputDebugString('LUA_functioncall: length(parameters)='+inttostr(length(parameters)));
-
-          //routine exists, fill in the parameters
-          for i:=0 to length(parameters)-1 do
-          begin
-            case parameters[i].VType of
-              system.vtInteger : lua_pushinteger(L, parameters[i].VInteger);
-              system.vtBoolean: lua_pushboolean(L, parameters[i].VBoolean);
-              system.vtChar:
-              begin
-                c:=parameters[i].VChar;
-                lua_pushstring(L, c);
-              end;
-              system.vtExtended: lua_pushnumber(L, parameters[i].VExtended^);
-              system.vtString: lua_pushstring(L, pchar(parameters[i].VString));
-              system.vtPointer: lua_pushlightuserdata(L, parameters[i].VPointer);
-              system.vtPChar: lua_pushstring(L, parameters[i].VPChar);
-              system.vtObject: luaclass_newClass(L, parameters[i].VObject); //lua_pushlightuserdata(L, pointer(parameters[i].VObject));
-              system.vtClass: lua_pushlightuserdata(L, pointer(parameters[i].VClass));
-              system.vtWideChar, vtPWideChar, vtVariant, vtInterface,
-                vtWideString: lua_pushstring(L, rsCheatengineIsBeingAFag);
-              system.vtAnsiString: lua_pushstring(L, pchar(parameters[i].VAnsiString));
-              system.vtCurrency: lua_pushnumber(L, parameters[i].VCurrency^);
-              system.vtInt64:
-              begin
-                if (parameters[i].VInt64^<=$ffffffff) then
-                  lua_pushinteger(L, parameters[i].VInt64^)
-                else
-                  lua_pushlightuserdata(L, pointer(parameters[i].VInt64^));
-              end;
-              system.vtQWord:
-              begin
-                if (parameters[i].VQWord^<=$ffffffff) then
-                  lua_pushinteger(L, parameters[i].VQWord^)
-                else
-                  lua_pushlightuserdata(L, pointer(parameters[i].VQWord^));
-              end;
+          case parameters[i].VType of
+            system.vtInteger : lua_pushinteger(L, parameters[i].VInteger);
+            system.vtBoolean: lua_pushboolean(L, parameters[i].VBoolean);
+            system.vtChar:
+            begin
+              c:=parameters[i].VChar;
+              lua_pushstring(L, c);
             end;
-
+            system.vtExtended: lua_pushnumber(L, parameters[i].VExtended^);
+            system.vtString: lua_pushstring(L, pchar(parameters[i].VString));
+            system.vtPointer: lua_pushlightuserdata(L, parameters[i].VPointer);
+            system.vtPChar: lua_pushstring(L, parameters[i].VPChar);
+            system.vtObject: luaclass_newClass(L, parameters[i].VObject); //lua_pushlightuserdata(L, pointer(parameters[i].VObject));
+            system.vtClass: lua_pushlightuserdata(L, pointer(parameters[i].VClass));
+            system.vtWideChar, vtPWideChar, vtVariant, vtInterface,
+              vtWideString: lua_pushstring(L, rsCheatengineIsBeingAFag);
+            system.vtAnsiString: lua_pushstring(L, pchar(parameters[i].VAnsiString));
+            system.vtCurrency: lua_pushnumber(L, parameters[i].VCurrency^);
+            system.vtInt64:
+            begin
+              if (parameters[i].VInt64^<=$ffffffff) then
+                lua_pushinteger(L, parameters[i].VInt64^)
+              else
+                lua_pushlightuserdata(L, pointer(parameters[i].VInt64^));
+            end;
+            system.vtQWord:
+            begin
+              if (parameters[i].VQWord^<=$ffffffff) then
+                lua_pushinteger(L, parameters[i].VQWord^)
+              else
+                lua_pushlightuserdata(L, pointer(parameters[i].VQWord^));
+            end;
           end;
 
-         // OutputDebugString('Lua_functioncall: Calling lua_pcall');
-          lua_pcall(L, length(parameters), 1, 0);
-         // OutputDebugString('Lua_functioncall: returned from lua_pcall');
-          i:=lua_gettop(L);
-          if i>0 then //it has a parameter
-            result:=lua_tointeger(L, -1);
         end;
+        lua_pcall(L, length(parameters), 1, 0);
 
-
+        i:=lua_gettop(L);
+        if i>0 then //it has a parameter
+          result:=lua_tointeger(L, -1);
       end;
-
-
-    finally
-     // OutputDebugString('Lua_functioncall exit');
-      lua_settop(L, oldstack);
- //     luacs.leave;
     end;
-
+  finally
+    lua_settop(L, oldstack);
   end;
 end;
 
@@ -1662,7 +1442,7 @@ begin
   end;
 end; }
 
-function CheckIfConditionIsMetContext(threadid: dword; context: PContext; script: string): boolean;
+function CheckIfConditionIsMetContext(threadid: dword; context: pointer; script: string): boolean;
 {
 precondition: script returns a value (so already has the 'return ' part appended for single line scripts)
 }
@@ -3581,6 +3361,9 @@ begin
     lua_pushinteger(L, 4);
     {$endif}
 
+    if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+      lua_pushinteger(L, 5);
+
     result:=1;
   end
   else
@@ -4505,8 +4288,10 @@ var parameters: integer;
   local,shallow,e: boolean;
 
 begin
+
   result:=0;
   parameters:=lua_gettop(L);
+  //outputdebugstring('getAddressSafe. parameters='+parameters.ToString);
   if parameters>=1 then
   begin
     if lua_type(L,1)=LUA_TNUMBER then
@@ -4517,13 +4302,19 @@ begin
 
     s:=Lua_ToString(L, 1);
 
+    //outputdebugstring('getAddressSafe('+s+')');
+
     if parameters>=2 then
       local:=lua_toboolean(L, 2)
     else
       local:=false;
 
     if parameters>=3 then
-      shallow:=lua_toboolean(L, 3)
+    begin
+      shallow:=lua_toboolean(L, 3);
+      //if shallow then
+      //  outputdebugstring('getAddressSafe: shallow=true');
+    end
     else
       shallow:=false;
 
@@ -4692,6 +4483,7 @@ end;
 function reinitializeSymbolhandler(L: PLua_state): integer; cdecl;
 var waittilldone: boolean;
 begin
+  outputdebugstring('lua: reinitializeSymbolhandler');
   if lua_gettop(L)>=1 then
     waittilldone:=lua_toboolean(L,1)
   else
@@ -8519,6 +8311,22 @@ begin
   result:=1;
 end;
 
+{$ifdef darwin}
+function targetIsRosetta(L: PLua_State): integer; cdecl;
+begin
+  lua_pop(L, lua_gettop(L));
+  lua_pushboolean(L, isProcessTranslated(processid));
+
+  result:=1;
+end;
+{$endif}
+
+
+function getABI(L: PLua_State): integer; cdecl;
+begin
+  lua_pushinteger(L, integer(processhandler.OSABI));
+  result:=1;
+end;
 
 
 function unregisterFormAddNotification(L: PLua_State): integer; cdecl;
@@ -10138,6 +9946,67 @@ begin
     unregisterStructureAndElementListCallback(lua_tointeger(L, 1));
 end;
 //----
+
+
+function lua_registerSpeedhackCallbacks(L: PLua_State): integer; cdecl;
+var
+  f: integer;
+  routine: string;
+  lc,lc2: tluacaller;
+begin
+  result:=0;
+  if lua_gettop(L)>=2 then
+  begin
+    if lua_isfunction(L, 1) then
+    begin
+      lua_pushvalue(L, 1);
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=f;
+    end
+    else
+    if lua_isstring(L,1) then
+    begin
+      routine:=lua_tostring(L,1);
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=routine;
+    end
+    else exit;
+
+    if lua_isfunction(L, 2) then
+    begin
+      lua_pushvalue(L, 2);
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      lc2:=TLuaCaller.create;
+      lc2.luaroutineIndex:=f;
+    end
+    else
+    if lua_isstring(L,2) then
+    begin
+      routine:=lua_tostring(L,2);
+      lc2:=TLuaCaller.create;
+      lc2.luaroutine:=routine;
+    end
+    else exit;
+
+    lua_pushinteger(L, registerSpeedhackCallbacks(lc.SpeedHackOnActivate, lc2.SpeedHackSetSpeedEvent));
+    result:=1;
+  end;
+
+end;
+
+function lua_unregisterSpeedhackCallbacks(L: PLua_State): integer; cdecl;
+var i: integer;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+  begin
+    i:=lua_tointeger(L,1);
+    unregisterSpeedhackCallbacks(i);
+  end;
+end;
 
 function lua_registerGlobalDisassembleOverride(L: PLua_State): integer; cdecl;
 var
@@ -15258,7 +15127,13 @@ var
   ln: TSourceCodeInfo;
   tr: TTCCRegionList;
   oldprotect: dword;
+
+  mbi: TMEMORYBASICINFORMATION;
 begin
+  {$ifdef darwin}
+  outputdebugstring('lua compile()');
+  {$endif}
+
   if lua_gettop(L)>=1 then
   begin
     if lua_isstring(L,1) then
@@ -15326,6 +15201,9 @@ begin
 
       if a=0 then //allocate myself
       begin
+        {$ifdef darwin}
+        outputdebugstring('testcompiling()');
+        {$endif}
         //test compile to get the size
         if ((list=nil) and (tcc.compileScript(s,$00400000,bytes,nil,nil,nil,errorlog,nil,targetself)=false)) or
            ((list<>nil) and (
@@ -15342,6 +15220,10 @@ begin
           exit(2);
         end;
 
+        {$ifdef darwin}
+        outputdebugstring('testcompile success');
+        {$endif}
+
 {$ifdef windows}
         if useKernelAlloc then
           a:=ptruint(kernelalloc(bytes.size*2))
@@ -15349,9 +15231,28 @@ begin
 {$endif}
         begin
           if SystemSupportsWritableExecutableMemory then
-            a:=ptruint(VirtualAllocEx(ph,nil, bytes.Size*2,MEM_RESERVE or MEM_COMMIT,PAGE_EXECUTE_READWRITE))
+          begin
+            {$ifdef darwin}
+            outputdebugstring('allocating as RWX');
+            {$endif}
+            a:=ptruint(VirtualAllocEx(ph,nil, bytes.Size*2,MEM_RESERVE or MEM_COMMIT,PAGE_EXECUTE_READWRITE));
+          end
           else
-            a:=ptruint(VirtualAllocEx(ph,nil, bytes.Size*2,MEM_RESERVE or MEM_COMMIT,PAGE_READWRITE))
+          begin
+            {$ifdef darwin}
+            outputdebugstring('allocating as RW');
+            {$endif}
+            a:=ptruint(VirtualAllocEx(ph,nil, bytes.Size*2,MEM_RESERVE or MEM_COMMIT,PAGE_READWRITE));
+
+            {$ifdef darwin}
+            if VirtualQueryEx(ph, pointer(a),mbi,sizeof(mbi))=sizeof(mbi) then
+            begin
+              outputdebugstring('protect='+mbi.Protect.ToString+' ('+mbi.macProtect.ToString+')');
+            end
+            else
+              outputdebugstring('VirtualQueryEx failed');
+            {$endif}
+          end;
         end;
 
         if a=0 then
@@ -15518,8 +15419,6 @@ begin
 
           try
             slist.AddSymbol('tcclib',sname,address,1);
-            symhandler.DeleteUserdefinedSymbol(sname);
-            symhandler.AddUserdefinedSymbol(inttohex(address,8),sname,true);
           except
           end;
           lua_pop(L,1);
@@ -16193,6 +16092,130 @@ begin
 
 end;
 
+function lua_syncSymbolsNow(L: Plua_State): integer;  cdecl;
+var retrieveOnly: boolean;
+begin
+  if lua_gettop(L)>=1 then
+    retrieveOnly:=lua_toboolean(L,1)
+  else
+    retrieveOnly:=false;
+
+
+  syncSymbolsNow(retrieveOnly);
+  result:=0;
+end;
+
+function lua_setThreadSafetyCheck(L: Plua_State): integer;  cdecl;
+begin
+  if lua_gettop(L)>=1 then
+    threadsafetycheck:=lua_toboolean(L,1);
+
+  result:=0;
+end;
+
+function lua_gdb_connected(L: Plua_State): integer;  cdecl;
+begin
+  result:=0;
+  if (CurrentDebuggerInterface<>nil) and (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+  begin
+    lua_pushboolean(L, TGDBServerDebuggerInterface(CurrentDebuggerInterface).isConnected);
+    result:=1;
+  end
+end;
+
+function lua_gdb_stopped(L: Plua_State): integer;  cdecl;
+begin
+  result:=0;
+  if (CurrentDebuggerInterface<>nil) and (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+  begin
+    lua_pushboolean(L, TGDBServerDebuggerInterface(CurrentDebuggerInterface).isStopped);
+    result:=1;
+  end;
+end;
+
+function lua_gdb_break(L: Plua_State): integer;  cdecl;
+begin
+  result:=0;
+  if (CurrentDebuggerInterface<>nil) and (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+  begin
+    TGDBServerDebuggerInterface(CurrentDebuggerInterface).ObtainLock;
+    TGDBServerDebuggerInterface(CurrentDebuggerInterface).suspendProcess;
+
+    lua_pushboolean(L, true);
+    result:=2;
+  end;
+end;
+
+function lua_gdb_getCurrentInstructionpointer(L: Plua_State): integer;  cdecl;
+begin
+  result:=0;
+  if (CurrentDebuggerInterface<>nil) and (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+  begin
+    lua_pushinteger(L, TGDBServerDebuggerInterface(CurrentDebuggerInterface).currentprogramcounter);
+    result:=1;
+  end;
+end;
+
+function lua_gdb_setCurrentInstructionpointer(L: Plua_State): integer;  cdecl;
+var a: ptruint;
+begin
+  result:=0;
+  if (lua_gettop(L)>=1) and (CurrentDebuggerInterface<>nil) and (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+  begin
+    a:=lua_toaddress(L, 1);
+
+    TGDBServerDebuggerInterface(CurrentDebuggerInterface).currentprogramcounter:=a;
+  end;
+end;
+
+function lua_gdb_resumefrombreak(L: Plua_State): integer;  cdecl;
+begin
+  result:=0;
+  if (CurrentDebuggerInterface<>nil) and (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+  begin
+
+    TGDBServerDebuggerInterface(CurrentDebuggerInterface).resumeProcess;
+    TGDBServerDebuggerInterface(CurrentDebuggerInterface).ReleaseLock;
+    result:=1;
+  end;
+end;
+
+function lua_gdb_command(L: Plua_State): integer;  cdecl;
+var
+  s: string;
+  timeout: dword;
+  r: string;
+begin
+  result:=0;
+  if (CurrentDebuggerInterface<>nil) and (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+  begin
+    if lua_gettop(L)>=1 then
+      s:=Lua_ToString(L,1)
+    else
+      s:='';
+
+    if lua_gettop(L)>=2 then
+      timeout:=lua_tointeger(L,2)
+    else
+      timeout:=2000;
+
+    r:=TGDBServerDebuggerInterface(CurrentDebuggerInterface).debugPacket(s,timeout);
+
+    lua_pushstring(L, r);
+    result:=1;
+  end;
+end;
+
+function lua_gdb_getcurrentstopreason(L: Plua_State): integer;  cdecl;
+begin
+  result:=0;
+  if (CurrentDebuggerInterface<>nil) and (CurrentDebuggerInterface is TGDBServerDebuggerInterface) and TGDBServerDebuggerInterface(CurrentDebuggerInterface).isStopped then
+  begin
+    lua_pushstring(L, TGDBServerDebuggerInterface(CurrentDebuggerInterface).getCurrentStopPacket);
+    result:=1;
+  end;
+end;
+
 procedure InitLimitedLuastate(L: Plua_State);
 begin
   //don't put functioncallback events in here, as limited luastates can be destroyed
@@ -16206,6 +16229,12 @@ begin
   lua_register(L, 'targetIsX86', targetIsX86);
   lua_register(L, 'targetIsArm', targetIsArm);
   lua_register(L, 'targetIsAndroid', targetIsAndroid);
+  {$ifdef darwin}
+  lua_register(L, 'targetIsRosetta', targetIsRosetta);
+
+  {$endif}
+
+  lua_register(L, 'getABI', getABI);
 
 
 
@@ -16347,6 +16376,14 @@ begin
   lua_register(L, 'invertColor',lua_InvertColor);
 
   lua_register(L, 'convertToUTF8',lua_convertToUTF8);
+
+
+  lua_register(L, 'syncSymbolsNow',lua_syncSymbolsNow);
+
+  lua_register(L, 'setThreadSafetyCheck', lua_setThreadSafetyCheck);
+
+
+
 
   initializeLuaNetworkInterface(L);
 
@@ -16834,6 +16871,10 @@ begin
     lua_register(L, 'unregisterStructureAndElementListCallback', lua_unregisterStructureAndElementListCallback);
 
 
+    lua_register(L, 'registerSpeedhackCallbacks', lua_registerSpeedhackCallbacks);
+    lua_register(L, 'unregisterSpeedhackCallbacks', lua_unregisterSpeedhackCallbacks);
+
+
 
 
     lua_register(L, 'shortCutToText', lua_shortCutToText);
@@ -17034,9 +17075,15 @@ begin
     lua_register(L, 'loadCEServerExtension', lua_loadCEServerExtension);
 
 
+    lua_register(L, 'gdb_connected', lua_gdb_connected);
+    lua_register(L, 'gdb_stopped', lua_gdb_stopped);
+    lua_register(L, 'gdb_break', lua_gdb_break);
+    lua_register(L, 'gdb_resumefrombreak', lua_gdb_resumefrombreak);
+    lua_register(L, 'gdb_command', lua_gdb_command);
+    lua_register(L, 'gdb_getcurrentstopreaon', lua_gdb_getcurrentstopreason);
 
-
-
+    lua_register(L, 'gdb_setCurrentInstructionPointer', lua_gdb_setCurrentInstructionPointer);
+    lua_register(L, 'gdb_getCurrentInstructionPointer', lua_gdb_getCurrentInstructionPointer);
 
 
     initializeLuaRemoteThread;

@@ -260,7 +260,7 @@ local sf=getSettingsForm()
 local CustomTypesPage=nil
 for i=0, sf.SettingsPageControl.PageCount-1 do
   if sf.SettingsPageControl.Page[i].Name=='CustomTypes' then --Do NOT translate this
-    CustomTypesPage=s.SettingsPageControl.Page[i]
+    CustomTypesPage=sf.SettingsPageControl.Page[i]
   end
 end
 if CustomTypesPage==nil then

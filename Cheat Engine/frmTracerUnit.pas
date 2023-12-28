@@ -14,7 +14,7 @@ uses
   NewKernelHandler, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, Buttons, LResources, commonTypeDefs, frmFindDialogUnit,
   Menus, ComCtrls, frmStackviewunit, frmFloatingPointPanelUnit, disassembler,
-  debuggertypedefinitions, betterControls, LastDisassembleData;
+  debuggertypedefinitions, betterControls, LastDisassembleData, contexthandler;
 
 type
   TTraceDebugInfo=class
@@ -24,7 +24,9 @@ type
     instruction: string;
     instructionsize: integer;
     referencedAddress: ptrUint;
-    c: _CONTEXT;
+    context: pointer; //was c
+    contexthandler: TContextInfo;
+
     bytes: pbytearray;
     bytesize: PtrUInt;
     isfloat: boolean;
@@ -42,7 +44,7 @@ type
     procedure fillbytes(datasize: integer);
     procedure savestack;
     procedure saveToStream(s: tstream);
-    constructor createFromStream(s: tstream);
+    constructor createFromStream(s: tstream; ch: TContextInfo);
     destructor destroy; override;
   end;
 
@@ -175,7 +177,9 @@ type
     dereference: boolean;
     fsavestack: boolean;
 
-    RXlabels: array of TLabel;
+    GPRlabels: array of TLabel;
+    Specializedlabels: array of TLabel;
+    Flagslabels: array of tlabel;
 
     lastsearchstring: string;
     stopsearch: boolean;
@@ -197,7 +201,7 @@ type
     l1,l2: TTreeView;
     reallignscanaddress: ptruint;
 
-    registerCompareIgnore: array [0..16] of boolean;
+    registerCompareIgnore: array of boolean;
 
     da: TDisassembler;
     {$ifdef windows}
@@ -210,6 +214,8 @@ type
     DBVMStatusUpdater: TDBVMStatusUpdater;
 
     currentTracefilename: string;
+
+    contexthandler: TContextInfo;
 
     procedure configuredisplay;
     procedure setSavestack(x: boolean);
@@ -250,7 +256,7 @@ uses  LuaByteTable, clipbrd, CEDebugger, debughelper, MemoryBrowserFormUnit, frm
   LuaHandler, symbolhandler, byteinterpreter,
   tracerIgnore, LuaForm, lua, lualib,lauxlib, LuaClass,vmxfunctions, DBK32functions,
   DebuggerInterfaceAPIWrapper, DBVMDebuggerInterface, mainunit2, fontSaveLoadRegistry,
-  Registry;
+  Registry, GDBServerDebuggerInterface;
 
 resourcestring
   rsSearch = 'Search';
@@ -267,6 +273,9 @@ begin
 
   if stack.stack<>nil then
     freememandnil(stack.stack);
+
+  if context<>nil then
+    freememandnil(context);
 
   inherited destroy;
 end;
@@ -303,23 +312,25 @@ begin
 end;
 
 procedure TTraceDebugInfo.SaveStack;
+var sp: qword;
 begin
   getmem(stack.stack, savedStackSize);
+  sp:=contexthandler.StackPointerRegister^.getValue(context);
 
   if cr3=0 then
   begin
-    if ReadProcessMemory(processhandle, pointer(c.{$ifdef cpu64}Rsp{$else}esp{$endif}), stack.stack, savedStackSize, stack.savedsize)=false then
+    if ReadProcessMemory(processhandle, pointer(sp), stack.stack, savedStackSize, stack.savedsize)=false then
     begin
-      stack.savedsize:=4096-(c.{$ifdef cpu64}Rsp{$else}esp{$endif} mod 4096);
-      ReadProcessMemory(processhandle, pointer(c.{$ifdef cpu64}Rsp{$else}esp{$endif}), stack.stack, stack.savedsize, stack.savedsize);
+      stack.savedsize:=4096-(sp mod 4096);
+      ReadProcessMemory(processhandle, pointer(sp), stack.stack, stack.savedsize, stack.savedsize);
     end;
   end
   {$ifdef windows}
   else
-    ReadProcessMemoryCR3(cr3, pointer(c.{$ifdef cpu64}Rsp{$else}esp{$endif}), stack.stack, savedStackSize, stack.savedsize){$endif};
+    ReadProcessMemoryCR3(cr3, pointer(sp), stack.stack, savedStackSize, stack.savedsize){$endif};
 end;
 
-constructor TTraceDebugInfo.createFromStream(s: tstream);
+constructor TTraceDebugInfo.createFromStream(s: tstream; ch: TContextInfo);
 var
   temp: dword;
   x: pchar;
@@ -334,7 +345,9 @@ begin
 
   s.ReadBuffer(instructionsize, sizeof(instructionsize));
   s.ReadBuffer(referencedAddress, sizeof(referencedAddress));
-  s.readBuffer(c, sizeof(c));
+  getmem(context, ch.ContextSize);
+  s.readBuffer(context, ch.ContextSize);
+  contexthandler:=ch;
   s.ReadBuffer(bytesize, sizeof(bytesize));
   getmem(bytes, bytesize);
   s.readbuffer(bytes[0], bytesize);
@@ -359,7 +372,7 @@ begin
   s.WriteBuffer(referencedAddress, sizeof(referencedAddress));
 
   //c: _CONTEXT;
-  s.WriteBuffer(c, sizeof(c));
+  s.WriteBuffer(context^, contexthandler.ContextSize);
 
   //bytesize: dword;
   s.WriteBuffer(bytesize, sizeof(bytesize));
@@ -371,7 +384,6 @@ begin
     savedsize: dword;
     stack: pbyte;
   end;}
-
   s.writebuffer(stack.savedsize, sizeof(stack.savedsize));
   s.writebuffer(stack.stack^, stack.savedsize);
 end;
@@ -532,12 +544,13 @@ var s,s2: string;
 
     currentda: TDisassembler;
     cr3: qword;
+    ch: TContextInfo;
 begin
   //the debuggerthread is now paused so get the context and add it to the list
 
   try
-
-    address:=debuggerthread.CurrentThread.context.{$ifdef CPU64}rip{$else}eip{$endif};
+    ch:=debuggerthread.CurrentThread.contexthandler ;
+    address:=ch.InstructionPointerRegister^.getValue(debuggerthread.CurrentThread.context);
 
     a:=address;
     if da=nil then
@@ -604,7 +617,8 @@ begin
     d:=TTraceDebugInfo.Create;
     d.cr3:=cr3;
     d.instructionsize:=a-address;
-    d.c:=debuggerthread.CurrentThread.context^;
+    d.context:=ch.getCopy(debuggerthread.CurrentThread.context);
+    d.contexthandler:=ch;
     d.instruction:=s;
     d.referencedAddress:=referencedAddress;
     d.isfloat:=isfloat;
@@ -645,7 +659,9 @@ begin
 
           if d=nil then exit; //cleanup underway
 
-          if (d.c.{$ifdef cpu64}Rip{$else}eip{$endif}+d.instructionsize<>a) then
+
+
+          if (ch.InstructionPointerRegister.getValue(d.context)+d.instructionsize<>a) then
           begin
             //see if a parent can be found that does match
             x:=currentappendage.Parent;
@@ -655,7 +671,7 @@ begin
 
               if d=nil then exit; //cleanup underway
 
-              if (d.c.{$ifdef cpu64}Rip{$else}eip{$endif}+d.instructionsize=a) then
+              if (ch.InstructionPointerRegister.getValue(d.context)+d.instructionsize=a) then
               begin
                 //match found
                 currentAppendage:=x;
@@ -724,6 +740,8 @@ var
   reg: TRegistry;
 begin
   //set a breakpoint and when that breakpoint gets hit trace a number of instructions
+  contexthandler:=getBestContextHandler;
+
   setlength(x,0);
   loadedformpos:=loadformposition(self,x);
 
@@ -788,14 +806,19 @@ end;
 procedure TfrmTracer.miSaveToDiskClick(Sender: TObject);
 var
   z: Tstringlist;
-  i: integer;
+  i,j: integer;
   t: TTraceDebugInfo;
-  c: PContext;
+  c: Pointer;
   pref: string;
+  ch: TContextInfo;
+
+  gp: PContextElementRegisterList;
+  flags: PContextElementRegisterList;
 begin
   //save the results of the trace to disk
   if SaveDialogText.Execute then
   begin
+    ch:=getBestContextHandler;
     z:=tstringlist.create;
     try
 
@@ -806,12 +829,9 @@ begin
         t:=TTraceDebugInfo(lvTracer.Items[i].data);
         if t<>nil then
         begin
-          c:=@t.c;
-          if processhandler.is64Bit then
-            pref:='R'
-          else
-            pref:='E';
+          c:=t.context;
 
+          gp:=ch.getGeneralPurposeRegisters;
 
           if dereference then
           begin
@@ -819,39 +839,18 @@ begin
               z.add(inttohex(t.referencedAddress,8)+' = '+DataToString(t.bytes, t.bytesize, t.datatype));
           end;
 
+          for j:=0 to length(gp^)-1 do
+            z.add(uppercase(gp^[j].name)+'='+gp^[j].getFullValueString(c));
 
-
-
-          z.add(pref+'AX='+inttohex(c.{$ifdef cpu64}Rax{$else}Eax{$endif},processhandler.hexdigitpreference));
-          z.add(pref+'BX='+inttohex(c.{$ifdef cpu64}Rbx{$else}Ebx{$endif},processhandler.hexdigitpreference));
-          z.add(pref+'CX='+inttohex(c.{$ifdef cpu64}Rcx{$else}Ecx{$endif},processhandler.hexdigitpreference));
-          z.add(pref+'DX='+inttohex(c.{$ifdef cpu64}Rdx{$else}Edx{$endif},processhandler.hexdigitpreference));
-          z.add(pref+'SI='+inttohex(c.{$ifdef cpu64}Rsi{$else}Esi{$endif},processhandler.hexdigitpreference));
-          z.add(pref+'DI='+inttohex(c.{$ifdef cpu64}Rdi{$else}Edi{$endif},processhandler.hexdigitpreference));
-          z.add(pref+'BP='+inttohex(c.{$ifdef cpu64}Rbp{$else}Ebp{$endif},processhandler.hexdigitpreference));
-          z.add(pref+'SP='+inttohex(c.{$ifdef cpu64}Rsp{$else}Esp{$endif},processhandler.hexdigitpreference));
-          z.add(pref+'IP='+inttohex(c.{$ifdef cpu64}Rip{$else}Eip{$endif},processhandler.hexdigitpreference));
-
-          {$ifdef cpu64}
-          if processhandler.is64bit then
+          flags:=ch.getGeneralPurposeFlags;
+          if flags<>nil then
           begin
-            z.add('R8='+inttohex(c.r8,processhandler.hexdigitpreference));
-            z.add('R9='+inttohex(c.r9,processhandler.hexdigitpreference));
-            z.add('R10='+inttohex(c.r10,processhandler.hexdigitpreference));
-            z.add('R11='+inttohex(c.r11,processhandler.hexdigitpreference));
-            z.add('R12='+inttohex(c.r12,processhandler.hexdigitpreference));
-            z.add('R13='+inttohex(c.r13,processhandler.hexdigitpreference));
-            z.add('R14='+inttohex(c.r14,processhandler.hexdigitpreference));
-            z.add('R15='+inttohex(c.r15,processhandler.hexdigitpreference));
+            z.add('');
+            for j:=0 to length(flags^)-1 do
+              z.add(uppercase(flags^[j].name)+'='+flags^[j].getValueString(c));
           end;
-          {$endif}
-
-          z.add('');
-          z.add('EFLAGS='+inttohex(c.EFlags,8));
           z.add('');
           z.add('-');
-
-
         end;
       end;
 
@@ -894,6 +893,9 @@ var
 
   different: boolean;
   xmmcount: integer;
+  gpr: PContextElementRegisterList;
+  fpu: PContextElementRegisterList;
+  i: integer;
 begin
   if comparetv=nil then
   begin
@@ -910,7 +912,8 @@ begin
 
     if compareinfo<>nil then
     begin
-      if thisinfo.c.{$ifdef cpu64}Rip{$else}eip{$endif}<>compareinfo.c.{$ifdef cpu64}Rip{$else}eip{$endif} then
+
+      if contexthandler.InstructionPointerRegister^.getValue(thisinfo.context)<>contexthandler.InstructionPointerRegister^.getValue(compareinfo.context) then
       begin
         sender.canvas.font.color:=clWindowText;
         sender.BackgroundColor:=clRed;
@@ -922,51 +925,50 @@ begin
         sender.BackgroundColor:=clWindow;
         //check the registers and flags
 
-        different:=((not registerCompareIgnore[0]) and (compareinfo.c.{$ifdef cpu64}rax{$else}eax{$endif}<>thisinfo.c.{$ifdef cpu64}rax{$else}eax{$endif}))
-        or ((not registerCompareIgnore[1]) and (compareinfo.c.{$ifdef cpu64}rbx{$else}ebx{$endif}<>thisinfo.c.{$ifdef cpu64}rbx{$else}ebx{$endif}))
-        or ((not registerCompareIgnore[2]) and (compareinfo.c.{$ifdef cpu64}rcx{$else}ecx{$endif}<>thisinfo.c.{$ifdef cpu64}rcx{$else}ecx{$endif}))
-        or ((not registerCompareIgnore[3]) and (compareinfo.c.{$ifdef cpu64}rdx{$else}edx{$endif}<>thisinfo.c.{$ifdef cpu64}rdx{$else}edx{$endif}))
-        or ((not registerCompareIgnore[4]) and (ignorestack=false) and (compareinfo.c.{$ifdef cpu64}rbp{$else}ebp{$endif}<>thisinfo.c.{$ifdef cpu64}rbp{$else}ebp{$endif}))
-        or ((not registerCompareIgnore[5]) and (ignorestack=false) and (compareinfo.c.{$ifdef cpu64}rsp{$else}esp{$endif}<>thisinfo.c.{$ifdef cpu64}rsp{$else}esp{$endif}))
-        or ((not registerCompareIgnore[6]) and (compareinfo.c.{$ifdef cpu64}rsi{$else}esi{$endif}<>thisinfo.c.{$ifdef cpu64}rsi{$else}esi{$endif}))
-        or ((not registerCompareIgnore[7]) and (compareinfo.c.{$ifdef cpu64}rdi{$else}edi{$endif}<>thisinfo.c.{$ifdef cpu64}rdi{$else}edi{$endif}))
-        or ((compareinfo.c.EFlags and $cd5)<>(thisinfo.c.EFlags and $cd5)) //CD5 for the bits I am checking
-        {$ifdef cpu64}
-        or ((not registerCompareIgnore[9]) and (compareinfo.c.r8<>thisinfo.c.r8))
-        or ((not registerCompareIgnore[10]) and (compareinfo.c.r9<>thisinfo.c.r9))
-        or ((not registerCompareIgnore[11]) and (compareinfo.c.r10<>thisinfo.c.r10))
-        or ((not registerCompareIgnore[12]) and (compareinfo.c.r11<>thisinfo.c.r11))
-        or ((not registerCompareIgnore[13]) and (compareinfo.c.r12<>thisinfo.c.r12))
-        or ((not registerCompareIgnore[14]) and (compareinfo.c.r13<>thisinfo.c.r13))
-        or ((not registerCompareIgnore[15]) and (compareinfo.c.r14<>thisinfo.c.r14))
-        or ((not registerCompareIgnore[16]) and (compareinfo.c.r15<>thisinfo.c.r15))
-        {$endif};
+        gpr:=contexthandler.getGeneralPurposeRegisters;
+
+        different:=false;
+        if length(registerCompareIgnore)<>length(gpr^) then raise exception.create('registercompare doesn''t match gpr');
+        for i:=0 to length(gpr^)-1 do
+        begin
+          if contexthandler.InstructionPointerRegister=@gpr^[i] then continue; //skip instruction pointer
+
+          if (not registerCompareIgnore[i]) and (gpr^[i].getValue(compareinfo.context) <> gpr^[i].getValue(thisinfo.context)) then
+          begin
+            if ignorestack and ( (contexthandler.FramePointerRegister=@gpr^[i]) or (contexthandler.StackPointerRegister=@gpr^[i])) then
+              continue;
+
+            different:=true;
+            break;
+          end;
+        end;
 
         if (not different) and cbFPUXMM.checked then
         begin
-          if processhandler.is64Bit then
-            xmmcount:=16
-          else
-            xmmcount:=8;
-
-
-
-
-          {$ifdef cpu64}
-          different:=CompareMem(@compareinfo.c.FltSave.XmmRegisters[0], @thisinfo.c.FltSave.XmmRegisters[0], xmmcount*sizeof(M128A));
-          {$else}
-          different:=CompareMem(@compareinfo.c.ext.XMMRegisters[0], @thisinfo.c.ext.XMMRegisters[0], xmmcount*sizeof(M128A));
-          {$endif}
-
+          fpu:=contexthandler.getFloatingPointRegisters;
+          for i:=0 to length(fpu^)-1 do
+          begin
+            if comparemem(fpu^[i].getPointer(compareinfo.context),  fpu^[i].getPointer(compareinfo.context), fpu^[i].size)=false then
+            begin
+              different:=false;
+              break;
+            end;
+          end;
           if not different then
           begin
-            {$ifdef cpu64}
-            different:=CompareMem(@compareinfo.c.FltSave.FloatRegisters[0], @thisinfo.c.FltSave.FloatRegisters[0], 8*sizeof(M128A));
-            {$else}
-            different:=CompareMem(@compareinfo.c.FloatSave.RegisterArea[0], @thisinfo.c.FloatSave.RegisterArea[0], 80);
-            {$endif}
+            fpu:=contexthandler.getAlternateFloatingPointRegisters;
+            if fpu<>nil then
+            begin
+              for i:=0 to length(fpu^)-1 do
+              begin
+                if comparemem(fpu^[i].getPointer(compareinfo.context),  fpu^[i].getPointer(compareinfo.context), fpu^[i].size)=false then
+                begin
+                  different:=false;
+                  break;
+                end;
+              end;
+            end;
           end;
-
         end;
 
         if different then
@@ -1126,41 +1128,41 @@ begin
           d:=TTraceDebugInfo.Create;
           d.instructionsize:=a-basic^.RIP;
           {$ifdef cpu64}
-          d.c.P1Home:=basic^.FSBASE; //just using these field for storage
-          d.c.p2home:=basic^.GSBASE;
-          d.c.p3home:=basic^.CR3;
+          PContext(d.context)^.P1Home:=basic^.FSBASE; //just using these field for storage
+          PContext(d.context)^.p2home:=basic^.GSBASE;
+          PContext(d.context)^.p3home:=basic^.CR3;
           {$endif}
-          d.c.EFlags:=basic^.FLAGS;
-          d.c.{$ifdef cpu32}Eax{$else}Rax{$endif}:=basic^.RAX;
-          d.c.{$ifdef cpu32}Ebx{$else}Rbx{$endif}:=basic^.RBX;
-          d.c.{$ifdef cpu32}Ecx{$else}Rcx{$endif}:=basic^.RCX;
-          d.c.{$ifdef cpu32}Edx{$else}Rdx{$endif}:=basic^.RDX;
-          d.c.{$ifdef cpu32}Esi{$else}Rsi{$endif}:=basic^.RSI;
-          d.c.{$ifdef cpu32}Edi{$else}Rdi{$endif}:=basic^.RDI;
+          PContext(d.context)^.EFlags:=basic^.FLAGS;
+          PContext(d.context)^.{$ifdef cpu32}Eax{$else}Rax{$endif}:=basic^.RAX;
+          PContext(d.context)^.{$ifdef cpu32}Ebx{$else}Rbx{$endif}:=basic^.RBX;
+          PContext(d.context)^.{$ifdef cpu32}Ecx{$else}Rcx{$endif}:=basic^.RCX;
+          PContext(d.context)^.{$ifdef cpu32}Edx{$else}Rdx{$endif}:=basic^.RDX;
+          PContext(d.context)^.{$ifdef cpu32}Esi{$else}Rsi{$endif}:=basic^.RSI;
+          PContext(d.context)^.{$ifdef cpu32}Edi{$else}Rdi{$endif}:=basic^.RDI;
           {$ifdef cpu64}
-          d.c.R8:=basic^.R8;
-          d.c.R9:=basic^.R9;
-          d.c.R10:=basic^.R10;
-          d.c.R11:=basic^.R11;
-          d.c.R12:=basic^.R12;
-          d.c.R13:=basic^.R13;
-          d.c.R14:=basic^.R14;
-          d.c.R15:=basic^.R15;
+          PContext(d.context)^.R8:=basic^.R8;
+          PContext(d.context)^.R9:=basic^.R9;
+          PContext(d.context)^.R10:=basic^.R10;
+          PContext(d.context)^.R11:=basic^.R11;
+          PContext(d.context)^.R12:=basic^.R12;
+          PContext(d.context)^.R13:=basic^.R13;
+          PContext(d.context)^.R14:=basic^.R14;
+          PContext(d.context)^.R15:=basic^.R15;
           {$endif}
-          d.c.{$ifdef cpu32}Ebp{$else}Rbp{$endif}:=basic^.RBP;
-          d.c.{$ifdef cpu32}Esp{$else}Rsp{$endif}:=basic^.RSP;
-          d.c.{$ifdef cpu32}Eip{$else}Rip{$endif}:=basic^.RIP;
-          d.c.SegCs:=basic^.CS;
-          d.c.SegDs:=basic^.DS;
-          d.c.SegEs:=basic^.ES;
-          d.c.SegSs:=basic^.SS;
-          d.c.SegFs:=basic^.FS;
-          d.c.SegGs:=basic^.GS;
+          PContext(d.context)^.{$ifdef cpu32}Ebp{$else}Rbp{$endif}:=basic^.RBP;
+          PContext(d.context)^.{$ifdef cpu32}Esp{$else}Rsp{$endif}:=basic^.RSP;
+          PContext(d.context)^.{$ifdef cpu32}Eip{$else}Rip{$endif}:=basic^.RIP;
+          PContext(d.context)^.SegCs:=basic^.CS;
+          PContext(d.context)^.SegDs:=basic^.DS;
+          PContext(d.context)^.SegEs:=basic^.ES;
+          PContext(d.context)^.SegSs:=basic^.SS;
+          PContext(d.context)^.SegFs:=basic^.FS;
+          PContext(d.context)^.SegGs:=basic^.GS;
 
           {$ifdef cpu64}
-          copymemory(@d.c.FltSave, fpu,512);
+          copymemory(@PContext(d.context)^.FltSave, fpu,512);
           {$else}
-          copymemory(@d.c.ext, fpu,512);
+          copymemory(@PContext(d.context)^.ext, fpu,512);
           {$endif}
 
           d.instruction:=s;
@@ -1205,7 +1207,8 @@ begin
               begin
                 //check if the return is valid, could be it's a parent jump
                 d:=TTraceDebugInfo(currentAppendage.Data);
-                if (d.c.{$ifdef cpu64}Rip{$else}eip{$endif}+d.instructionsize<>a) then
+
+                if (contexthandler.InstructionPointerRegister^.getValue(d.context)+d.instructionsize<>a) then
                 begin
                   //see if a parent can be found that does match
                   x:=currentappendage.Parent;
@@ -1213,7 +1216,7 @@ begin
                   begin
                     d:=TTraceDebugInfo(x.Data);
 
-                    if (d.c.{$ifdef cpu64}Rip{$else}eip{$endif}+d.instructionsize=a) then
+                    if (contexthandler.InstructionPointerRegister^.getValue(d.context)+d.instructionsize=a) then
                     begin
                       //match found
                       currentAppendage:=x;
@@ -1307,6 +1310,8 @@ begin
 
     if showmodal=mrok then
     begin
+      contexthandler:=getBestContextHandler;
+
 
       currentAppendage:=nil;
       stopsearch:=false;
@@ -1438,6 +1443,9 @@ begin
       begin
         isdbvminterface:=CurrentDebuggerInterface is TDBVMDebugInterface;
 
+        if CurrentDebuggerInterface is TGDBServerDebuggerInterface then
+          breakpointmethod:=bpmGDB;
+
         if fDataTrace then
         begin
           //get breakpoint trigger
@@ -1498,6 +1506,7 @@ var
   version: integer;
   m: TMemoryStream;
   i,j: integer;
+  ch: TContextInfo;
 begin
   if opendialog1.Execute then
   begin
@@ -1525,12 +1534,14 @@ begin
       comparetv.LoadFromStream(m); //load the texttrace regardless of version
       m.free;
 
+      //todo: save/load the contextinfo from the stream
       if version<>{$ifdef cpu64}1{$else}0{$endif} then
         raise exception.create('This trace was made with the '+{$ifdef cpu64}'32'{$else}'64'{$endif}+'-bit version of '+strCheatEngine+'. You need to use that version to see the register values and stacktrace');
 
+      ch:=getBestContextHandler;
       for i:=0 to comparetv.Items.Count-1 do
       begin
-        comparetv.Items[i].Data:=TTraceDebugInfo.createFromStream(f);
+        comparetv.Items[i].Data:=TTraceDebugInfo.createFromStream(f, ch);
         if i<lvtracer.items.Count then
           TTraceDebugInfo(lvTracer.items[i].data).compareindex:=i;
       end;
@@ -1540,18 +1551,7 @@ begin
 
       caption:=rstracer+':'+currenttracefilename+' - '+extractfilename(opendialog1.filename);
 
-      {
-      //nope
-      width:=width+lvTracer.width;
 
-      lvTracer.Align:=alNone;
-      comparetv.parent:=pnlTracer;
-      pnlTracer.ChildSizing.ControlsPerLine:=2;
-      pnlTracer.ChildSizing.EnlargeHorizontal:=crsHomogenousChildResize;
-      pnlTracer.ChildSizing.EnlargeVertical:=crsScaleChilds;
-      pnlTracer.ChildSizing.Layout:=cclLeftToRightThenTopToBottom;
-      cbLockScroll.visible:=true;
-      }
 
       lvTracer.Refresh;
     finally
@@ -1567,6 +1567,7 @@ var
   version: integer;
   i: integer;
   m: TMemoryStream;
+  ch: TContextInfo;
 begin
   if opendialog1.execute then
   begin
@@ -1592,13 +1593,16 @@ begin
       lvTracer.LoadFromStream(m); //load the texttrace regardless of version
       m.free;
 
+      //todo: save/load the contextinfo from the stream
       if version<>{$ifdef cpu64}1{$else}0{$endif} then
         raise exception.create('This trace was made with the '+{$ifdef cpu64}'32'{$else}'64'{$endif}+'-bit version of '+strCheatEngine+'. You need to use that version to see the register values and stacktrace');
 
       dereference:=false;
+      ch:=getBestContextHandler;
+
       for i:=0 to lvTracer.Items.Count-1 do
       begin
-        lvTracer.Items[i].Data:=TTraceDebugInfo.createFromStream(f);
+        lvTracer.Items[i].Data:=TTraceDebugInfo.createFromStream(f,ch);
         if not dereference and (TTraceDebugInfo(lvTracer.Items[i].Data).bytesize>0) then
           dereference:=true;
       end;
@@ -1626,13 +1630,14 @@ begin
   if l1.Selected<>nil then
   begin
     tdi:=TTraceDebugInfo(l1.selected.data);
-    reallignscanaddress:=tdi.c.{$ifdef cpu64}Rip{$else}eip{$endif};
+
+    reallignscanaddress:=contexthandler.InstructionPointerRegister^.getValue(tdi.context);
     l2.refresh;
 
     if (tdi.compareindex<>-1) and (tdi.compareindex<l2.items.count) then
     begin
       tdi2:=TTraceDebugInfo(l2.Items[tdi.compareindex].data);
-      if reallignscanaddress=tdi2.c.{$ifdef cpu64}Rip{$else}eip{$endif} then
+      if reallignscanaddress=contexthandler.InstructionPointerRegister^.getValue(tdi2.context) then
       begin
         l2.Items[tdi.compareindex].MakeVisible;
         l2.refresh;
@@ -1646,7 +1651,8 @@ procedure TfrmTracer.RealignTVAddressScan(Sender: TCustomTreeView;
               var PaintImages, DefaultDraw: Boolean);
 begin
   defaultdraw:=true;
-  if TTraceDebugInfo(node.data).c.{$ifdef cpu64}Rip{$else}eip{$endif}=reallignscanaddress then
+
+  if contexthandler.InstructionPointerRegister^.getValue(TTraceDebugInfo(node.data).context)=reallignscanaddress then
   begin
     sender.BackgroundColor:=clGreen;
     sender.canvas.font.color:=clWhite;
@@ -1840,7 +1846,7 @@ end;
 procedure TfrmTracer.MenuItem4Click(Sender: TObject);
 var
   i: integer;
-  c: PContext;
+  c: pointer;
   check: boolean;
   searchstring: string;
 
@@ -1899,7 +1905,7 @@ begin
 
       while (i<lvTracer.items.count) and (not stopsearch) do
       begin
-        c:=@TTraceDebugInfo(lvTracer.Items[i].data).c;
+        c:=TTraceDebugInfo(lvTracer.Items[i].data).context;
         if c<>nil then
         begin
           if usesReferencedAddress then
@@ -1935,7 +1941,7 @@ begin
 
       while (i>=0) and (not stopsearch) do
       begin
-        c:=@TTraceDebugInfo(lvTracer.Items[i].data).c;
+        c:=TTraceDebugInfo(lvTracer.Items[i].data).context;
         if c<>nil then
         begin
           if usesReferencedAddress then
@@ -2034,34 +2040,75 @@ if the process is 64-bit create r8-r15 and move all objects closer
 var
   i: integer;
   l: tlabel;
+  gpr: PContextElementRegisterList;
+  specialized:  PContextElementRegisterList;
+  flags:  PContextElementRegisterList;
+  pcindex: integer;
 begin
+  pcindex:=-1;
   if not isConfigured then
   begin
-    if processhandler.is64Bit then
-    begin
-      setlength(RXlabels,8);
+    //build the registerlists
+    while pnlRegisters.ControlCount>0 do
+      pnlRegisters.Controls[0].Free;
 
-      for i:=8 to 15 do
+    while pnlFlags.ControlCount>0 do
+      pnlFlags.Controls[0].Free;
+
+    while pnlSegments.ControlCount>0 do
+      pnlSegments.Controls[0].Free;
+
+    gpr:=contexthandler.getGeneralPurposeRegisters;
+    setlength(gprlabels, length(gpr^));
+    for i:=0 to length(gpr^)-1 do
+    begin
+      l:=tlabel.create(self);
+      gprlabels[i]:=l;
+      l.parent:=pnlRegisters;
+      l.parentfont:=true;
+      l.parentcolor:=false;
+      l.cursor:=crHandPoint;
+      l.tag:=ptruint(@gpr^[i]);
+      l.OnDblClick:=EAXLabelDblClick;
+      l.OnMouseDown:=RegisterMouseDown;
+
+      if contexthandler.InstructionPointerRegister=@gpr^[i] then
+        pcindex:=i;
+    end;
+
+  {  if pcindex<>-1 then
+      gprlabels[pcindex].BringToFront;  }
+
+    specialized:=contexthandler.getSpecializedRegisters;
+    if specialized<>nil then
+    begin
+      setlength(Specializedlabels, length(specialized^));
+      for i:=0 to length(specialized^)-1 do
       begin
         l:=tlabel.create(self);
-        RXlabels[i-8]:=l;
-
-        with l do
-        begin
-          parent:=pnlRegisters;
-          font:=eaxlabel.font;
-          parentfont:=true;
-          cursor:=eaxlabel.cursor;
-
-          tag:=i+1;
-          OnDblClick:=EAXLabelDblClick;
-          OnMouseDown:=RegisterMouseDown;
-        end;
+        Specializedlabels[i]:=l;
+        l.parent:=pnlSegments;
+        l.parentfont:=true;
+        l.parentcolor:=false;
+        l.tag:=ptruint(@specialized^[i]);
       end;
-
-      eiplabel.BringToFront;
-
     end;
+
+    flags:=contexthandler.getGeneralPurposeFlags;
+    if flags<>nil then
+    begin
+      setlength(Flagslabels, length(flags^));
+      for i:=0 to length(flags^)-1 do
+      begin
+        l:=tlabel.create(self);
+        Flagslabels[i]:=l;
+        l.parent:=pnlFlags;
+        l.parentfont:=true;
+        l.parentcolor:=false;
+        l.tag:=ptruint(@flags^[i]);
+      end;
+    end;
+
 
     isConfigured:=true;
   end;
@@ -2069,11 +2116,14 @@ end;
 
 procedure TfrmTracer.lvTracerClick(Sender: TObject);
 var temp: string;
-    context: _context;
+    context: pointer;
     t: TTraceDebugInfo;
     prefix: char;
 
     t2: TTraceDebugInfo;
+    c: tcontrol;
+    r: PContextElement_register;
+    i: integer;
 begin
   configuredisplay;
 
@@ -2096,258 +2146,70 @@ begin
       end else lblAddressed.Caption:=' ';
 
 
-      context:=t.c;
 
-      if processhandler.is64bit then
-        prefix:='R'
-      else
-        prefix:='E';
-
-      temp:=prefix+'AX '+IntToHex(context.{$ifdef cpu64}rax{$else}Eax{$endif},processhandler.hexdigitpreference);
-      if (t2<>nil) and (t.c.{$ifdef cpu64}rax{$else}Eax{$endif}<>t2.c.{$ifdef cpu64}rax{$else}Eax{$endif}) then temp:=temp+' <> '+IntToHex(t2.c.{$ifdef cpu64}rax{$else}Eax{$endif},processhandler.hexdigitpreference);
-      if temp<>eaxlabel.Caption then
+      context:=t.context;
+      for i:=0 to pnlRegisters.ControlCount-1 do
       begin
-        eaxlabel.Font.Color:=clred;
-        eaxlabel.Caption:=temp;
-      end else eaxlabel.Font.Color:=clWindowText;
+        c:=pnlRegisters.Controls[i];
 
-      temp:=prefix+'BX '+IntToHex(context.{$ifdef cpu64}rbx{$else}ebx{$endif},processhandler.hexdigitpreference);
-      if (t2<>nil) and (t.c.{$ifdef cpu64}rbx{$else}Ebx{$endif}<>t2.c.{$ifdef cpu64}rbx{$else}Ebx{$endif}) then temp:=temp+' <> '+IntToHex(t2.c.{$ifdef cpu64}rbx{$else}Ebx{$endif},processhandler.hexdigitpreference);
-      if temp<>ebxlabel.Caption then
-      begin
-        ebxlabel.Font.Color:=clred;
-        ebxlabel.Caption:=temp;
-      end else ebxlabel.Font.Color:=clWindowText;
-
-      temp:=prefix+'CX '+IntToHex(context.{$ifdef cpu64}rcx{$else}ecx{$endif},processhandler.hexdigitpreference);
-      if (t2<>nil) and (t.c.{$ifdef cpu64}rcx{$else}Ecx{$endif}<>t2.c.{$ifdef cpu64}rcx{$else}Ecx{$endif}) then temp:=temp+' <> '+IntToHex(t2.c.{$ifdef cpu64}rcx{$else}Ecx{$endif},processhandler.hexdigitpreference);
-      if temp<>eCxlabel.Caption then
-      begin
-        eCXlabel.Font.Color:=clred;
-        eCXlabel.Caption:=temp;
-      end else eCXlabel.Font.Color:=clWindowText;
-
-      temp:=prefix+'DX '+IntToHex(context.{$ifdef cpu64}rdx{$else}edx{$endif},processhandler.hexdigitpreference);
-      if (t2<>nil) and (t.c.{$ifdef cpu64}rdx{$else}Edx{$endif}<>t2.c.{$ifdef cpu64}rdx{$else}Edx{$endif}) then temp:=temp+' <> '+IntToHex(t2.c.{$ifdef cpu64}rdx{$else}Edx{$endif},processhandler.hexdigitpreference);
-      if temp<>eDxlabel.Caption then
-      begin
-        eDxlabel.Font.Color:=clred;
-        eDxlabel.Caption:=temp;
-      end else eDxlabel.Font.Color:=clWindowText;
-
-      temp:=prefix+'SI '+IntToHex(context.{$ifdef cpu64}rsi{$else}esi{$endif},processhandler.hexdigitpreference);
-      if (t2<>nil) and (t.c.{$ifdef cpu64}rsi{$else}esi{$endif}<>t2.c.{$ifdef cpu64}rsi{$else}Esi{$endif}) then temp:=temp+' <> '+IntToHex(t2.c.{$ifdef cpu64}rsi{$else}Esi{$endif},processhandler.hexdigitpreference);
-      if temp<>eSIlabel.Caption then
-      begin
-        eSIlabel.Font.Color:=clred;
-        eSIlabel.Caption:=temp;
-      end else eSIlabel.Font.Color:=clWindowText;
-
-      temp:=prefix+'DI '+IntToHex(context.{$ifdef cpu64}rdi{$else}edi{$endif},processhandler.hexdigitpreference);
-      if (t2<>nil) and (t.c.{$ifdef cpu64}rdi{$else}edi{$endif}<>t2.c.{$ifdef cpu64}rdi{$else}Edi{$endif}) then temp:=temp+' <> '+IntToHex(t2.c.{$ifdef cpu64}rdi{$else}Edi{$endif},processhandler.hexdigitpreference);
-      if temp<>eDIlabel.Caption then
-      begin
-        eDIlabel.Font.Color:=clred;
-        eDIlabel.Caption:=temp;
-      end else eDIlabel.Font.Color:=clWindowText;
-
-      temp:=prefix+'BP '+IntToHex(context.{$ifdef cpu64}rbp{$else}ebp{$endif},processhandler.hexdigitpreference);
-      if (t2<>nil) and (t.c.{$ifdef cpu64}rbp{$else}ebp{$endif}<>t2.c.{$ifdef cpu64}rbp{$else}Ebp{$endif}) then temp:=temp+' <> '+IntToHex(t2.c.{$ifdef cpu64}rbp{$else}Ebp{$endif},processhandler.hexdigitpreference);
-      if temp<>eBPlabel.Caption then
-      begin
-        eBPlabel.Font.Color:=clred;
-        eBPlabel.Caption:=temp;
-      end else eBPlabel.Font.Color:=clWindowText;
-
-      temp:=prefix+'SP '+IntToHex(context.{$ifdef cpu64}rsp{$else}esp{$endif},processhandler.hexdigitpreference);
-      if (t2<>nil) and (t.c.{$ifdef cpu64}rsp{$else}esp{$endif}<>t2.c.{$ifdef cpu64}rsp{$else}Esp{$endif}) then temp:=temp+' <> '+IntToHex(t2.c.{$ifdef cpu64}rsp{$else}Esp{$endif},processhandler.hexdigitpreference);
-      if temp<>eSPlabel.Caption then
-      begin
-        eSPlabel.Font.Color:=clred;
-        eSPlabel.Caption:=temp;
-      end else eSPlabel.Font.Color:=clWindowText;
-
-      temp:=prefix+'IP '+IntToHex(context.{$ifdef cpu64}rip{$else}eip{$endif},processhandler.hexdigitpreference);
-      if (t2<>nil) and (t.c.{$ifdef cpu64}rip{$else}eip{$endif}<>t2.c.{$ifdef cpu64}rip{$else}Eip{$endif}) then temp:=temp+' <> '+IntToHex(t2.c.{$ifdef cpu64}rip{$else}Eip{$endif},processhandler.hexdigitpreference);
-      if temp<>eIPlabel.Caption then
-      begin
-        eIPlabel.Font.Color:=clred;
-        eIPlabel.Caption:=temp;
-      end else eIPlabel.Font.Color:=clWindowText;
-
-      {$ifdef cpu64}
-
-      if length(rxlabels)>0 then
-      begin
-
-        temp:='R8  '+IntToHex(context.r8,processhandler.hexdigitpreference);
-        if (t2<>nil) and (t.c.r8<>t2.c.r8) then temp:=temp+' <> '+IntToHex(t2.c.r8,processhandler.hexdigitpreference);
-        if temp<>RXlabels[0].Caption then
+        if c is TLabel then
         begin
-          RXlabels[0].Font.Color:=clred;
-          RXlabels[0].Caption:=temp;
-        end else RXlabels[0].Font.Color:=clWindowText;
+          r:=PContextElement_register(c.Tag);
+          temp:=padleft(r^.name, contexthandler.GeneralPurposeRegisterMaxCharCount)+' '+r^.getFullValueString(context);
+          if (t2<>nil) and (r^.getValue(t2.context)<>r^.getValue(t.context)) then
+            temp:=temp+' <> '+r^.getFullValueString(t2.context);
 
-        temp:='R9  '+IntToHex(context.r9,processhandler.hexdigitpreference);
-        if (t2<>nil) and (t.c.r9<>t2.c.r9) then temp:=temp+' <> '+IntToHex(t2.c.r9,processhandler.hexdigitpreference);
-        if temp<>RXlabels[1].Caption then
-        begin
-          RXlabels[1].Font.Color:=clred;
-          RXlabels[1].Caption:=temp;
-        end else RXlabels[1].Font.Color:=clWindowText;
-
-        temp:='R10 '+IntToHex(context.r10,processhandler.hexdigitpreference);
-        if (t2<>nil) and (t.c.r10<>t2.c.r10) then temp:=temp+' <> '+IntToHex(t2.c.r10,processhandler.hexdigitpreference);
-        if temp<>RXlabels[2].Caption then
-        begin
-          RXlabels[2].Font.Color:=clred;
-          RXlabels[2].Caption:=temp;
-        end else RXlabels[2].Font.Color:=clWindowText;
-
-        temp:='R11 '+IntToHex(context.r11,processhandler.hexdigitpreference);
-        if (t2<>nil) and (t.c.r11<>t2.c.r11) then temp:=temp+' <> '+IntToHex(t2.c.r11,processhandler.hexdigitpreference);
-        if temp<>RXlabels[3].Caption then
-        begin
-          RXlabels[3].Font.Color:=clred;
-          RXlabels[3].Caption:=temp;
-        end else RXlabels[3].Font.Color:=clWindowText;
-
-        temp:='R12 '+IntToHex(context.r12,processhandler.hexdigitpreference);
-        if (t2<>nil) and (t.c.r12<>t2.c.r12) then temp:=temp+' <> '+IntToHex(t2.c.r12,processhandler.hexdigitpreference);
-        if temp<>RXlabels[4].Caption then
-        begin
-          RXlabels[4].Font.Color:=clred;
-          RXlabels[4].Caption:=temp;
-        end else RXlabels[4].Font.Color:=clWindowText;
-
-        temp:='R13 '+IntToHex(context.r13,processhandler.hexdigitpreference);
-        if (t2<>nil) and (t.c.r13<>t2.c.r13) then temp:=temp+' <> '+IntToHex(t2.c.r13,processhandler.hexdigitpreference);
-        if temp<>RXlabels[5].Caption then
-        begin
-          RXlabels[5].Font.Color:=clred;
-          RXlabels[5].Caption:=temp;
-        end else RXlabels[5].Font.Color:=clWindowText;
-
-        temp:='R14 '+IntToHex(context.r14,processhandler.hexdigitpreference);
-        if (t2<>nil) and (t.c.r14<>t2.c.r14) then temp:=temp+' <> '+IntToHex(t2.c.r14,processhandler.hexdigitpreference);
-        if temp<>RXlabels[6].Caption then
-        begin
-          RXlabels[6].Font.Color:=clred;
-          RXlabels[6].Caption:=temp;
-        end else RXlabels[6].Font.Color:=clWindowText;
-
-        temp:='R15 '+IntToHex(context.r15,processhandler.hexdigitpreference);
-        if (t2<>nil) and (t.c.r15<>t2.c.r15) then temp:=temp+' <> '+IntToHex(t2.c.r15,processhandler.hexdigitpreference);
-        if temp<>RXlabels[7].Caption then
-        begin
-          RXlabels[7].Font.Color:=clred;
-          RXlabels[7].Caption:=temp;
-        end else RXlabels[7].Font.Color:=clWindowText;
+          if temp<>c.caption then
+          begin
+            c.font.color:=clred;
+            c.caption:=temp;
+          end
+          else
+            c.font.color:=clWindowtext;
+        end;
       end;
 
-      {$endif}
-
-
-      temp:='CS '+IntToHex(context.SEGCS,4);
-      if temp<>CSlabel.Caption then
+      for i:=0 to pnlFlags.ControlCount-1 do
       begin
-        CSlabel.Font.Color:=clred;
-        CSlabel.Caption:=temp;
-      end else CSlabel.Font.Color:=clWindowText;
+        c:=pnlFlags.Controls[i];
 
-      temp:='DS '+IntToHex(context.SEGDS,4);
-      if temp<>DSlabel.Caption then
-      begin
-        DSlabel.Font.Color:=clred;
-        DSlabel.Caption:=temp;
-      end else DSLabel.Font.Color:=clWindowText;
+        if c is TLabel then
+        begin
+          r:=PContextElement_register(c.Tag);
+          temp:=padleft(r^.name, contexthandler.GeneralPurposeFlagMaxCharCount)+' '+r^.getFullValueString(context);
+          if (t2<>nil) and (r^.getValue(t2.context)<>r^.getValue(t.context)) then
+            temp:=temp+' <> '+r^.getFullValueString(t2.context);
 
-      temp:='SS '+IntToHex(context.SEGSS,4);
-      if temp<>SSlabel.Caption then
-      begin
-        SSlabel.Font.Color:=clred;
-        SSlabel.Caption:=temp;
-      end else SSlabel.Font.Color:=clWindowText;
+          if temp<>c.caption then
+          begin
+            c.font.color:=clred;
+            c.caption:=temp;
+          end
+          else
+            c.font.color:=clWindowtext;
+        end;
+      end;
 
-      temp:='ES '+IntToHex(context.SEGES,4);
-      if temp<>ESlabel.Caption then
+      for i:=0 to pnlSegments.ControlCount-1 do
       begin
-        ESlabel.Font.Color:=clred;
-        ESlabel.Caption:=temp;
-      end else ESlabel.Font.Color:=clWindowText;
+        c:=pnlSegments.Controls[i];
 
-      temp:='FS '+IntToHex(context.SEGFS,4);
-      if temp<>FSlabel.Caption then
-      begin
-        FSlabel.Font.Color:=clred;
-        FSlabel.Caption:=temp;
-      end else FSlabel.Font.Color:=clWindowText;
-
-      temp:='GS '+IntToHex(context.SEGGS,4);
-      if temp<>GSlabel.Caption then
-      begin
-        GSlabel.Font.Color:=clred;
-        GSlabel.Caption:=temp;
-      end else GSlabel.Font.Color:=clWindowText;
-
-      temp:='CF '+IntToStr(GetBitOf(context.EFLAgs,0));
-      if (t2<>nil) and (GetBitOf(t.c.EFlags,0)<>GetBitOf(t2.c.EFlags,0)) then temp:=temp+' <> '+IntToStr(GetBitOf(t2.c.EFlags,0));
-      if temp<>cflabel.Caption then
-      begin
-        CFlabel.Font.Color:=clred;
-        CFlabel.caption:=temp;
-      end else cflabel.Font.Color:=clWindowText;
-
-      temp:='PF '+IntToStr(GetBitOf(context.EFlags,2));
-      if (t2<>nil) and (GetBitOf(t.c.EFlags,2)<>GetBitOf(t2.c.EFlags,2)) then temp:=temp+' <> '+IntToStr(GetBitOf(t2.c.EFlags,2));
-      if temp<>Pflabel.Caption then
-      begin
-        Pflabel.Font.Color:=clred;
-        Pflabel.caption:=temp;
-      end else Pflabel.Font.Color:=clWindowText;
-
-      temp:='AF '+IntToStr(GetBitOf(context.EFlags,4));
-      if (t2<>nil) and (GetBitOf(t.c.EFlags,4)<>GetBitOf(t2.c.EFlags,4)) then temp:=temp+' <> '+IntToStr(GetBitOf(t2.c.EFlags,4));
-      if temp<>Aflabel.Caption then
-      begin
-        Aflabel.Font.Color:=clred;
-        Aflabel.caption:=temp;
-      end else Aflabel.Font.Color:=clWindowText;
-
-      temp:='ZF '+IntToStr(GetBitOf(context.EFlags,6));
-      if (t2<>nil) and (GetBitOf(t.c.EFlags,6)<>GetBitOf(t2.c.EFlags,6)) then temp:=temp+' <> '+IntToStr(GetBitOf(t2.c.EFlags,6));
-      if temp<>Zflabel.Caption then
-      begin
-        Zflabel.Font.Color:=clred;
-        Zflabel.caption:=temp;
-      end else Zflabel.Font.Color:=clWindowText;
-
-      temp:='SF '+IntToStr(GetBitOf(context.EFlags,7));
-      if (t2<>nil) and (GetBitOf(t.c.EFlags,7)<>GetBitOf(t2.c.EFlags,7)) then temp:=temp+' <> '+IntToStr(GetBitOf(t2.c.EFlags,7));
-      if temp<>Sflabel.Caption then
-      begin
-        Sflabel.Font.Color:=clred;
-        Sflabel.caption:=temp;
-      end else Sflabel.Font.Color:=clWindowText;
-
-      temp:='DF '+IntToStr(GetBitOf(context.EFlags,10));
-      if (t2<>nil) and (GetBitOf(t.c.EFlags,10)<>GetBitOf(t2.c.EFlags,10)) then temp:=temp+' <> '+IntToStr(GetBitOf(t2.c.EFlags,10));
-      if temp<>Dflabel.Caption then
-      begin
-        Dflabel.Font.Color:=clred;
-        Dflabel.caption:=temp;
-      end else Dflabel.Font.Color:=clWindowText;
-
-      temp:='OF '+IntToStr(GetBitOf(context.EFlags,11));
-      if (t2<>nil) and (GetBitOf(t.c.EFlags,11)<>GetBitOf(t2.c.EFlags,11)) then temp:=temp+' <> '+IntToStr(GetBitOf(t2.c.EFlags,11));
-      if temp<>Oflabel.Caption then
-      begin
-        Oflabel.Font.Color:=clred;
-        Oflabel.caption:=temp;
-      end else Oflabel.Font.Color:=clWindowText;
+        if c is TLabel then
+        begin
+          r:=PContextElement_register(c.Tag);
+          temp:=r^.name+' '+r^.getFullValueString(context);
+          if temp<>c.caption then
+          begin
+            c.font.color:=clred;
+            c.caption:=temp;
+          end
+          else
+            c.font.color:=clWindowtext;
+        end;
+      end;
 
       if fpp<>nil then
-        fpp.SetContextPointer(@TTraceDebugInfo(lvTracer.selected.data).c);
+        fpp.SetContextPointer(context);
 
       if Stackview<>nil then
         updatestackview;
@@ -2365,7 +2227,7 @@ begin
     //get stack
     di:=TTraceDebugInfo(lvTracer.selected.data);
     if (di<>nil) and (di.stack.stack<>nil) then
-      StackView.SetContextPointer(@di.c, di.stack.stack, di.stack.savedsize);
+      StackView.SetContextPointer(di.context, di.stack.stack, di.stack.savedsize);
   end;
 end;
 
@@ -2390,7 +2252,7 @@ begin
   if (lvTracer.selected<>nil) and (lvTracer.selected.data<>nil) then
   begin
     syma:=0;
-    a:=TTraceDebugInfo(lvTracer.selected.data).c.{$ifdef cpu64}rip{$else}Eip{$endif};
+    a:=contexthandler.InstructionPointerRegister^.getValue(TTraceDebugInfo(lvTracer.selected.data).context);
     e:=true;
     i:=RPos(' - ', lvTracer.Selected.Text);
     if i>0 then
@@ -2427,7 +2289,7 @@ begin
 
   fpp.Left:=self.left+self.Width;
   fpp.Top:=self.top;
-  fpp.SetContextPointer(@TTraceDebugInfo(lvTracer.selected.data).c);
+  fpp.SetContextPointer(TTraceDebugInfo(lvTracer.selected.data).context);
   fpp.show;//pop to foreground
 end;
 
@@ -2498,6 +2360,7 @@ var
   t: integer;
 
   ct: integer;
+  ch: TContextInfo;
 begin
   f:=luaclass_getClassObject(L);
   i:=lua_tointeger(L,1);
@@ -2511,7 +2374,8 @@ begin
   t:=lua_gettop(L);
 
   lua_pushstring(L,'address');
-  lua_pushinteger(L,{$ifdef cpu64}e.c.RIP{$else}e.c.EIP{$endif});
+
+  lua_pushinteger(L,e.contexthandler.InstructionPointerRegister^.getValue(e.context));
   lua_settable(L,t);
 
   lua_pushstring(L,'selected');
@@ -2534,7 +2398,7 @@ begin
   lua_settable(L,t);
 
   lua_pushstring(L,'context');
-  lua_pushcontext(L,@e.c);
+  lua_pushcontext(L,e.context);
   lua_settable(L,t);
 
   lua_pushstring(L,'referencedData');

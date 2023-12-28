@@ -177,6 +177,8 @@ end;
 procedure TTablist.MouseDown(Button: TMouseButton; Shift:TShiftState; X,Y:Integer);
 var i: integer;
 begin
+  if not enabled then exit;
+
   i:=GetTabIndexAt(x,y);
   if i<>-1 then
     selectedTab:=i;

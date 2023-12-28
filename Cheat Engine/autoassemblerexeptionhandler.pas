@@ -557,7 +557,7 @@ begin
 
     init.add('createthreadandwait(registereh)');
 
-    Clipboard.AsText:=init.text;
+    //Clipboard.AsText:=init.text;
     disableinfo:=TDisableInfo.create;
 
     try

@@ -85,7 +85,8 @@ uses strutils, memscan, disassembler, networkInterface, networkInterfaceApi,
 uses simpleaobscanner, StrUtils, LuaHandler, memscan, disassembler, networkInterface,
      networkInterfaceApi, LuaCaller, SynHighlighterAA, Parsers, Globals, memoryQuery,
      MemoryBrowserFormUnit, MemoryRecordUnit{$ifdef windows}, vmxfunctions{$endif}, autoassemblerexeptionhandler,
-     UnexpectedExceptionsHelper, types, autoassemblercode, System.UITypes, frmautoinjectunit;
+     UnexpectedExceptionsHelper, types, autoassemblercode, System.UITypes,
+     frmautoinjectunit, DebuggerInterfaceAPIWrapper, GDBServerDebuggerInterface;
 {$endif}
 
 
@@ -394,7 +395,7 @@ begin
     if inquote2 and (input[i]<>'"') then continue;
 
     case input[i] of
-      'a'..'z','A'..'Z','0'..'9','.', '_','#','@': if a=-1 then a:=i;
+      'a'..'z','A'..'Z','0'..'9','.', '_','#','@', #128..#255: if a=-1 then a:=i;
       else
       begin
         if (input[i]='''') then
@@ -1616,6 +1617,7 @@ var i: integer=0;
     prefered: ptrUint=0;
     protection: dword=0;
 
+    oldprocessid: dword;
     oldhandle: thandle=0;
     oldsymhandler: TSymHandler=nil;
 
@@ -1826,10 +1828,12 @@ begin
   begin
     //get this function to use the symbolhandler that's pointing to CE itself and the self processid/handle
     oldhandle:=processhandlerunit.ProcessHandle;
+    oldprocessid:=processid;
     processid:=getcurrentprocessid;
     processhandle:=getcurrentprocess;
     oldsymhandler:=symhandler;
     symhandler:=selfsymhandler;
+    processhandler.processid:=getcurrentprocessid;
     processhandler.processhandle:=processhandle;
   end
   else
@@ -1839,7 +1843,10 @@ begin
     processhandle:=processhandlerunit.ProcessHandle;
   end;
 
+  {$ifndef darwin}
+
   symhandler.waitforsymbolsloaded(true);
+  {$endif}
 
 {$ifndef jni}
   if pluginhandler=nil then exit; //Error. Cheat Engine is not properly configured
@@ -3682,12 +3689,10 @@ begin
                         if ok1 then continue; //it's a label, no need to do a heavy symbol lookup
 
                         //not an alloc or kalloc
-
-
-
-
                         try
-                          testptr:=symhandler.getAddressFromName(copy(currentline2,1,length(currentline2)-1));
+                          testptr:=getAddressFromScript(s2);
+                          if testptr=0 then
+                            testptr:=symhandler.getAddressFromName(s2);
 
                           if currentaddress>testptr then
                             diff:=currentaddress-testptr
@@ -3941,7 +3946,10 @@ begin
           binaryfile:=tmemorystream.Create;
           try
             binaryfile.LoadFromFile(loadbinary[i].filename);
-            ok2:=writeprocessmemory(processhandle,pointer(testptr),binaryfile.Memory,binaryfile.Size,x);
+            if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) and GDBWriteProcessMemoryCodeOnly then
+              ok2:=TGDBServerDebuggerInterface(CurrentDebuggerInterface).writeBytes(testptr, binaryfile.Memory, binaryfile.size)
+            else
+              ok2:=writeprocessmemory(processhandle,pointer(testptr),binaryfile.Memory,binaryfile.Size,x);
           finally
             binaryfile.free;
           end;
@@ -4106,7 +4114,12 @@ begin
     end;
 
     if (not SystemSupportsWritableExecutableMemory) and (not SkipVirtualProtectEx) and (ProcessID<>GetCurrentProcessId) then
-      ntsuspendProcess(processhandle);
+    begin
+      if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+        TGDBServerDebuggerInterface(CurrentDebuggerInterface).suspendProcess
+      else
+        ntsuspendProcess(processhandle);
+    end;
 
 
     for i:=0 to length(assembled)-1 do
@@ -4115,12 +4128,20 @@ begin
 
       testptr:=assembled[i].address;
 
+      op:=0;
       if SystemSupportsWritableExecutableMemory or SkipVirtualProtectEx then
         vpe:=(SkipVirtualProtectEx=false) and virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),PAGE_EXECUTE_READWRITE,op)
       else
         vpe:=(SkipVirtualProtectEx=false) and virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),PAGE_READWRITE,op);
 
-      ok1:={$ifdef windows}WriteProcessMemoryWithCloakSupport{$else}WriteProcessMemory{$endif}(processhandle, pointer(testptr),@assembled[i].bytes[0],length(assembled[i].bytes),x);
+      if vpe then
+        outputdebugstring('autoassemble: original protection was '+op.ToString);
+
+      if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) and GDBWriteProcessMemoryCodeOnly then
+        ok1:=TGDBServerDebuggerInterface(CurrentDebuggerInterface).writeBytes(testptr, @assembled[i].bytes[0], length(assembled[i].bytes))
+      else
+        ok1:={$ifdef windows}WriteProcessMemoryWithCloakSupport{$else}WriteProcessMemory{$endif}(processhandle, pointer(testptr),@assembled[i].bytes[0],length(assembled[i].bytes),x);
+
       if vpe then
         virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),op,op2);
 
@@ -4138,7 +4159,12 @@ begin
     end;
 
     if (not SystemSupportsWritableExecutableMemory) and (not SkipVirtualProtectEx) and (ProcessID<>GetCurrentProcessId) then
-      ntresumeProcess(processhandle);
+    begin
+      if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+        TGDBServerDebuggerInterface(CurrentDebuggerInterface).resumeProcess
+      else
+        ntresumeProcess(processhandle);
+    end;
 
 
     {$ifdef windows}
@@ -4423,6 +4449,7 @@ begin
 
     if targetself then
     begin
+      processhandler.processid:=oldprocessid;
       processhandler.processhandle:=oldhandle;
       symhandler:=oldsymhandler;
     end;

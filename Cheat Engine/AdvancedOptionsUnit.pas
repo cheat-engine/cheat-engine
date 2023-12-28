@@ -177,6 +177,8 @@ uses MainUnit, MemoryBrowserFormUnit,
   {$ifdef windows}
   DBK32functions,
   {$endif}
+  GDBServerDebuggerInterface,
+  DebuggerInterfaceAPIWrapper,
   globals;
 
 
@@ -819,14 +821,22 @@ begin
       vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle,pointer(Address),length(code[i].actualopcode),PAGE_EXECUTE_READWRITE,original)  //I want to execute this, read it and write it. (so, full access)
     else
     begin
-      ntsuspendProcess(processhandle);
+      if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+        TGDBServerDebuggerInterface(CurrentDebuggerInterface).suspendProcess
+      else
+        ntsuspendProcess(processhandle);
+
       vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle,pointer(Address),length(code[i].actualopcode),PAGE_READWRITE,original)
     end;
 
     try
       //write
       written:=0;
-      writeprocessmemory(processhandle,pointer(Address),@code[i].actualopcode[0],length(code[i].actualopcode),written);
+      if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) and GDBWriteProcessMemoryCodeOnly then
+        TGDBServerDebuggerInterface(CurrentDebuggerInterface).writeBytes(address, @code[i].actualopcode[0],length(code[i].actualopcode))
+      else
+        writeprocessmemory(processhandle,pointer(Address),@code[i].actualopcode[0],length(code[i].actualopcode),written);
+
       if written<>lengthactualopcode then
       begin
         messagedlg(strCouldntrestorecode,mtWarning,[MBok],0);
@@ -840,7 +850,12 @@ begin
 
     finally
       if not (SystemSupportsWritableExecutableMemory or SkipVirtualProtectEx) then
-        ntresumeProcess(processhandle);
+      begin
+        if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+          TGDBServerDebuggerInterface(CurrentDebuggerInterface).resumeProcess
+        else
+          ntresumeProcess(processhandle);
+      end;
     end;
 
 
@@ -913,12 +928,19 @@ begin
       vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle,pointer(a),codelength,PAGE_EXECUTE_READWRITE,original)  //I want to execute this, read it and write it. (so, full access)
     else
     begin
-      ntsuspendProcess(processhandle);
+      if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+        TGDBServerDebuggerInterface(CurrentDebuggerInterface).suspendProcess
+      else
+        ntsuspendProcess(processhandle);
+
       vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle,pointer(a),codelength,PAGE_READWRITE,original);
     end;
 
     try
-      writeprocessmemory(processhandle,pointer(a),@nops[0],codelength,written);
+      if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) and GDBWriteProcessMemoryCodeOnly then
+        TGDBServerDebuggerInterface(CurrentDebuggerInterface).writeBytes(a, @nops[0],codelength)
+      else
+        writeprocessmemory(processhandle,pointer(a),@nops[0],codelength,written);
       if written<>dword(codelength) then
       begin
         messagedlg(strcouldntwrite,mtError,[mbok],0);
@@ -932,7 +954,12 @@ begin
 
     finally
       if not (SystemSupportsWritableExecutableMemory or SkipVirtualProtectEx) then
-        ntresumeProcess(processhandle);
+      begin
+        if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+          TGDBServerDebuggerInterface(CurrentDebuggerInterface).resumeProcess
+        else
+          ntresumeProcess(processhandle);
+      end;
     end;
 
     {$ifdef windows}
@@ -1055,7 +1082,10 @@ begin
        // OutputDebugString('Calling ntsuspendProcess');
         if IsValidHandle(processhandle) then
         begin
-          x:=ntsuspendProcess(processhandle);
+          if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+            TGDBServerDebuggerInterface(CurrentDebuggerInterface).suspendProcess
+          else
+            x:=ntsuspendProcess(processhandle);
           {$ifdef windows}
           if (x<>0) and (DBKLoaded) then DBKSuspendProcess(processid);
           {$endif}
@@ -1082,7 +1112,10 @@ begin
       begin
         if IsValidHandle(processhandle) then
         begin
-          x:=ntresumeprocess(processhandle);
+          if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+            TGDBServerDebuggerInterface(CurrentDebuggerInterface).resumeProcess
+          else
+            x:=ntresumeprocess(processhandle);
            {$ifdef windows}
           if (x<>0) and (DBKLoaded) then DBKResumeProcess(processid);
            {$endif}
@@ -1161,11 +1194,22 @@ begin
       vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle,pointer(a),codelength,PAGE_EXECUTE_READWRITE,original)  //I want to execute this, read it and write it. (so, full access)
     else
     begin
-      ntSuspendProcess(processhandle);
+      if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+        TGDBServerDebuggerInterface(CurrentDebuggerInterface).suspendProcess
+      else
+        ntSuspendProcess(processhandle);
+
       vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle,pointer(a),codelength,PAGE_READWRITE,original)
     end;
     try
-      writeprocessmemory(processhandle,pointer(a),@nops[0],codelength,written);
+      if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) and GDBWriteProcessMemoryCodeOnly then
+      begin
+        if TGDBServerDebuggerInterface(CurrentDebuggerInterface).writeBytes(a,@nops[0],codelength) then
+          written:=codelength;
+      end
+      else
+        writeprocessmemory(processhandle,pointer(a),@nops[0],codelength,written);
+
       if written<>dword(codelength) then
       begin
         messagedlg(rsTheMemoryAtThisAddressCouldnTBeWritten, mtError, [mbok], 0);
@@ -1178,7 +1222,12 @@ begin
         VirtualProtectEx(processhandle,pointer(a),codelength,original,original);  //ignore a
     finally
       if not (SystemSupportsWritableExecutableMemory or SkipVirtualProtectEx) then
-        ntResumeProcess(processhandle);
+      begin
+        if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+          TGDBServerDebuggerInterface(CurrentDebuggerInterface).resumeProcess
+        else
+          ntResumeProcess(processhandle);
+      end;
     end;
     {$ifdef windows}
     FlushInstructionCache(processhandle,pointer(a),codelength);
@@ -1246,11 +1295,13 @@ end;
 
 procedure TAdvancedOptions.lvCodelistDblClick(Sender: TObject);
 var mi: TModuleInfo;
+    sn: string;
 begin
   try
     if code[lvCodelist.itemindex]<>nil then
     begin
-      memorybrowser.disassemblerview.SelectedAddress:=symhandler.getAddressFromName(code[lvCodelist.itemindex].symbolname);
+      sn:=code[lvCodelist.itemindex].symbolname;
+      memorybrowser.disassemblerview.SelectedAddress:=symhandler.getAddressFromName(sn);
 
       if memorybrowser.Height<(memorybrowser.Panel1.Height+100) then memorybrowser.height:=memorybrowser.Panel1.Height+100;
       memorybrowser.panel1.visible:=true;

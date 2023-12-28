@@ -7,10 +7,19 @@ interface
 uses
   Classes, SysUtils, DOM, zstream, math, custombase85, fgl, xmlutils;
 
-type TLuafile=class
+type
+  EDoNotFreeManually=class(Exception);
+  TProtectedMemoryStream=class(TMemoryStream)
+  private
+    canbedestroyed: boolean;
+  public
+    destructor Destroy; override;
+  end;
+
+  TLuafile=class
   private
     fname: string;
-    filedata: TMemorystream;
+    filedata: TProtectedMemoryStream;
     fdonotsave: boolean;
   public
 
@@ -22,13 +31,21 @@ type TLuafile=class
 
   published
     property name: string read fname write fname;
-    property stream: TMemoryStream read filedata;
+    property stream: TProtectedMemoryStream read filedata;
     property doNotSave: boolean read fdonotsave write fdonotsave;
   end;
 
   TLuaFileList =  TFPGList<TLuafile>;
 
 implementation
+
+destructor TProtectedMemoryStream.Destroy;
+begin
+  if canbedestroyed then
+    inherited destroy
+  else
+    raise EDoNotFreeManually.create('You may not destroy this stream manually. Destroy the LuaFile instead');
+end;
 
 constructor TLuafile.createFromXML(node: TDOMNode);
 var s: string;
@@ -42,7 +59,7 @@ var s: string;
   a: TDOMNode;
 begin
   name:=node.NodeName;
-  filedata:=TMemorystream.create;
+  filedata:=TProtectedMemorystream.create;
 
   s:=node.TextContent;
 
@@ -75,7 +92,7 @@ begin
   end;
 
   try
-    m:=tmemorystream.create;
+    m:=TMemoryStream.create;
     m.WriteBuffer(b^, size);
     m.position:=0;
     dc:=Tdecompressionstream.create(m, true);
@@ -99,6 +116,7 @@ begin
 
   finally
     FreeMemAndNil(b);
+    FreeAndNil(m);
   end;
 end;
 
@@ -155,7 +173,7 @@ constructor TLuafile.create(name: string; stream: tstream);
 begin
   self.name:=name;
 
-  filedata:=tmemorystream.create;
+  filedata:=TProtectedMemorystream.create;
   stream.position:=0;
   filedata.LoadFromStream(stream);
   filedata.position:=0;
@@ -164,7 +182,10 @@ end;
 destructor TLuafile.destroy;
 begin
   if filedata<>nil then
+  begin
+    filedata.canbedestroyed:=true;
     filedata.free;
+  end;
 
   inherited destroy;
 end;

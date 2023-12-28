@@ -16,7 +16,7 @@ uses
   windows, comobj,
   {$endif}
   Classes, SysUtils,lua, lualib, lauxlib, LuaHandler, syncobjs,
-  SyncObjs2;
+  SyncObjs2, NewKernelHandler;
 
 procedure initializeLuaThread;
 

@@ -9,10 +9,10 @@ The other debugger interfaces are inherited from this
 interface
 
 uses
-  Classes, SysUtils{$ifdef windows},windows{$endif},NewKernelHandler, debuggertypedefinitions{$ifdef darwin}, macport, macportdefines{$endif};
+  Classes, SysUtils{$ifdef windows},windows{$endif}{$ifndef STANDALONEDEBUG},NewKernelHandler, debuggertypedefinitions{$endif}{$ifdef darwin}, macport, macportdefines{$endif};
 
 type
-  TDebuggerCapabilities=(dbcHardwareBreakpoint, dbcSoftwareBreakpoint, dbcExceptionBreakpoint, dbcDBVMBreakpoint, dbcBreakOnEntry, dbcCanUseInt1BasedBreakpoints);
+  TDebuggerCapabilities=(dbcHardwareBreakpoint, dbcSoftwareBreakpoint, dbcExceptionBreakpoint, dbcDBVMBreakpoint, dbcBreakOnEntry, dbcCanUseInt1BasedBreakpoints, dbcDealsWithBreakpointsInternally);
   TDebuggerCapabilitiesSet=set of TDebuggerCapabilities;
   TDebuggerInterface=class
   private
@@ -21,6 +21,7 @@ type
     function getCurrentDebugggerAttachStatus: string;
     procedure setCurrentDebuggerAttachStatus(newstatus: string);
   protected
+    fwatchpointsTriggerAfterExecution: boolean;
     fmaxInstructionBreakpointCount: integer;
     fmaxWatchpointBreakpointCount: integer;
     fmaxSharedBreakpointCount: integer;
@@ -36,12 +37,18 @@ type
 
     function WaitForDebugEvent(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL; virtual; abstract;
     function ContinueDebugEvent(dwProcessId: DWORD; dwThreadId: DWORD; dwContinueStatus: DWORD): BOOL; virtual; abstract;
-    function SetThreadContext(hThread: THandle; const lpContext: TContext; isFrozenThread: Boolean=false): BOOL; virtual;
+    function SetThreadContext(hThread: THandle; const lpContext: TContext; isFrozenThread: Boolean=false): BOOL; overload; virtual;
+    function SetThreadContext(hThread: THandle; lpContext: pointer; isFrozenThread: Boolean=false): BOOL; overload; virtual;
+    {$ifndef STANDALONEDEBUG}
     function SetThreadContextArm(hThread: THandle; const lpContext: TARMCONTEXT; isFrozenThread: Boolean=false): BOOL; virtual;
     function SetThreadContextArm64(hThread: THandle; const lpContext: TARM64CONTEXT; isFrozenThread: Boolean=false): BOOL; virtual;
-    function GetThreadContext(hThread: THandle; var lpContext: TContext; isFrozenThread: Boolean=false): BOOL; virtual;
+    {$endif}
+    function GetThreadContext(hThread: THandle; var lpContext: TContext; isFrozenThread: Boolean=false): BOOL; overload; virtual;
+    function GetThreadContext(hThread: THandle; lpContext: pointer; isFrozenThread: Boolean=false): BOOL; overload; virtual;
+    {$ifndef STANDALONEDEBUG}
     function GetThreadContextArm(hThread: THandle; var lpContext: TARMCONTEXT; isFrozenThread: Boolean=false): BOOL; virtual;
     function GetThreadContextArm64(hThread: THandle; var lpContext: TARM64CONTEXT; isFrozenThread: Boolean=false): BOOL; virtual;
+    {$endif}
     function DebugActiveProcess(dwProcessId: DWORD): BOOL; virtual; abstract;
     function DebugActiveProcessStop(dwProcessID: DWORD): BOOL; virtual;
     function GetLastBranchRecords(lbr: pointer): integer; virtual;
@@ -63,9 +70,15 @@ type
     property maxInstructionBreakpointCount: integer read fmaxInstructionBreakpointCount;
     property maxWatchpointBreakpointCount: integer read fmaxWatchpointBreakpointCount;
     property maxSharedBreakpointCount: integer read fmaxSharedBreakpointCount;
+    property watchpointsTriggerAfterExecution: boolean read fwatchpointsTriggerAfterExecution;
 
     property debuggerAttachStatus: string read getCurrentDebugggerAttachStatus write setCurrentDebuggerAttachStatus; //threadsafe getter/setter for a string
 end;
+
+const
+  DBG_CONTINUE_SINGLESTEP = $00010003; //continueDebugEvent continuestatus only for DBVM BP's (and gdbserver protocol)
+  DBG_CONTINUE_SINGLESTEP_UNHANDLED = $00010004;
+
 
 implementation
 
@@ -94,6 +107,12 @@ begin
   result:=false;
 end;
 
+function TDebuggerInterface.SetThreadContext(hThread: THandle; lpContext: pointer; isFrozenThread: Boolean=false): BOOL;
+begin
+  result:=SetThreadContext(hThread, PContext(lpContext)^, isFrozenThread);
+end;
+
+{$ifndef STANDALONEDEBUG}
 function TDebuggerInterface.SetThreadContextArm(hThread: THandle; const lpContext: TARMCONTEXT; isFrozenThread: Boolean=false): BOOL;
 begin
   result:=false;
@@ -113,12 +132,17 @@ function TDebuggerInterface.GetThreadContextArm64(hThread: THandle; var lpContex
 begin
   result:=false;
 end;
+{$endif}
 
 function TDebuggerInterface.GetThreadContext(hThread: THandle; var lpContext: TContext; isFrozenThread: Boolean=false): BOOL;
 begin
   result:=false;
 end;
 
+function TDebuggerInterface.GetThreadContext(hThread: THandle; lpContext: pointer; isFrozenThread: Boolean=false): BOOL;
+begin
+  result:=GetThreadContext(hthread, PContext(lpContext)^,isFrozenThread);
+end;
 
 
 function TDebuggerInterface.DebugActiveProcessStop(dwProcessID: DWORD): BOOL;
@@ -200,10 +224,11 @@ end;
 
 constructor TDebuggerInterface.create;
 begin
-
+  fwatchpointsTriggerAfterExecution:=true;
   fDebuggerCapabilities:=[dbcCanUseInt1BasedBreakpoints]; //all except DBVM (which will remove this flags)
 
   status:='Before attach';
+
   statusmrew:=TMultiReadExclusiveWriteSynchronizer.Create;
 end;
 

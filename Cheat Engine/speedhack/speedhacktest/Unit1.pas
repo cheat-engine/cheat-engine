@@ -16,6 +16,9 @@ uses
 
 type
   TSpeedhackTest=class(tthread)
+  private
+    laste: Exception;
+    procedure died;
   public
     procedure execute; override;
   end;
@@ -29,6 +32,9 @@ type
     Label12: TLabel;
     Label13: TLabel;
     Label14: TLabel;
+    lblbeats: TLabel;
+    lblFail1: TLabel;
+    lblFail2: TLabel;
     Label4: TLabel;
     Label5: TLabel;
     Label6: TLabel;
@@ -55,10 +61,17 @@ var
   Form1: TForm1;
   timeGetTime: TTimeGetTime;
 
-  fail: boolean;
+  fail, fail1, fail2: boolean;
+
+  threadheartbeat: integer;
 
 
 implementation
+
+procedure TSpeedhackTest.died;
+begin
+  ShowMessage('testthread died:'+laste.message);
+end;
 
 procedure TSpeedhackTest.execute;
 var
@@ -66,26 +79,43 @@ var
   oldperf, newperf: int64;
 
 begin
-  oldtick:=gettickcount;
-  {$ifdef windows}
-  QueryPerformanceCounter(oldperf);
-  {$endif}
 
-  while (not fail) and (not terminated) do
-  begin
-    newtick:=gettickcount;
-
+  try
+    oldtick:=gettickcount;
     {$ifdef windows}
-    QueryPerformanceCounter(newperf);
-    if newperf<oldperf then
-      fail:=true;
+    QueryPerformanceCounter(oldperf);
     {$endif}
 
-    if newtick<oldtick then
-      fail:=true;
+    while {(not fail) and} (not terminated) do
+    begin
+      inc(threadheartbeat);
+      newtick:=gettickcount;
 
-    oldperf:=newperf;
-    oldtick:=newtick;
+      {$ifdef windows}
+      QueryPerformanceCounter(newperf);
+      if newperf<oldperf then
+      begin
+        fail:=true;
+        fail1:=true;
+      end;
+      {$endif}
+
+      if newtick<oldtick then
+      begin
+        fail:=true;
+        fail2:=true;
+      end;
+
+      oldperf:=newperf;
+      oldtick:=newtick;
+    end;
+
+  except
+    on e:exception do
+    begin
+      laste:=e;
+      synchronize(died);
+    end;
   end;
 end;
 
@@ -94,6 +124,7 @@ var a,b: qword;
 begin
   a:=0;
   b:=0;
+  {$ifdef cpu64}
   asm
     push rdx
     rdtsc
@@ -106,6 +137,21 @@ begin
     mov b,rax
     pop rdx
   end;
+  {$else}
+  asm
+    push edx
+    rdtsc
+    lea edi,a
+    mov dword a+4,edx
+    mov dword a,eax
+    rdtsc
+    mov dword b+4,edx
+    mov dword b,eax
+    pop edx
+  end;
+  {$endif}
+
+
   result:=b-a;
 end;
 
@@ -114,6 +160,7 @@ var a,b: qword;
 begin
   a:=0;
   b:=0;
+  {$ifdef cpu64}
   asm
     push rcx
     push rdx
@@ -133,6 +180,25 @@ begin
     pop rdx
     pop rcx
   end;
+  {$else}
+  asm
+    push ecx
+    push edx
+    db $0f
+    db $01
+    db $f9
+    mov dword a+4,edx
+    mov dword a,eax
+    db $0f
+    db $01
+    db $f9
+    mov dword b+4,edx
+    mov dword b,eax
+
+    pop edx
+    pop ecx
+  end;
+  {$endif}
   result:=b-a;
 end;
 
@@ -141,6 +207,7 @@ var a,b: qword;
 begin
   a:=0;
   b:=0;
+  {$ifdef cpu64}
   asm
     push rax
     push rbx
@@ -161,6 +228,29 @@ begin
     pop rbx
     pop rax
   end;
+  {$else}
+  asm
+    push eax
+    push ebx
+    push ecx
+    push edx
+    rdtsc
+    mov dword a+4,edx
+    mov dword a,eax
+
+    mov eax,v
+    cpuid
+
+    rdtsc
+    mov dword b+4,edx
+    mov dword b,eax
+
+    pop edx
+    pop ecx
+    pop ebx
+    pop eax
+  end;
+  {$endif}
   result:=b-a;
 end;
 
@@ -172,6 +262,7 @@ var freq: int64;
   newperf: int64;
   q: qword;
 begin
+  lblbeats.caption:=threadheartbeat.ToString;
   newtick:=gettickcount;
   label1.Caption:=inttostr(gettickcount div 1000);
   if assigned(timegettime) then
@@ -190,7 +281,14 @@ begin
 
 
   if fail then
-      lblFail.visible:=true;
+  begin
+    lblFail.visible:=true;
+    if fail1 then
+      lblFail1.visible:=true;
+
+    if fail2 then
+      lblfail2.visible:=true;
+  end;
 
 
   label8.caption:='rdtsc diff='+inttostr(getrdtsctime);
@@ -200,6 +298,7 @@ begin
   label11.caption:='cpuid 2 diff='+inttostr(getcpuidtime(2));
   label12.caption:='cpuid 3 diff='+inttostr(getcpuidtime(3));
 
+  {$ifdef cpu64}
   asm
     push rdx
     rdtsc
@@ -208,6 +307,15 @@ begin
     mov q,rax
     pop rdx
   end;
+  {$else}
+  asm
+    push edx
+    rdtsc
+    mov dword q+4,edx
+    mov dword q,eax
+    pop edx
+  end;
+  {$endif}
 
   label13.caption:=inttostr(q);
 

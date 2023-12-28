@@ -48,6 +48,7 @@ type
     ESPlabel: TLabel;
     FSlabel: TLabel;
     GSlabel: TLabel;
+    miClearCache: TMenuItem;
     miIPTLog: TMenuItem;
     miShowRelativeDisassembler: TMenuItem;
     miArchX86: TMenuItem;
@@ -351,6 +352,7 @@ type
     procedure Makepagewritable1Click(Sender: TObject);
     procedure memorypopupPopup(Sender: TObject);
     procedure MenuItem10Click(Sender: TObject);
+    procedure miClearCacheClick(Sender: TObject);
     procedure miSearchForAccessibleStringsClick(Sender: TObject);
     procedure MenuItem12Click(Sender: TObject);
     procedure MenuItem14Click(Sender: TObject);
@@ -439,8 +441,7 @@ type
     procedure Timer2Timer(Sender: TObject);
     procedure miReplacewithnopsClick(Sender: TObject);
 
-    procedure ShowDebugToolbar;
-    procedure HideDebugToolbar;
+
 
     procedure FControl1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FControl1KeyPress(Sender: TObject; var Key: Char);
@@ -636,6 +637,10 @@ type
 
     fcr3: qword;
     fcr3switcher: TfrmCR3Switcher;
+
+    procedure ShowDebugToolbar;
+    procedure HideDebugToolbar;
+
     procedure cr3switcherCR3Change(sender: TObject);
     procedure SetStacktraceSize(size: integer);
     procedure setShowDebugPanels(state: boolean);
@@ -679,8 +684,9 @@ type
 
     frmiptlog: TfrmIPTLogDisplay;
 
+    showdebugpaneltimer: TTimer;
 
-
+    procedure showDebugPaneltimertimer(sender: TObject);
 
     procedure setRegisterPanelFont(f: TFont);
 
@@ -751,19 +757,19 @@ uses Valuechange, MainUnit, debugeventhandler, findwindowunit,
   frmSaveMemoryRegionUnit, frmLoadMemoryunit, inputboxtopunit,
   formAddToCodeList, frmFillMemoryUnit, frmCodecaveScannerUnit, FoundCodeUnit,
   frmSelectionlistunit, symbolconfigunit, frmFloatingPointPanelUnit,
-  frmTracerUnit, dissectcodeunit, driverlist, formChangedAddresses, peINFOunit,
+  frmTracerUnit, dissectcodeunit, DriverList, formChangedAddresses, PEInfounit,
   frmGDTunit, frmIDTunit, frmDisassemblyscanunit, ServiceDescriptorTables,
   frmReferencedStringsUnit, frmReferencedFunctionsUnit, Structuresfrm,
-  Structuresfrm2, pointerscannerfrm, frmDebugEventsUnit, frmPagingUnit,
-  frmluaengineunit, disassemblerviewlinesunit, frmBreakpointConditionunit,
-  frmStringMapUnit, frmStringpointerscanUnit, frmFilePatcherUnit,
+  StructuresFrm2, pointerscannerfrm, frmDebugEventsUnit, frmPagingUnit,
+  frmluaengineunit, disassemblerviewlinesunit, frmBreakpointConditionUnit,
+  frmStringMapUnit, frmStringPointerScanUnit, frmFilePatcherUnit,
   frmUltimapUnit, frmUltimap2Unit, frmAssemblyScanUnit, MemoryQuery,
   AccessedMemory, Parsers, GnuAssembler, frmEditHistoryUnit, frmWatchlistUnit,
   vmxfunctions, frmstructurecompareunit, globals, UnexpectedExceptionsHelper,
   frmExceptionRegionListUnit, frmExceptionIgnoreListUnit, frmcodefilterunit,
   frmDBVMWatchConfigUnit, DBK32functions, DPIHelper, DebuggerInterface,
   DebuggerInterfaceAPIWrapper, BreakpointTypeDef, CustomTypeHandler,
-  frmSourceDisplayUnit, sourcecodehandler, tcclib, mainunit2
+  frmSourceDisplayUnit, sourcecodehandler, tcclib, mainunit2, GDBServerDebuggerInterface
   {$ifdef ONEBYTEJUMPS}, autoassemblerexeptionhandler{$endif};
 
 
@@ -860,27 +866,17 @@ var
   cw: integer;
   ew: integer;
 begin
+
   oldstackwidth:=pnlStacktrace.Width;
   oldpanel3width:=panel3.width;
-  {if state then
-  begin
-    //resizing should change the stack, not the hexview
-    panel3.Align:=alLeft;
-    splitter3.Align:=alLeft;
-    pnlStacktrace.align:=alclient;
-    splitter3.ResizeControl:=pnlStacktrace;
-  end
-  else
-  begin
-    splitter3.ResizeControl:=panel3;
-    pnlStacktrace.align:=alRight;
-    splitter3.Align:=alRight;
-    panel3.Align:=alclient;
-  end; }
+
 
   FShowDebugPanels:=state;
+
+
   registerview.Visible:=state;
   pnlStacktrace.Visible:=state;
+
   splitter2.Visible:=state;
   splitter3.Visible:=state;
 
@@ -981,12 +977,14 @@ begin
   tbDebug.Visible:=true;
   tbDebug.Tag:=0;
   Showdebugtoolbar1.Checked:=true;
+  showDebugPanels:=true;
 end;
 
 procedure TMemoryBrowser.HideDebugToolbar;
 begin
   tbDebug.Visible:=false;
   Showdebugtoolbar1.Checked:=false;
+  showDebugPanels:=false;
 end;
 
 procedure TMemoryBrowser.Showdebugtoolbar1Click(Sender: TObject);
@@ -1101,7 +1099,7 @@ end;
 procedure TMemoryBrowser.memorypopupPopup(Sender: TObject);
 var
   m: TMemorybrowser;
-  mi: Menus.TMenuItem;
+  mi: menus.tmenuitem;
   i,j: integer;
 
   islocked: boolean;
@@ -1112,6 +1110,9 @@ var
 
 
 begin
+  miClearCache.visible:=(CurrentDebuggerInterface<>nil) and (CurrentDebuggerInterface is TGDBServerDebuggerInterface) and GDBReadProcessMemory;
+
+
   //update customtypes
 
 
@@ -1174,20 +1175,20 @@ begin
     begin
       if not hexview.isShowingDifference then
       begin
-        mi:=TMenuItem.Create(miShowDifference);
-        mi.Caption:=Format(rsBetween, [m.Caption]);
-        mi.OnClick:=miDifferenceClick;
-        mi.tag:=i;
-        miShowDifference.Add(mi);
+        miClearCache:=TMenuItem.Create(miShowDifference);
+        miClearCache.Caption:=Format(rsBetween, [m.Caption]);
+        miClearCache.OnClick:=miDifferenceClick;
+        miClearCache.tag:=i;
+        miShowDifference.Add(miClearCache);
       end;
 
       if not islocked then
       begin
-        mi:=TMenuItem.Create(miLock);
-        mi.caption:=m.caption;
-        mi.OnClick:=miLockMemviewClick;
-        mi.tag:=i;
-        miLock.add(mi);
+        miClearCache:=TMenuItem.Create(miLock);
+        miClearCache.caption:=m.caption;
+        miClearCache.OnClick:=miLockMemviewClick;
+        miClearCache.tag:=i;
+        miLock.add(miClearCache);
       end;
     end;
 
@@ -1249,6 +1250,9 @@ begin
   else
     miLockRowsize.caption:=rsSetCustomAlignment;
 
+  miChangeProtectionRWE.enabled:=SystemSupportsWritableExecutableMemory;
+  miChangeProtectionRWE.visible:=SystemSupportsWritableExecutableMemory;
+
 end;
 
 
@@ -1258,6 +1262,12 @@ begin
     frmStringMap:=TfrmStringMap.Create(application);
 
   frmStringMap.show;
+end;
+
+procedure TMemoryBrowser.miClearCacheClick(Sender: TObject);
+begin
+  if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+    TGDBServerDebuggerInterface(CurrentDebuggerInterface).ClearRPMCachePage(hexview.Address);
 end;
 
 procedure TMemoryBrowser.miSearchForAccessibleStringsClick(Sender: TObject);
@@ -1752,10 +1762,12 @@ end;
 
 procedure TMemoryBrowser.RegisterViewResize(Sender: TObject);
 begin
+  {$ifndef darwin}
   if scrollbox1.VertScrollBar.IsScrollBarVisible then
     sbShowFloats.Left:=scrollbox1.VertScrollBar.ClientSizeWithBar-sbShowFloats.Width
   else
     sbShowFloats.Left:=scrollbox1.VertScrollBar.ClientSizeWithoutBar-sbShowFloats.Width;
+  {$endif}
 end;
 
 procedure TMemoryBrowser.miAddRefClick(Sender: TObject);
@@ -3114,17 +3126,40 @@ end;
 
 procedure TMemoryBrowser.Timer2Timer(Sender: TObject);
 var
+  mm: TMemoryManager;
+  h: THeapStatus;
   rollover: integer;
   timetaken: qword;
+  before, after,diff: int64;
 begin
   if Visible then
   begin
     try
+      GetMemoryManager(mm);
 
       timetaken:=GetTickCount64;
 
-      if hexview<>nil then hexview.update;
-      if disassemblerview<>nil then disassemblerview.Update;
+
+      if hexview<>nil then
+      begin
+        //before:=mm.GetHeapStatus().TotalAllocated;
+        hexview.update;
+       // after:=mm.GetHeapStatus().TotalAllocated;
+       // diff:=after-before;
+       // outputdebugstring(gettickcount64.tostring+':hexview.update: before='+before.ToHexString(1)+' after='+after.ToHexString(1)+' diff='+diff.tostring);
+
+      end;
+
+
+      if disassemblerview<>nil then
+      begin
+       // before:=mm.GetHeapStatus().TotalAllocated;
+        disassemblerview.Update;
+       // after:=mm.GetHeapStatus().TotalAllocated;
+       // diff:=after-before;
+       // outputdebugstring(gettickcount64.tostring+':disassemblerview.update: before='+before.ToHexString(1)+' after='+after.ToHexString(1)+' diff='+diff.tostring);
+
+      end;
 
       //refresh the modulelist
       if processhandler.isNetwork then
@@ -3134,7 +3169,14 @@ begin
 
       lastmodulelistupdate:=(lastmodulelistupdate+1) mod rollover;
       if lastmodulelistupdate=0 then
-        if symhandler<>nil then symhandler.loadmodulelist;
+        if symhandler<>nil then
+        begin
+          //before:=mm.GetHeapStatus().TotalAllocated;
+          symhandler.loadmodulelist;
+          //after:=mm.GetHeapStatus().TotalAllocated;
+          //diff:=after-before;
+          //outputdebugstring(gettickcount64.tostring+':symhandler.loadmodulelist: before='+before.ToHexString(1)+' after='+after.ToHexString(1)+' diff='+diff.tostring);
+        end;
 
       timetaken:=GetTickCount64-timetaken;
       if (timetaken>timer2.interval) and (timer2.interval<5000) then
@@ -3150,6 +3192,7 @@ begin
     except
       on e:exception do
       begin
+        outputdebugstring('memorybrowser timer2 error: '+e.message);
         timer2.enabled:=false;
         MessageDlg('Error in memview update timer:'+e.message, mtError,[mbok],0);
       end;
@@ -3757,10 +3800,19 @@ begin
           begin
             outputdebugstring('First making memory writable');
             if processid<>GetCurrentProcessId then
-              ntsuspendProcess(processhandle);
+            begin
+              if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+                TGDBServerDebuggerInterface(CurrentDebuggerInterface).suspendProcess
+              else
+                ntsuspendProcess(processhandle);
+            end;
             vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle,  pointer(Address),bytelength,PAGE_READWRITE,p)
           end;
-          WriteProcessMemoryWithCloakSupport(processhandle,pointer(Address),@bytes[0],bytelength,a);
+
+          if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) and GDBWriteProcessMemoryCodeOnly then
+            TGDBServerDebuggerInterface(CurrentDebuggerInterface).writeBytes(address, @bytes[0],bytelength)
+          else
+            WriteProcessMemoryWithCloakSupport(processhandle,pointer(Address),@bytes[0],bytelength,a);
 
           if vpe then
           begin
@@ -3769,7 +3821,12 @@ begin
           end;
 
           if (not (SystemSupportsWritableExecutableMemory or SkipVirtualProtectEx)) and (processid<>GetCurrentProcessId) then
-            ntresumeProcess(processhandle);
+          begin
+            if (CurrentDebuggerInterface is TGDBServerDebuggerInterface) then
+              TGDBServerDebuggerInterface(CurrentDebuggerInterface).resumeProcess
+            else
+              ntresumeProcess(processhandle);
+          end;
         end
         else
         begin
@@ -3947,27 +4004,42 @@ var count: string;
     x: dword;
     s: string;
 begin
+  {$ifdef darwin}
+  count:=getPageSize.ToString;
+  {$else}
   count:='4096';
-  if inputquery(rsAllocateMemory, rsHowMuchMemoryDoYouWantToAddToThisProcess, count) then
-  begin
-    try
-      memsize:=StrToInt(count);
-    except
-      raise exception.Create(Format(rsHowMuchIs, [count]));
+  {$endif}
+  try
+    if inputquery(rsAllocateMemory, rsHowMuchMemoryDoYouWantToAddToThisProcess, count) then
+    begin
+      try
+        memsize:=StrToInt(count);
+      except
+        raise exception.Create(Format(rsHowMuchIs, [count]));
+      end;
+
+      baseaddress:=nil;
+
+      if not SystemSupportsWritableExecutableMemory then
+        baseaddress:=VirtualAllocEx(processhandle,nil,memsize,MEM_COMMIT or MEM_RESERVE,PAGE_EXECUTE)
+      else
+        baseaddress:=VirtualAllocEx(processhandle,nil,memsize,MEM_COMMIT or MEM_RESERVE,PAGE_EXECUTE_READWRITE);
+
+      if baseaddress=nil then
+        raise exception.Create(rsErrorAllocatingMemory);
+
+      if allocsAddToUnexpectedExceptionList then
+        AddUnexpectedExceptionRegion(ptruint(baseaddress),memsize);
+
+      if (disassemblerview.SelectedAddress<>0) and (memsize>7) and (messagedlg(Format(rsAtLeastBytesHaveBeenAllocatedAtDoYouWantToGoThereN, [IntToStr(memsize), IntToHex(ptrUint(baseaddress), 8), #13
+        +#10]), mtConfirmation, [mbyes, mbno], 0)=mryes) then
+        disassemblerview.SelectedAddress:=ptrUint(baseaddress);
+
     end;
 
-    baseaddress:=nil;
-
-    baseaddress:=VirtualAllocEx(processhandle,nil,memsize,MEM_COMMIT or MEM_RESERVE,PAGE_EXECUTE_READWRITE);
-    if baseaddress=nil then
-      raise exception.Create(rsErrorAllocatingMemory);
-
-    if allocsAddToUnexpectedExceptionList then
-      AddUnexpectedExceptionRegion(ptruint(baseaddress),memsize);
-
-    if (disassemblerview.SelectedAddress<>0) and (memsize>7) and (messagedlg(Format(rsAtLeastBytesHaveBeenAllocatedAtDoYouWantToGoThereN, [IntToStr(memsize), IntToHex(ptrUint(baseaddress), 8), #13
-      +#10]), mtConfirmation, [mbyes, mbno], 0)=mryes) then
-      disassemblerview.SelectedAddress:=ptrUint(baseaddress);
+  except
+    on e: exception do
+      MessageDlg(e.message, mtError,[mbok],0);
   end;
 end;
 
@@ -4052,7 +4124,11 @@ begin
     raise exception.Create(rsPleaseEnterAValidHexadecimalValue);
   end;
 
-  if CreateRemoteThread(processhandle,nil,0,pointer(startaddress),pointer(parameter),0,threadid)=0 then raise exception.Create(rsMBCreationOfTheRemoteThreadFailed) else showmessage(rsMBThreadCreated);
+  if CreateRemoteThread(processhandle,nil,0,pointer(startaddress),pointer(parameter),0,threadid)=0 then
+    MessageDlg(rsMBCreationOfTheRemoteThreadFailed, mterror,[mbok],0)
+  else
+    showmessage(rsMBThreadCreated);
+
 end;
 
 procedure TMemoryBrowser.MemoryRegions1Click(Sender: TObject);
@@ -5061,7 +5137,7 @@ begin
 
         frmchangedaddresses.address:=address;
 
-        frmchangedaddresses.dbvmwatchid:=id;
+        frmchangedaddresses.debuggerinterfacewatchid:=id;
         frmchangedaddresses.dbvmwatch_unlock:=unlockaddress;
         if defaultDisassembler.LastDisassembleData.isfloat then
           frmchangedaddresses.cbDisplayType.ItemIndex:=3;
@@ -5778,6 +5854,14 @@ begin
   setControlFontKeepColor(scrollbox1,f);
 end;
 
+procedure TMemoryBrowser.showDebugPaneltimertimer(sender: tobject);
+begin
+  showdebugpaneltimer.enabled:=false;
+  showDebugPanels:=true;
+  registerview.ClientWidth:=lblFlags.left+lblFlags.width+16+scrollbox1.VertScrollBar.Size;
+  scrollbox1.HorzScrollBar.Visible:=false;
+  scrollbox1.Invalidate;
+end;
 
 procedure TMemoryBrowser.UpdateDebugContext(threadhandle: THandle; threadid: dword; changeselection: boolean=true; _debuggerthread: TDebuggerThread=nil);
 var temp: string='';
@@ -5806,6 +5890,9 @@ var temp: string='';
     iptlogsize: integer;
 begin
   if _debuggerthread<>nil then debuggerthread.execlocation:=41301;
+
+
+
 
 
   oldcontexthandler:=contexthandler;
@@ -5934,7 +6021,7 @@ begin
 
   if _debuggerthread<>nil then _debuggerthread.execlocation:=41303;
 
-
+  {}
   if (accessedreglist<>nil) then
   begin
     for i:=0 to pnlGeneralRegisters.ControlCount-1 do
@@ -5997,6 +6084,7 @@ begin
     disassemblerview.SelectedAddress:=contexthandler.InstructionPointerRegister^.getValue(context);
   end;
 
+  {}
 
   //apply the values
   if pnlGeneralRegisters.visible then
@@ -6052,23 +6140,23 @@ begin
   end;
 
   if _debuggerthread<>nil then _debuggerthread.execlocation:=41308;
+  {}
 
   sbShowFloats.BringToFront;
   //sbShowFloats.visible:=true;
 
   if not registerview.visible then
   begin
-    setShowDebugPanels(true);
+    showdebugpaneltimer:=ttimer.Create(self);
+    showDebugPaneltimer.interval:=1;
+    showDebugPaneltimer.OnTimer:=showDebugPaneltimertimer;
+    showDebugPaneltimer.enabled:=true;
 
-    registerview.ClientWidth:=lblFlags.left+lblFlags.width+16+scrollbox1.VertScrollBar.Size;
-
-    scrollbox1.HorzScrollBar.Visible:=false;
+    //tthread.Queue(nil, doshowdebugpanels);
 
 
-
-
-    scrollbox1.Invalidate;
   end;
+
 
   if _debuggerthread<>nil then _debuggerthread.execlocation:=41309;
 

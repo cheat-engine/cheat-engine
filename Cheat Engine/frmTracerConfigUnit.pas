@@ -62,13 +62,12 @@ implementation
 { TfrmTracerConfig }
 
 uses NewKernelHandler, DebugHelper, debuggerinterface, DebuggerInterfaceAPIWrapper,
-  formsettingsunit, DBVMDebuggerInterface;
+  formsettingsunit, DBVMDebuggerInterface, GDBServerDebuggerInterface;
 
 function TfrmTracerConfig.getBreakpointmethod: TBreakpointmethod;
 begin
   if (CurrentDebuggerInterface<>nil) and (CurrentDebuggerInterface is TDBVMDebugInterface) then
     exit(bpmDBVMNative);
-
 
   result:=bpmDebugRegister;
 
@@ -118,7 +117,7 @@ begin
   if (CurrentDebuggerInterface=nil) and isRunningDBVM then //no debugger running, go for dbvm by default
     cbDBVMBreakAndTrace.Checked:=true;
 
-  if (CurrentDebuggerInterface<>nil) and (CurrentDebuggerInterface is TDBVMDebugInterface) or (formSettings.cbUseDBVMDebugger.checked) then
+  if ((CurrentDebuggerInterface<>nil) and ((CurrentDebuggerInterface is TDBVMDebugInterface) or (CurrentDebuggerInterface is TGDBServerDebuggerInterface))) or (formSettings.cbUseDBVMDebugger.checked) then
     groupbox1.visible:=false;
 end;
 
