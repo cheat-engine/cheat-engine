@@ -30,14 +30,15 @@
 //todo: Make this multithreaded. So: Make a list of threads that can AV
 
 
+#ifdef DEBUG_CONSOLE
 void Log(_In_z_ _Printf_format_string_ char const* const _Format, ...)
 {
-#ifdef DEBUG_CONSOLE 
+
 	va_list args;
 	va_start(args, _Format);
 	vprintf(_Format, args);
-#endif
 }
+#endif
 
 BOOL ExpectingAccessViolations = FALSE;
 
@@ -1626,7 +1627,10 @@ void CPipeServer::GetMonoDataCollectorVersion()
 	WriteDword(MONO_DATACOLLECTORVERSION);
 }
 
-DECLSPEC_NOINLINE void CPipeServer::NewString()
+#ifdef WINDOWS
+DECLSPEC_NOINLINE
+#endif
+void CPipeServer::NewString()
 {
 	//Log("Creating new string\n");
 	void* domain = (void*)ReadQword();
@@ -3042,8 +3046,12 @@ void CPipeServer::Start(void)
 				case MONOCMD_TERMINATE:
 					if (pipehandle != INVALID_HANDLE_VALUE)
 					{
+#ifdef WINDOWS
 						DisconnectNamedPipe(pipehandle);
 						CloseHandle(pipehandle);
+#else
+						close(pipehandle);
+#endif
 					}
 					return;
 
