@@ -11,6 +11,7 @@
 #ifdef _APPLE_
 #include "macport.h"
 #else
+#include <string.h>
 #include "linuxport.h"
 #endif //_APPLE_
 #endif //_WINDOWS
