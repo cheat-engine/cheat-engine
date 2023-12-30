@@ -4790,7 +4790,8 @@ function monoform_exportArrayStructInternal(acs, arraytype, elemtype, recursive,
       end
       local elementkls = mono_class_getArrayElementClass(arraytype)
       local elementmonotype = mono_type_get_type(mono_class_get_type(elementkls))
-      local isStruct = mono_class_isStruct(elementkls)--mono_class_isValueType(elementkls) and not(mono_class_IsPrimitive(elementkls)) and not(mono_class_isEnum(elementkls))
+      local isStruct = mono_class_isStruct(elementkls)
+	  local isenum = mono_class_isEnum(elementkls)
       --print(fu(elementkls),mono_class_getFullName(elementkls),fu(elementmonotype))
       if isStruct  then
          --print("yep, a struct")
@@ -4802,7 +4803,7 @@ function monoform_exportArrayStructInternal(acs, arraytype, elemtype, recursive,
           ce=acs.addElement()
           ce.Name=string.format("[%d]%s",j,mono_class_getName(elementkls))
           ce.Offset=j*psize+start
-          ce.Vartype= monoTypeToVarType( elementmonotype ) --vtPointer
+          ce.Vartype = isenum and vtDword or monoTypeToVarType(elementmonotype)
 	  if ce.Vartype == vtDword then
 	    ce.DisplayMethod = 'dtSignedInteger'
 	  end
