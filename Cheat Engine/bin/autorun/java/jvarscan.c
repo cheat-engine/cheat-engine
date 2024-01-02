@@ -458,7 +458,7 @@ jfieldID getFieldIDFromFieldIndex(jvmtiEnv *jvmti, JNIEnv *jni, jobject o, int i
 	(*jvmti)->IsInterface(jvmti, currentclass, &isinterface);
 	if (isinterface)
 	{
-		OutputDebugStringA("Interface...");
+		//OutputDebugStringA("Interface...");
 		return 0;
 	}
 

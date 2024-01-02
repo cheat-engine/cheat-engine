@@ -1,6 +1,8 @@
 #ifndef celib_h
 #define celib_h
 
+
+//first call lua command injectCEHelperLib()
 typedef struct _cecs
 {
   volatile int locked;

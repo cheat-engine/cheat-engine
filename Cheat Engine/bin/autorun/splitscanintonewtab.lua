@@ -3,13 +3,15 @@
 --loads the scan into this tab
 
 function splitScanIntoNewTab()
-  local filename=getCurrentMemscan().ScanresultFolder..'.splitscan.savestate' --files starting with a . do not get copied so this is safe
+  if miAddTab.enabled then
+    local filename=getCurrentMemscan().ScanresultFolder..'.splitscan.savestate' --files starting with a . do not get copied so this is safe
  
-  saveMemoryScan_internal(filename)
+    saveMemoryScan_internal(filename)
   
-  MainForm.miAddTab.doClick()
+    MainForm.miAddTab.doClick()
   
-  loadMemoryScan_internal(filename)  
+    loadMemoryScan_internal(filename)  
+  end
 end
 
 local mi=createMenuItem(MainForm.Menu)

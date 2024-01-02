@@ -78,8 +78,8 @@ local function createDiagramForm(diagram, name)
   diagram.form.PopupMode='pmNone'
   diagram.form.BorderStyle='bsSizeable'
   diagram.form.Caption=name
-  diagram.form.Width=getScreenWidth()-(getScreenWidth()/6)
-  diagram.form.Height=getScreenHeight()-(getScreenHeight()/6)
+  diagram.form.Width=math.floor(getScreenWidth()-(getScreenWidth()/6))
+  diagram.form.Height=math.floor(getScreenHeight()-(getScreenHeight()/6))
 end
 
 local function calculateInbetweenColor(c1,c2,v)
@@ -439,7 +439,7 @@ local function createMenu(diagram)
   miClose.Name='miClose'
   miClose.ImageIndex=37
   
-  local miSep=createMenuItem(mm)
+  local miSep=createMenuItem(mv)
   miSep.Caption='-'
   
 
@@ -571,11 +571,25 @@ local function createMenu(diagram)
       diagram.diagram.ScrollY=newY*diagram.diagram.MaxScrollY  
     end
   end
+  
+  local miChangeBackground=createMenuItem(mm)
+  miChangeBackground.caption=translate('Change background color')
+  miChangeBackground.OnClick=function()
+    local cp=createColorDialog(diagram.diagram)
+    cp.Color=diagram.diagram.BackgroundColor
+    if cp.execute() then
+      diagram.diagram.BackgroundColor=cp.Color
+    end
+  end
+    
+
 
   ViewMenu.add(miZoom)
+  ViewMenu.add(miChangeBackground)
   miZoom.add(miZoom100)
   miZoom.add(miZoomIn)
   miZoom.add(miZoomOut)
+  
   
   mm.Items.add(FileMenu)
   mm.Items.add(DisplayMenu)
@@ -806,7 +820,7 @@ local function createDiagramPopupMenu(diagram)
   diagram.popup.LinkItems[2].ImageIndex=34
   diagram.popup.LinkItems[2].OnClick=PopupMenuGoToDestinationClick
 
-  diagram.popup.LinkItems[3]=CreateMenuItem(pm)
+  diagram.popup.LinkItems[3]=CreateMenuItem(diagram.diagram)
   diagram.popup.LinkItems[3].Caption='-' --separator
   
   diagram.popup.LinkItems[4]=CreateMenuItem(pm)
@@ -887,6 +901,65 @@ local function createDiagramDiagram(diagram)
   diagram.diagram.LineThickness=diagramstyle.link_linethickness
   diagram.diagram.ArrowSize=diagramstyle.link_arrowsize
   diagram.diagram.Tag=createRef(diagram)
+  
+  local leftdown=false
+  local dragstart
+  
+  local function handledrag(x,y)    
+    local delta={}
+    local mousepos={}
+    mousepos.x=x
+    mousepos.y=y
+    mousepos.x=(mousepos.x-diagram.diagram.ScrollX)/diagram.diagram.Zoom
+    mousepos.y=(mousepos.y-diagram.diagram.ScrollY)/diagram.diagram.Zoom
+    
+    delta.x=x-dragstart.x
+    delta.y=y-dragstart.y
+    
+    dragstart={}
+    dragstart.x=x
+    dragstart.y=y
+      
+    
+  
+    diagram.diagram.ScrollX=diagram.diagram.ScrollX-(delta.x/diagram.diagram.Zoom)
+    diagram.diagram.ScrollY=diagram.diagram.ScrollY-(delta.y/diagram.diagram.Zoom)
+  
+    
+  end
+  
+  diagram.diagram.OnMouseMove=function(sender, x, y)
+    if leftdown then
+      handledrag(x,y)
+    end
+  end
+  
+  diagram.diagram.OnMouseDown=function(sender, button, x, y)
+    local mousepos={}
+    mousepos.x=x
+    mousepos.y=y
+    mousepos.x=(mousepos.x+diagram.diagram.ScrollX)/diagram.diagram.Zoom
+    mousepos.y=(mousepos.y+diagram.diagram.ScrollY)/diagram.diagram.Zoom
+  
+
+    
+  
+    if leftdown==false and button==mbLeft and sender.getObjectAt(mousepos)==nil then
+      dragstart={}
+      dragstart.x=x
+      dragstart.y=y
+      leftdown=true
+    end
+  end
+  
+  diagram.diagram.OnMouseUp=function(sender, button, x, y)
+    if leftdown and (button==mbLeft) then
+      leftdown=false
+      handledrag(x,y)      
+    end  
+  end  
+  
+  
   --diagram.diagram.AllowUserToCreatePlotPoints = false
   --diagram.diagram.AllowUserToMovePlotPoints = false
   --diagram.diagram.AllowUserToChangeAttachPoints = false
@@ -1409,7 +1482,8 @@ local function createDiagramInfoBlock(diagram)
 end
 
 local function spawnDiagram(start, limit)
-  local diagram = {}
+  --local
+  diagram = {}
   diagram.state=pseudocode.parseFunction(start, limit)
   diagram.blocks,diagram.sortedAddressList=pseudocode.createBlocks(diagram.state)
   createDiagramForm(diagram, translate('Diagram'))
@@ -1437,20 +1511,32 @@ local function spawnDiagram(start, limit)
 end
 
 local function MenuSpawnDiagram()
-  local mv=getMemoryViewForm()
-  local a=mv.DisassemblerView.SelectedAddress
-  local b=mv.DisassemblerView.SelectedAddress2 or a
-  a=math.min(a,b);
-  spawnDiagram(a,100000)
+  print("MenuSpawnDiagram")
+  if targetIsX86() then
+    local mv=getMemoryViewForm()
+    local a=mv.DisassemblerView.SelectedAddress
+    local b=mv.DisassemblerView.SelectedAddress2 or a
+    a=math.min(a,b);
+    print("calling spawnDiagram")
+    spawnDiagram(a,100000)
+  end
+    print("after MenuSpawnDiagram")
 end
 
 local mv=getMemoryViewForm()
-local mi=createMenuItem(mv.Menu)
-mi.Caption=translate('Spawn diagram')
-mi.Shortcut='Ctrl+Shift+D'
-mi.ImageIndex=33
-mi.OnClick=MenuSpawnDiagram
-mv.debuggerpopup.Items.insert(mv.miSelectCurrentFunction.MenuIndex+1, mi)
+local miSpawnDiagram=createMenuItem(mv.Menu)
+miSpawnDiagram.Caption=translate('Spawn diagram')
+miSpawnDiagram.Name='miSpawnDiagram'
+miSpawnDiagram.Shortcut='Ctrl+Shift+D'
+miSpawnDiagram.ImageIndex=33
+miSpawnDiagram.OnClick=MenuSpawnDiagram
+mv.debuggerpopup.Items.insert(mv.miSelectCurrentFunction.MenuIndex+1, miSpawnDiagram)
+
+local oldOnPopup=mv.debuggerpopup.OnPopup
+mv.debuggerpopup.OnPopup=function(Sender)
+  if oldOnPopup then oldOnPopup(sender) end
+  miSpawnDiagram.Enabled=targetIsX86()
+end
 
 
 registerFormAddNotification(function(f)
