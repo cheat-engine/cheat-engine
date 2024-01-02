@@ -1,8 +1,12 @@
 #ifdef _WINDOWS
 #include "stdafx.h"
-#elif __linux__
+#endif
+
+#ifdef __linux__
 #include "linuxport.h"
-#else
+#endif
+
+#ifdef __APPLE__
 #include "macport.h"
 #endif
 
@@ -76,6 +80,7 @@ DWORD WINAPI DataCollectorEntry(LPVOID lpThreadParameter)
 {
 	CPipeServer *pw;
     
+    
 #ifdef _WINDOWS
 #ifdef NDEBUG
 	ZWSETINFORMATIONTHREAD ZwSetInformationThread=(ZWSETINFORMATIONTHREAD)GetProcAddress(GetModuleHandleA("ntdll.dll"), "ZwSetInformationThread");
@@ -89,6 +94,7 @@ DWORD WINAPI DataCollectorEntry(LPVOID lpThreadParameter)
 	}
 #endif
 #endif
+
 
 	OutputDebugString("DataCollectorEntry\n");
 
@@ -130,10 +136,16 @@ DWORD WINAPI DataCollectorEntry(LPVOID lpThreadParameter)
 
 #ifdef __APPLE__
 #include <syslog.h>
+int logenabled=0;
 void MacPortEntryPoint(void *param)
 {
     
     pthread_setname_np("MonoDataCollector Thread");
+    
+    openlog((char*)"CEMDC", 0, LOG_USER);
+    setlogmask(LOG_UPTO(LOG_DEBUG));
+    logenabled=1;
+    
     DataCollectorEntry(param);
     
 }

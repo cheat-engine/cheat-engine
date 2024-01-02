@@ -265,7 +265,7 @@ HANDLE CreateNamedPipe(char *name) //createNamedPipe and wait
             {
                 OutputDebugString((char*)"Connection attempt\n");
                 struct sockaddr_un addr_client;
-                socklen_t clisize=sizeof(addr_client);
+                socklen_t clisize;
                 int a=-1;
 
 

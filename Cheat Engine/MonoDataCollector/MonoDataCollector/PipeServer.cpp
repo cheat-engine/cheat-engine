@@ -29,11 +29,9 @@
 
 //todo: Make this multithreaded. So: Make a list of threads that can AV
 
-
 #ifdef DEBUG_CONSOLE
 void Log(_In_z_ _Printf_format_string_ char const* const _Format, ...)
 {
-
 	va_list args;
 	va_start(args, _Format);
 	vprintf(_Format, args);
@@ -52,6 +50,7 @@ uint64_t ExpectingAccessViolationsThread = 0;
 
 typedef uint64_t QWORD;
 
+int debug_status=0;
 
 jmp_buf onError;
 
@@ -95,7 +94,7 @@ void ErrorFilter(int signr, siginfo_t* info, void* uap)
 	char s[200];
 	snprintf(s, 200, "Errorfilter %d", signr);
 	OutputDebugString(s);
-	//ucontext_t* uap_c = (ucontext_t*)uap;
+	ucontext_t* uap_c = (ucontext_t*)uap;
 	//check if it's the serverthread, and if so, change the instruction pointer to ErrorThrow
 	uint64_t tid;
 
@@ -127,6 +126,7 @@ void ErrorFilter(int signr, siginfo_t* info, void* uap)
 
 CPipeServer::CPipeServer(void)
 {
+    debug_status=3;
 	attached = FALSE;
 	limitedConnection = FALSE;
 	il2cpp = FALSE;
@@ -142,8 +142,9 @@ CPipeServer::CPipeServer(void)
 
 	AddVectoredExceptionHandler(1, ErrorFilter);
 #else
-	sprintf((char*)datapipename, "cemonodc_pid%d", GetCurrentProcessId());
+	snprintf((char*)datapipename, 255,"cemonodc_pid%d", GetCurrentProcessId());
 
+    debug_status=4;
 	int i;
 	for (i = 10; i < 12; i++)
 	{
@@ -154,6 +155,7 @@ CPipeServer::CPipeServer(void)
 		//sigaction(10, &new_sa, &old_sa);
 		sigaction(i, &new_sa[i], &old_sa[i]);
 	}
+    debug_status=5;
 
 #endif
 }
@@ -219,6 +221,7 @@ void CPipeServer::FreeString(char* value)
 void CPipeServer::CreatePipeandWaitForconnect(void)
 {
 	//OutputDebugStringA((char*)"CreatePipeandWaitForconnect called\n");
+    debug_status=8;
 #ifdef _WINDOWS
 
 	//OutputDebugStringA((char*)"Closing pipe if needed\n");
@@ -282,13 +285,16 @@ void CPipeServer::CreatePipeandWaitForconnect(void)
 	}
 
 #else
+    debug_status=9;
 	if ((pipehandle) && (pipehandle != INVALID_HANDLE_VALUE))
 		ClosePipe(pipehandle);
 
+    debug_status=10;
 	pipehandle = INVALID_HANDLE_VALUE;
 	while (pipehandle == INVALID_HANDLE_VALUE)
 		pipehandle = ::CreateNamedPipe((char*)datapipename);
 #endif
+
 
 	//OutputDebugStringA("At the end of CreatePipeandWaitForconnect\n");
 
@@ -2889,6 +2895,8 @@ void CPipeServer::Start(void)
 {
 
 	BYTE command;
+    
+    debug_status=6;
 
 	OutputDebugString("CPipeServer::Start\n");
 	while (1)
@@ -2896,7 +2904,10 @@ void CPipeServer::Start(void)
 		if ((mono_runtime_is_shutting_down) && (mono_runtime_is_shutting_down()))
 			return;
 
+        debug_status=7;
 		CreatePipeandWaitForconnect();
+        
+        debug_status=255;
 
 		try
 		{
@@ -3048,10 +3059,11 @@ void CPipeServer::Start(void)
 					{
 #ifdef WINDOWS
 						DisconnectNamedPipe(pipehandle);
-						CloseHandle(pipehandle);
+                        CloseHandle(pipehandle);
 #else
-						close(pipehandle);
+
 #endif
+						
 					}
 					return;
 
