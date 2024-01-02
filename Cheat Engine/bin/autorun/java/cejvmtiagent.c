@@ -1008,7 +1008,7 @@ void js_findClassInstances(PCEJVMTIAgent agent)
      
   }
 #ifdef ANDROID  
-  else  
+
   if (lookupmethod==0) //does work on android if called from native (dalvik.system.VMDebug.getInstancesOfClasses)
   {
    // debug_log("Failure setting the tags: %d",error);

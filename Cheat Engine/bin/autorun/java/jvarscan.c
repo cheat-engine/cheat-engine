@@ -92,12 +92,12 @@ jint JNICALL StartScan_FieldIteration(jvmtiHeapReferenceKind kind, const jvmtiHe
 	if (kind==JVMTI_HEAP_REFERENCE_FIELD)
 	{
     //debug_log("JVMTI_HEAP_REFERENCE_FIELD");
-		BOOL add=TRUE;
+		int add=1;
 		PScanData sd=(PScanData)user_data;
 
 		if (sd->scantype!=ST_UNKNOWN)
 		{
-			add=FALSE;
+			add=0;
 			switch (value_type)
 			{
 				
