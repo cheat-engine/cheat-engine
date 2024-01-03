@@ -18,7 +18,7 @@
 
 #if __SIZEOF_POINTER__ == 4
     /* 32bit systems. */
-#if defined TARGETOS_OpenBSD
+#if defined  __OpenBSD__
     #define __SIZE_TYPE__ unsigned long
     #define __PTRDIFF_TYPE__ long
 #else
@@ -68,7 +68,7 @@
     #define __WINT_TYPE__ int
 #endif
 
-    #if __STDC_VERSION__ == 201112L
+    #if __STDC_VERSION__ >= 201112L
     # define __STDC_NO_ATOMICS__ 1
     # define __STDC_NO_COMPLEX__ 1
     # define __STDC_NO_THREADS__ 1
@@ -88,9 +88,15 @@
     #define __GNUC_PATCHLEVEL__ 0
     #define __GNUC_STDC_INLINE__ 1
     #define __NO_TLS 1
+    #define __RUNETYPE_INTERNAL 1                             
 # if __SIZEOF_POINTER__ == 8
     /* FIXME, __int128_t is used by setjump */
     #define __int128_t struct { unsigned char _dummy[16] __attribute((aligned(16))); }
+    #define __SIZEOF_SIZE_T__ 8
+    #define __SIZEOF_PTRDIFF_T__ 8
+#else
+    #define __SIZEOF_SIZE_T__ 4
+    #define __SIZEOF_PTRDIFF_T__ 4   
 # endif
 
 #elif defined __FreeBSD_kernel__
@@ -113,20 +119,38 @@
     /* emulate APPLE-GCC to make libc's headerfiles compile: */
     #define __GNUC__ 4   /* darwin emits warning on GCC<4 */
     #define __APPLE_CC__ 1 /* for <TargetConditionals.h> */
+    #define __LITTLE_ENDIAN__ 1                               
     #define _DONT_USE_CTYPE_INLINE_ 1
     /* avoids usage of GCC/clang specific builtins in libc-headerfiles: */
     #define __FINITE_MATH_ONLY__ 1
     #define _FORTIFY_SOURCE 0
+    #define __has_builtin(x) 0
+
+#elif defined __ANDROID__
+    #define  BIONIC_IOCTL_NO_SIGNEDNESS_OVERLOAD
+    #define  __PRETTY_FUNCTION__ __FUNCTION__
+    #define __has_builtin(x) 0
+    #define __has_feature(x) 0
+    #define _Nonnull
+    #define _Nullable                              
 
 #else
     /* Linux */
 
 #endif
+    /* Some derived integer types needed to get stdint.h to compile correctly on some platforms */
+#ifndef __NetBSD__
+    #define __UINTPTR_TYPE__ unsigned __PTRDIFF_TYPE__
+    #define __INTPTR_TYPE__ __PTRDIFF_TYPE__
+#endif
+    #define __INT32_TYPE__ int                                                               
 
 #if !defined _WIN32
-    /* glibc defines */
+    /* glibc defines. We do not support __USER_NAME_PREFIX__ */
     #define __REDIRECT(name, proto, alias) name proto __asm__ (#alias)
     #define __REDIRECT_NTH(name, proto, alias) name proto __asm__ (#alias) __THROW
+    #define __REDIRECT_NTHNL(name, proto, alias) name proto __asm__ (#alias) __THROWNL
+        
 #else
     //Cheat Engine modification start (all externs are handled as __declspec(dllimport) )
     #define extern __declspec(dllimport) extern 
@@ -154,7 +178,7 @@
     #define __builtin_huge_valf() 1e50f
     #define __builtin_huge_vall() 1e5000L
 # if defined __APPLE__
-    #define __builtin_nanf(ignored_string) __nan()
+    #define __builtin_nanf(ignored_string) (0.0F/0.0F)
     /* used by floats.h to implement FLT_ROUNDS C99 macro. 1 == to nearest */
     #define __builtin_flt_rounds() 1
     /* used by _fd_def.h */
@@ -201,11 +225,17 @@
                            &~3), *(type *)(ap - ((sizeof(type)+3)&~3)))
 
 #elif defined __aarch64__
+#if defined __APPLE__
+    typedef struct {
+        void *__stack;
+    } __builtin_va_list;
+
+#else                                                        
     typedef struct {
         void *__stack, *__gr_top, *__vr_top;
         int   __gr_offs, __vr_offs;
     } __builtin_va_list;
-
+#endif                                    
 #elif defined __riscv
     typedef char *__builtin_va_list;
     #define __va_reg_size (__riscv_xlen >> 3)
@@ -230,15 +260,20 @@
     #else
     # define __RENAME(X) __asm__(X)
     #endif
-    #ifdef __BOUNDS_CHECKING_ON
+    #ifdef __TCC_BCHECK__
     # define __BUILTINBC(ret,name,params) ret __builtin_##name params __RENAME("__bound_"#name);
     # define __BOUND(ret,name,params) ret name params __RENAME("__bound_"#name);
     #else
     # define __BUILTINBC(ret,name,params) ret __builtin_##name params __RENAME(#name);
     # define __BOUND(ret,name,params)
     #endif
+#ifdef _WIN32
+    #define __BOTH __BOUND
+    #define __BUILTIN(ret,name,params)
+#else                                                                                                                                          
     #define __BOTH(ret,name,params) __BUILTINBC(ret,name,params)__BOUND(ret,name,params)
     #define __BUILTIN(ret,name,params) ret __builtin_##name params __RENAME(#name);
+#endif
 
     __BOTH(void*, memcpy, (void *, const void*, __SIZE_TYPE__))
     __BOTH(void*, memmove, (void *, const void*, __SIZE_TYPE__))
@@ -250,7 +285,9 @@
     __BOTH(int, strcmp, (const char*, const char*))
     __BOTH(int, strncmp, (const char*, const char*, __SIZE_TYPE__))
     __BOTH(char*, strcat, (char*, const char*))
+    __BOTH(char*, strncat, (char*, const char*, __SIZE_TYPE__))                                         
     __BOTH(char*, strchr, (const char*, int))
+    __BOTH(char*, strrchr, (const char*, int))                                    
     __BOTH(char*, strdup, (const char*))
 #if defined __ARM_EABI__
     __BOUND(void*,__aeabi_memcpy,(void*,const void*,__SIZE_TYPE__))
@@ -288,4 +325,15 @@
     #undef __MAYBE_REDIR
     #undef __RENAME
 
+    #define __BUILTIN_EXTERN(name,u) 		\
+        int __builtin_##name(u int);		\
+        int __builtin_##name##l(u long);	\
+        int __builtin_##name##ll(u long long);
+    __BUILTIN_EXTERN(ffs,)
+    __BUILTIN_EXTERN(clz, unsigned)
+    __BUILTIN_EXTERN(ctz, unsigned)
+    __BUILTIN_EXTERN(clrsb,)
+    __BUILTIN_EXTERN(popcount, unsigned)
+    __BUILTIN_EXTERN(parity, unsigned)
+    #undef __BUILTIN_EXTERN  
     #endif /* ndef __TCC_PP__ */

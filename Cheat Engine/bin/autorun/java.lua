@@ -527,11 +527,7 @@ function javaInjectAgent()
       createThread(function(t)
         function injectAndroidAgent()
           local status=readInteger("ceagentloadstatus")
-          local extra=createStringList()
-          if targetIsAndroid() then
-            extra.add('#define ANDROID')          
-          end 
-         
+        
           
           if (status==nil) or (status<0) or (status==2) then
             if not fileExists(getAutorunPath()..'java/jvmti.h') and (findTableFile('include/jvmti.h')==nil) then
@@ -555,7 +551,7 @@ function javaInjectAgent()
               return
             end
                         
-            local injectagentscript=extra.text..'\n'..sl.Text
+            local injectagentscript=sl.Text
             sl.destroy()
           
             local r,di=autoAssemble(injectagentscript);

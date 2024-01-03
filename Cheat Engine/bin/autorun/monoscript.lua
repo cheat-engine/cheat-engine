@@ -21,7 +21,7 @@ local dpiscale=getScreenDPI()/96
 
 mono_timeout=3000 --change to 0 to never timeout (meaning: 0 will freeze your face off if it breaks on a breakpoint, just saying ...)
 
-MONO_DATACOLLECTORVERSION=20230830
+MONO_DATACOLLECTORVERSION=20231214
 
 MONOCMD_INITMONO=0
 MONOCMD_OBJECT_GETCLASS=1
@@ -401,8 +401,17 @@ end
 function fillMissingFunctions()
   local result
   
-  waitForExports()
-  local mono_type_get_name_full=getAddressSafe("mono_type_get_name_full") --it's defined as a symbol, but not public on some games
+  outputDebugString('fillMissingFunctions')
+  local mono_type_get_name_full
+  if getOperatingSystem()==0 then  --windows
+    waitForExports()
+    mono_type_get_name_full=getAddressSafe("mono_type_get_name_full") --it's defined as a symbol, but not public on some games
+  else
+    outputDebugString('get address of mono_type_get_name_full')
+    mono_type_get_name_full=getAddressSafe("mono_type_get_name_full")
+  end
+  
+  
   local cmd=MONOCMD_FILLOPTIONALFUNCTIONLIST
   monopipe.lock()
   monopipe.writeByte(MONOCMD_FILLOPTIONALFUNCTIONLIST)
@@ -524,10 +533,13 @@ function LaunchMonoDataCollector(internalReconnectDisconnectEachTime)
 
   local injectResult, injectError=injectLibrary(dllpath, skipsymbols)
   if (not injectResult) and isConnectedToCEServer() then --try the searchpath
-    injectResult, injectError=injectLibrary(dllname, skipsymbols)      
+    outputDebugString('mdc lua: calling injectLibrary')
+    injectResult, injectError=injectLibrary(dllname, skipsymbols)
+    outputDebugString('mdc lua: after calling injectLibrary')
   end
     
   if (skipsymbols==false) and (getAddressSafe("MDC_ServerPipe")==nil) then
+    outputDebugString('mdc lua: calling waitForExports')
     waitForExports()
     if getAddressSafe("MDC_ServerPipe")==nil then
       print("DLL Injection failed or invalid DLL version")
@@ -2302,13 +2314,15 @@ function mono_getStaticFieldValue(vtable, field)
   
   local r
   monopipe.lock()
-  monopipe.writeByte(MONOCMD_GETSTATICFIELDVALUE)
-  monopipe.writeQword(vtable)
-  monopipe.writeQword(field)
-  r=monopipe.readQword()
-  
   if monopipe then
-    monopipe.unlock() 
+    monopipe.writeByte(MONOCMD_GETSTATICFIELDVALUE)
+    monopipe.writeQword(vtable)
+    monopipe.writeQword(field)
+    r=monopipe.readQword()
+    
+    if monopipe then
+      monopipe.unlock() 
+    end
   end
 
   return r    

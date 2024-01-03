@@ -16,14 +16,13 @@ int __android_log_vprint(int prio, const char* tag, const char* fmt, __builtin_v
 
 #ifdef _WIN32
 void OutputDebugStringA(char* msg);
-int vsnprintf(char *str, size_t size, const char *format, __builtin_va_list ap);
 
 #endif
 
 #ifdef __APPLE__
 void openlog(char *ident, int logopt, int facility);
 int setlogmask(int mskptr);
-vsyslog(int priority, char* message, __builtin_va_list args);
+//int vsyslog(int priority, char* message, __builtin_va_list args);
 void syslog(int priority, const char *message, ...);
 
 #define LOG_USER    1 << 3
@@ -34,10 +33,10 @@ void syslog(int priority, const char *message, ...);
 int openedlog;
 #endif
 
+int vsnprintf(char *str, int size,  const char restrict *format, __builtin_va_list ap);
 
 
-
-void debug_log(const char * format , ...)
+void debug_log(const char restrict * format , ...)
 {
 
   __builtin_va_list list;
@@ -55,8 +54,8 @@ void debug_log(const char * format , ...)
     
   char log[256];
   vsnprintf(log, 255, format, list);
-  log[256]=0;
-  
+  log[255]=0;
+    
   syslog(LOG_NOTICE, log); //vsyslog didn't work as planned
     
 #elif _WIN32

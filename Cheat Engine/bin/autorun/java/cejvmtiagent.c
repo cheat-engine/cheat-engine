@@ -1008,7 +1008,7 @@ void js_findClassInstances(PCEJVMTIAgent agent)
      
   }
 #ifdef ANDROID  
-  else  
+
   if (lookupmethod==0) //does work on android if called from native (dalvik.system.VMDebug.getInstancesOfClasses)
   {
    // debug_log("Failure setting the tags: %d",error);
@@ -2156,12 +2156,9 @@ void launchCEJVMTIServer(JNIEnv *env, jvmtiEnv *jvmti, void* soa)
   debug_log("VMDebugClass=%d",VMDebugClass);  
 #endif
   
-#ifdef _WIN32
-  snprintf(xpipename, 99, "\\\\.\\pipe\\cejavadc_pid%d", pid);
-#else  
+
   snprintf(xpipename, 99, "cejavadc_pid%d", pid);
-#endif
-  
+
   debug_log("Creating pipe %s", xpipename);
   
   int terminated=0;

@@ -6,6 +6,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include <errno.h>
+#include <stdint.h>
 
 #ifdef ANDROID
 //alternatively, registersymbol('_errno','__errno')
@@ -14,12 +15,22 @@ int *__cdecl __errno(void);
 #define errno (*__errno())
 #endif
 
+#ifdef __APPLE__
+#undef errno
+extern int errno;
+
+#endif
+
 #ifdef _WIN32
 #include <windowslite.h>
 
     
 #else
 typedef int HANDLE;
+#endif
+
+#ifndef _WIN32
+int unlink(const char *_Filename); 
 #endif
 
 
@@ -40,6 +51,9 @@ void *memcpy(void *dest, const void *src, size_t n);
 #ifndef _WIN32
 ssize_t recv(int sockfd, void *buf, size_t len, int flags);
 ssize_t send(int sockfd, const void *buf, size_t len, int flags);
+
+int connect(int, void *, socklen_t);
+
 #endif
 
 
@@ -58,7 +72,10 @@ typedef struct
   char *pipename;
   char *debugname;  
   HANDLE handle;
-} PipeServer, *PPipeServer;
+} PipeConnection, *PPipeConnection;
+
+typedef PPipeConnection PPipeServer;
+typedef PPipeConnection PPipeClient;
 
 
 void ms_read(PMemoryStream this, void* buf, int count)
@@ -177,9 +194,9 @@ void ms_destroy(PMemoryStream this)
   
 }
 
-//-----pipeserver----
+//-----PipeConnection----
 
-void ps_setDebugName(PPipeServer this, char *name)
+void ps_setDebugName(PPipeConnection this, char *name)
 {
   if (this->debugname)
     free(this->debugname);
@@ -296,7 +313,7 @@ ssize_t sendall (HANDLE s, void *buf, size_t size, int flags)
 }
 
 
-void ps_read(PPipeServer this, void* buf, int count)
+void ps_read(PPipeConnection this, void* buf, int count)
 {
   
   if (this->handle)
@@ -304,7 +321,7 @@ void ps_read(PPipeServer this, void* buf, int count)
     int r=recvall(this->handle, buf,count,0);
     if (r!=count)
     {
-      debug_log("ps_read: r!=count");
+      debug_log("ps_read: r(%d)!=count(%d)", r,count);
 #ifdef _WIN32   
       CloseHandle(this->handle);
 #else
@@ -316,10 +333,25 @@ void ps_read(PPipeServer this, void* buf, int count)
   }
 }
 
-void ps_write(PPipeServer this, void* buf, int count)
+void ps_write(PPipeConnection this, void* buf, int count)
 {
   if (this->handle)
   {
+    char d[100];
+    int i;
+    int max=count;
+    unsigned char *cbuf;
+    if (max>20)
+      max=20;
+    
+    cbuf=(unsigned char *)buf;
+
+    debug_log("ps_write:");
+    for (i=0; i<max; i++)
+      debug_log("buf[%d]=%.2x", i, cbuf[i]);
+
+
+
     int r=sendall(this->handle, buf,count,0);
     if (r!=count)
     { 
@@ -337,66 +369,72 @@ void ps_write(PPipeServer this, void* buf, int count)
 
 
 
-uint8_t ps_readByte(PPipeServer this)
+uint8_t ps_readByte(PPipeConnection this)
 {
   uint8_t r;
   ps_read(this, (void*)&r,1);
   return r;
 }
 
-uint16_t ps_readWord(PPipeServer this)
+uint16_t ps_readWord(PPipeConnection this)
 {
   uint16_t r;
   ps_read(this, (void*)&r,2);
   return r;
 }
 
-uint32_t ps_readDword(PPipeServer this)
+uint32_t ps_readDword(PPipeConnection this)
 {
   uint32_t r;
   ps_read(this, (void*)&r,4);
   return r;
 }
 
-uint64_t ps_readQword(PPipeServer this)
+uint64_t ps_readQword(PPipeConnection this)
 {
   uint64_t r;
   ps_read(this, (void*)&r,8);
   return r;
 }
 
-void ps_writeByte(PPipeServer this, uint8_t v)
+void ps_writeByte(PPipeConnection this, uint8_t v)
 {
   ps_write(this, (void*)&v,1);
 }
 
-void ps_writeWord(PPipeServer this, uint16_t v)
+void ps_writeWord(PPipeConnection this, uint16_t v)
 {
   ps_write(this, (void*)&v,2);
 }
 
-void ps_writeDword(PPipeServer this, uint32_t v)
+void ps_writeDword(PPipeConnection this, uint32_t v)
 {
   ps_write(this, (void*)&v,4);
 }
 
-void ps_writeQword(PPipeServer this, uint64_t v)
+void ps_writeQword(PPipeConnection this, uint64_t v)
 {
   ps_write(this, (void*)&v,8);
 }
 
-void ps_writeMemStream(PPipeServer this, PMemoryStream ms)
+void ps_writeMemStream(PPipeConnection this, PMemoryStream ms)
 {
   ps_writeDword(this, ms->pos);
   ps_write(this, ms->buf, ms->pos);      
 }
 
-int ps_isvalid(PPipeServer this)
+void ps_writeMemStreamRaw(PPipeConnection this, PMemoryStream ms)
+{
+    debug_log("ps_writeMemStreamRaw: Writing %d bytes", ms->pos);
+    ps_write(this, ms->buf, ms->pos);      
+}
+
+int ps_isvalid(PPipeConnection this)
 {
   return this->handle!=0;  
 }
 
-void ps_destroy(PPipeServer this)
+void ps_destroy(PPipeConnection this)
 {  
   debug_log("ps_destroy called");
   if (this)
@@ -439,17 +477,113 @@ void ps_destroy(PPipeServer this)
   debug_log("returning from ps_destroy");
 }
 
-PipeServer *CreatePipeServer(char *name)
+
+
+
+//correct: 1D 01 2F 74 6D 70 2F 63 65 70 69 70 65 5F 43 45 4C 55 41 53 45 52 56 45 52 34 30 33 30
+//mine:    1D 01 2F 74 6D 70 2F 63 65 70 69 70 65 5F 43 45 4C 55 41 53 45 52 56 45 52 34 30 33 30
+
+  
+PipeConnection *CreateClientPipeConnection(char *name)
+{
+    HANDLE pipehandle;
+    debug_log("CreateClientPipeConnection(\"%s\")", name);
+  
+    char pipename[300];
+    struct sockaddr_un address;
+      
+#ifdef _WIN32
+    snprintf(pipename, 300, "%s%s", "\\\\.\\pipe\\", name);  
+#else
+    #ifdef __APPLE__ 
+    snprintf(pipename, 300, "/tmp/cepipe_%s", name);
+    #else
+    snprintf(pipename, 300, "%s", name);
+    #endif
+#endif
+  
+  debug_log("Connecting to pipe %s", pipename);
+    
+#ifdef _WIN32       
+  pipehandle=CreateFileA(pipename,GENERIC_READ | GENERIC_WRITE, 0, NULL,  OPEN_EXISTING, 0, 0);   
+#else
+  {
+      debug_log("using named sockets as pipe");
+      int s;
+
+
+    
+      #ifdef __APPLE__
+      memset(&address, 0, sizeof(address));
+      strcpy(&address.sun_path[0], pipename);
+      address.sun_path[strlen(pipename)]=0;
+      
+      #else
+      strcpy(&address.sun_path[1], pipename);
+      address.sun_path[0]=0; //abstract pipe
+      
+      #endif
+      address.sun_family=AF_UNIX;
+    
+      
+      debug_log("address.sun_path=%s",address.sun_path);
+
+    int al=(int)SUN_LEN(&address);
+    debug_log("SUN_LEN=%d", al);
+#ifdef __APPLE__
+    address.sun_len=al;
+#endif
+    
+    s=socket(AF_UNIX, SOCK_STREAM,0);
+    if (s)
+    {
+      if (connect(s,&address, al)==0)
+      {
+        debug_log("Succesful connection");
+        pipehandle=s;
+      }
+      else
+      {
+          int le=errno;
+        debug_log("Failure to connect to %s  (error=%d: %s)", pipename,le, strerror(le));
+        pipehandle=0;
+        close(s);
+      }
+    }
+    else
+      debug_log("failed creating socket");
+      
+        
+  }
+#endif
+
+  debug_log("CreateFileA returned %x", pipehandle);
+
+  PPipeConnection t=malloc(sizeof(PipeConnection));                      
+  t->pipename=strdup(name);
+  t->debugname=NULL;
+  t->handle=pipehandle;
+  return t;
+  
+}
+
+#define CreatePipeServer CreatePipeConnection
+PipeConnection *CreatePipeConnection(char *name)
 {
   //single connect system
   int s;
-  debug_log("CreatePipeServer(\"%s\")\n",name);
+  debug_log("CreatePipeConnection(\"%s\")\n",name);
   
 #ifdef _WIN32
   //windows:
   HANDLE pipehandle;
-  debug_log("Calling CreateNamedPipeA");
-  pipehandle = CreateNamedPipeA(name, PIPE_ACCESS_DUPLEX, PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT, 1, 256 * 1024, 16, INFINITE, NULL);
+  
+  char pipename[300];
+  snprintf(pipename, 300, "%s%s", "\\\\.\\pipe\\", name);
+
+  
+  debug_log("Calling CreateNamedPipeA with name %s", pipename);
+  pipehandle = CreateNamedPipeA(pipename, PIPE_ACCESS_DUPLEX, PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT, 1, 256 * 1024, 16, INFINITE, NULL);
   debug_log("pipehandle=%p", pipehandle);
   
   if ((pipehandle==NULL) || (pipehandle==INVALID_HANDLE_VALUE)) 
@@ -462,7 +596,7 @@ PipeServer *CreatePipeServer(char *name)
   ConnectNamedPipe(pipehandle, NULL);
   debug_log("ConnectNamedPipe returned. So there was a connection");
 
-  PPipeServer t=malloc(sizeof(PipeServer));                      
+  PPipeConnection t=malloc(sizeof(PipeConnection));                      
   t->pipename=strdup(name);
   t->debugname=NULL;
   t->handle=pipehandle;
@@ -474,7 +608,12 @@ PipeServer *CreatePipeServer(char *name)
   {
       char *path=malloc(100);
 
+#ifdef __APPLE__
+      snprintf(path,100,"/tmp/cepipe_%s", name);
+      unlink(path);
+#else
       snprintf(path,100," %s", name);
+#endif
 
       struct sockaddr_un address;
       address.sun_family=AF_UNIX;
@@ -482,9 +621,11 @@ PipeServer *CreatePipeServer(char *name)
 
       int al=(int)SUN_LEN(&address);
       
+#ifndef __APPLE__      
       debug_log("al=%d\n",al);
-
+#else
       address.sun_path[0]=0;
+#endif
 
       int optval=1;
       setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &optval, optval);
@@ -515,7 +656,7 @@ PipeServer *CreatePipeServer(char *name)
                     debug_log("Closing the listener");
                     close(s); //stop listening
                     
-                    PPipeServer t=malloc(sizeof(PipeServer));                      
+                    PPipeConnection t=malloc(sizeof(PipeConnection));                      
                     t->pipename=strdup(name);
                     t->debugname=NULL;
                     t->handle=a;
