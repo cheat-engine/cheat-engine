@@ -56,14 +56,12 @@ MONOCMD_FINDMETHODBYDESC=29
 MONOCMD_INVOKEMETHOD=30
 MONOCMD_LOADASSEMBLY=31
 MONOCMD_GETFULLTYPENAME=32
-
 MONOCMD_OBJECT_NEW=33
 MONOCMD_OBJECT_INIT=34
 MONOCMD_GETVTABLEFROMCLASS=35
 MONOCMD_GETMETHODPARAMETERS=36
 MONOCMD_ISCLASSGENERIC=37
 MONOCMD_ISIL2CPP=38
-
 MONOCMD_FILLOPTIONALFUNCTIONLIST=39
 MONOCMD_GETSTATICFIELDVALUE=40 --fallback for il2cpp which doesn't expose what's needed
 MONOCMD_SETSTATICFIELDVALUE=41
@@ -74,7 +72,6 @@ MONOCMD_GETCLASSNESTINGTYPE=45
 MONOCMD_LIMITEDCONNECTION=46
 MONOCMD_GETMONODATACOLLECTORVERSION=47
 MONOCMD_NEWSTRING=48
-
 MONOCMD_ENUMIMAGES=49 
 MONOCMD_ENUMCLASSESINIMAGEEX=50
 MONOCMD_ISCLASSENUM = 51
@@ -94,6 +91,13 @@ MONOCMD_TYPEISBYREF = 64
 MONOCMD_GETPTRTYPECLASS = 65
 MONOCMD_GETFIELDTYPE = 66
 MONOCMD_GETTYPEPTRTYPE = 67
+MONOCMD_ENUMPROPERTIESCLASS = 68
+MONOCMD_CLASSGETPROPERTYBYNAME = 69
+MONOCMD_PROPERTYGETGETTER = 70
+MONOCMD_PROPERTYGETSETTER = 71
+MONOCMD_PROPERTYGETNAME = 72
+MONOCMD_PROPERTYGETPARENT = 73
+MONOCMD_PROPERTYGETFLAGS = 74
 
 MONO_TYPE_END        = 0x00       -- End of List
 MONO_TYPE_VOID       = 0x01
@@ -2078,9 +2082,6 @@ function mono_class_findInstancesOfClass(domain, klass, OnScanDone, ProgressBar)
   
 end
 
-
-
-
 function mono_class_getStaticFieldAddress(domain, class)
   --if debug_canBreak() then return nil end
   if not monopipe then return nil end
@@ -2351,9 +2352,6 @@ function mono_class_setStaticFieldValue(class, field, value)
   return mono_setStaticFieldValue(vtable, field, value)
 end
 
-
-
-
 function mono_object_findRealStartOfObject(address, maxsize)
   --if debug_canBreak() then return nil end
 
@@ -2393,8 +2391,94 @@ function mono_object_findRealStartOfObject(address, maxsize)
 
 end
 
+function mono_class_enumProperties(class, includeParents)
+  local properties = {}
+  if includeParents then
+    local parent=mono_class_getParent(class)
+    if (parent) and (parent~=0) then
+      properties=mono_class_enumProperties(parent, includeParents);
+    end
+  end
+  monopipe.lock()
 
-
+  monopipe.writeByte(MONOCMD_ENUMPROPERTIESCLASS)
+  monopipe.writeQword(class)
+  local property
+  local bl = monopipe.readByte()
+  if bl == 1 then
+    repeat
+      property=monopipe.readQword()
+      if property and (property~=0) then
+        properties[#properties+1] = property
+      end
+    until (property==nil) or (property==0)
+  end
+  monopipe.unlock()
+  return properties
+end
+function mono_class_get_property_from_name(class, name)
+  name = name or ""
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_CLASSGETPROPERTYBYNAME)
+  monopipe.writeQword(class)
+  monopipe.writeWord(#name)
+  monopipe.writeString(name)
+  local property = monopipe.readQword()
+  monopipe.unlock()
+  return property
+end
+function mono_property_get_get_method(property)
+  if not property or property==0 then return nil end
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_PROPERTYGETGETTER)
+  monopipe.writeQword(property)
+  local method = monopipe.readQword()
+  monopipe.unlock()
+  return method
+end
+function mono_property_get_set_method(property)
+  if not property or property==0 then return nil end
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_PROPERTYGETSETTER)
+  monopipe.writeQword(property)
+  local method = monopipe.readQword()
+  monopipe.unlock()
+  return method
+end
+function mono_property_get_parent(property)
+  if not property or property==0 then return nil end
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_PROPERTYGETPARENT)
+  monopipe.writeQword(property)
+  local parent = monopipe.readQword()
+  monopipe.unlock()
+  return parent
+end
+function mono_property_get_name(property)
+  if not property or property==0 then return nil end
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_PROPERTYGETNAME)
+  monopipe.writeQword(property)
+  local chars = monopipe.readWord()
+  local name = '';
+  if chars > 0 then
+    name = monopipe.readString(chars)
+  end
+  monopipe.unlock()
+  return name
+end
+function mono_property_get_flags(property)
+  if not property or property==0 then return nil end
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_PROPERTYGETFLAGS)
+  monopipe.writeQword(property)
+  local flags = monopipe.readDword()
+  monopipe.unlock()
+  return flags
+end
+mono_property_get_class = mono_property_get_parent
+mono_property_get_getter = mono_property_get_get_method
+mono_property_get_setter = mono_property_get_set_method
 --function mono_findReferencesToObject(class) --scan the memory for objects with a vtable to a specific class
 --end
 
