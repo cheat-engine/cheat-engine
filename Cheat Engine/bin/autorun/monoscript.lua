@@ -4707,9 +4707,10 @@ function monoform_exportStructInternal(s, caddr, recursive, static, structmap, m
   if (monopipe==nil) or (caddr==0) or (caddr==nil) then return nil end
 
   local className = mono_class_getFullName(caddr)
+  local ctype = mono_type_get_type(mono_class_get_type(caddr))
   --print('Populating '..className)
 
-  if string.sub(className,-2)=='[]' then
+  if string.sub(className,-2)=='[]' or ctype==MONO_TYPE_ARRAY or ctype==MONO_TYPE_SZARRAY then -- uni/multi-dimensional arrays
     local elemtype = mono_class_getArrayElementClass(caddr)
     return monoform_exportArrayStructInternal(s, caddr, elemtype, recursive, structmap, makeglobal, true)
   end
@@ -4743,57 +4744,6 @@ function monoform_exportStructInternal(s, caddr, recursive, static, structmap, m
         e.Bytesize = 999
       elseif ft == MONO_TYPE_PTR and loopnumber > 0 then
         monofrom_addPointerStructure(s, e, fields[i], recursive, static, structmap, loopnumber)
---[[        e.Vartype=vtPointer
---print(string.format("  Field: %d: %d: %d: %s", e.Offset, e.Vartype, ft, fieldname))
-
-         if mono_StringStruct==nil then
-         --  print("Creating string object")
-
-           mono_StringStruct = createStructure("String")
-
-           mono_StringStruct.beginUpdate()
-           local ce=mono_StringStruct.addElement()
-           ce.Name="Length"
-           if targetIs64Bit() then
-             ce.Offset=0x10
-		   else
-			 ce.Offset=0x8
-		   end
-
-           ce.Vartype=vtDword
-           ce=mono_StringStruct.addElement()
-           ce.Name="Value"
-           if targetIs64Bit() then
-             ce.Offset=0x14
-           else
-             ce.Offset=0xC
-           end
-           ce.Vartype=vtUnicodeString
-           ce.Bytesize=128
-           mono_StringStruct.endUpdate()
-           --mono_StringStruct.addToGlobalStructureList()
-         end
-         e.setChildStruct(mono_StringStruct)
-
-      elseif ft == MONO_TYPE_PTR or ft == MONO_TYPE_CLASS or ft == MONO_TYPE_BYREF
-          or ft == MONO_TYPE_GENERICINST then
-        --print("bla")
-        local typename = monoform_escapename(fields[i].typename)
-        if typename ~= nil then
-          local typeval = mono_field_getClass(fields[i].field)
-          --print(string.format("PTR: %X: %s", typeval, typename))
-          cs = monoform_exportStruct(typeval, typename, recursive, false, structmap, makeglobal)
-          if cs~=nil then e.setChildStruct(cs) end
-        end
-      elseif ft == MONO_TYPE_SZARRAY then
-        --print("bla2")
-        local typename = monoform_escapename(fields[i].typename)
-        local arraytype = mono_field_getClass(fields[i].field)
-        local elemtype = mono_class_getArrayElementClass(arraytype)
-	--print(typename)
-
-        --local acs = monoform_exportArrayStruct(arraytype, elemtype, typename, recursive, static, structmap, makeglobal, false)
-        --if acs~=nil then e.setChildStruct(acs) end --]]
       end
 
     end
