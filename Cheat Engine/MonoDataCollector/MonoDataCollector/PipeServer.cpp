@@ -505,6 +505,8 @@ void CPipeServer::InitMono()
 				mono_class_is_subclass_of = (MONO_CLASS_IS_SUBCLASS_OF)GetProcAddress(hMono, "il2cpp_class_is_subclass_of");
 				mono_class_vtable = (MONO_CLASS_VTABLE)GetProcAddress(hMono, "il2cpp_class_vtable");
 				mono_class_from_mono_type = (MONO_CLASS_FROM_MONO_TYPE)GetProcAddress(hMono, "il2cpp_class_from_mono_type");
+				mono_class_from_mono_type = mono_class_from_mono_type ? mono_class_from_mono_type : (MONO_CLASS_FROM_MONO_TYPE)GetProcAddress(hMono, "il2cpp_class_from_il2cpp_type");
+				mono_class_from_mono_type = mono_class_from_mono_type ? mono_class_from_mono_type : (MONO_CLASS_FROM_MONO_TYPE)GetProcAddress(hMono, "il2cpp_class_from_type");
 				mono_class_get_element_class = (MONO_CLASS_GET_ELEMENT_CLASS)GetProcAddress(hMono, "il2cpp_class_get_element_class");
 				mono_class_instance_size = (MONO_CLASS_INSTANCE_SIZE)GetProcAddress(hMono, "il2cpp_class_instance_size");
 
@@ -1684,6 +1686,17 @@ void CPipeServer::GetTypeFromPointerType()
 	if (type && mono_type_get_ptr_type)
 	{
 		WriteQword((UINT64)mono_type_get_ptr_type(type));
+	}
+	else
+		WriteQword(0);
+}
+
+void CPipeServer::GetClassFromMonoType()
+{
+	void* type = (void*)ReadQword();
+	if (type && mono_class_from_mono_type)
+	{
+		WriteQword((UINT64)mono_class_from_mono_type(type));
 	}
 	else
 		WriteQword(0);
@@ -3331,6 +3344,10 @@ void CPipeServer::Start(void)
 
 				case MONOCMD_PROPERTYGETFLAGS:
 					GetPropertyFlags();
+					break;
+
+				case MONOCMD_CLASSFROMMONOTYPE:
+					GetClassFromMonoType();
 					break;
 
 				}

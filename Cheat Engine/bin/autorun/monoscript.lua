@@ -98,6 +98,7 @@ MONOCMD_PROPERTYGETSETTER = 71
 MONOCMD_PROPERTYGETNAME = 72
 MONOCMD_PROPERTYGETPARENT = 73
 MONOCMD_PROPERTYGETFLAGS = 74
+MONOCMD_CLASSFROMMONOTYPE = 75
 
 MONO_TYPE_END        = 0x00       -- End of List
 MONO_TYPE_VOID       = 0x01
@@ -1628,8 +1629,20 @@ function mono_class_get_type(kls)
  return retv
 end
 
+function mono_class_from_type(monotype)
+  if not monotype or monotype==0 then return nil end
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_CLASSFROMMONOTYPE)
+  monopipe.writeQword(monotype)
+  local retv = monopipe.readQword()
+  monopipe.unlock()
+ return retv
+end
+
 function mono_type_get_class(monotype)
   if not monotype or monotype==0 then return nil end
+  local tp = mono_type_get_type(monotype)
+  if tp~= MONO_TYPE_CLASS and tp~= MONO_TYPE_VALUETYPE then print('"mono_type_get_class" returns class of only MONO_TYPE_CLASS and MONO_TYPE_VALUETYPE. Use "mono_class_from_type" instead') end
   monopipe.lock()
   monopipe.writeByte(MONOCMD_GETCLASSOFTYPE)
   monopipe.writeQword(monotype)

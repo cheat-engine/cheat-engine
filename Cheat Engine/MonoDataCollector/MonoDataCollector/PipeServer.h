@@ -95,6 +95,7 @@
 #define MONOCMD_PROPERTYGETNAME 72
 #define MONOCMD_PROPERTYGETPARENT 73
 #define MONOCMD_PROPERTYGETFLAGS 74
+#define MONOCMD_CLASSFROMMONOTYPE 75
 
 
 typedef struct {} MonoType;
@@ -538,6 +539,7 @@ private:
 
 	void GetClassFromPointer();
 	void GetTypeFromPointerType();
+	void GetClassFromMonoType();
 
 	void EnumPropertiesInClass();
 	void GetPropertyFromName();
