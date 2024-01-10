@@ -38,8 +38,9 @@ end
 
 
 function hookSpeedFunctions()
-  --print("hookSpeedFunctions")
+ -- print("hookSpeedFunctions")
   if getAddressSafe("new_gettickcount")~=nil and getAddressSafe("speedhack_wantedspeed")~=nil then
+  --  print("already hooked")
     return true
   end
   
@@ -64,6 +65,8 @@ function hookSpeedFunctions()
     messageDialog(data)
     return
   end
+
+ -- print("allocated speedhack_wantedspeed")
 
   local gtcaddress=getAddressSafe('kernel32.gettickcount64')
   if gtcaddress==nil then
@@ -94,6 +97,7 @@ label(gtc_returnhere)
 label(gtchook_exit)
 
 {$c}
+#include <stdint.h>
 #include <stddef.h>
 #include <celib.h>
 
@@ -170,7 +174,14 @@ jmp new_gettickcount
 
 ]],originalcode, filler)
 
-    local result, data=autoAssemble(s)
+    local result, data=autoAssemble(s) 
+
+    if not result then
+      if data==nil then
+        data=' (no reason)'
+      end
+      messageDialog('Failure hooking kernel32.gettickcount64:'..data, mtError, mbOK)
+    end
   end;
 
 
@@ -204,6 +215,7 @@ label(qpc_returnhere)
 label(qpchook_exit)
 
 {$c}
+#include <stdint.h>
 #include <stddef.h>
 #include <celib.h>
 
@@ -283,6 +295,14 @@ qpc_returnhere:
 ]],originalcode, filler)
 
     local result2, data2=autoAssemble(s)
+    
+    if not result2 then
+      if data==nil then
+        data=' (no reason)'
+      end
+      messageDialog('Failure hooking ntdll.RtlQueryPerformanceCounter:'..data, mtError, mbOK)
+    end
+    
   end;
 
   return result or result2
