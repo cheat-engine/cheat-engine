@@ -148,6 +148,17 @@ begin
 
   logopic.free;
   freeandnil(rs);
+
+  {$else}
+  rs := TResourceStream.Create(HInstance, 'IMAGES_CELOGO', RT_RCDATA);
+  logopic:=TPicture.Create;
+  logopic.LoadFromStreamWithFileExt(rs,'.PNG');
+  image1.Picture:=logopic;
+  image1.Stretch:=true;
+
+
+  logopic.free;
+  freeandnil(rs);
   {$endif}
 
 
