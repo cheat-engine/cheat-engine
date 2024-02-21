@@ -237,7 +237,6 @@ Caller must free output manually
   int tempbufferpos=0;
   int maxoutputsize=TEMPBUFSIZE;
   tempbuffer=malloc(TEMPBUFSIZE);
-  int offset=0;
 
   Elf64_Phdr *programHeaders=malloc(b->e_phentsize*b->e_phnum);
   if (pread(f, programHeaders, b->e_phentsize*b->e_phnum, b->e_phoff+fileoffset)==-1)
@@ -252,7 +251,6 @@ Caller must free output manually
   {
     if (programHeaders[i].p_type==PT_LOAD)
     {
-      offset=programHeaders[i].p_vaddr;
       break;
     }
   }
@@ -723,7 +721,7 @@ int FindSymbol(HANDLE hProcess, char *symbolname, symcallback cb, void* context)
     {
       if (mle.part==0)
       {
-        int i,f;
+        int f;
         unsigned char *b=NULL;
         unsigned int fileoffset=mle.fileOffset;
 
@@ -737,13 +735,13 @@ int FindSymbol(HANDLE hProcess, char *symbolname, symcallback cb, void* context)
         b=malloc(sizeof(Elf64_Ehdr));
         if (b)
         {
-          i=pread(f, b, sizeof(Elf64_Ehdr), fileoffset);
+          pread(f, b, sizeof(Elf64_Ehdr), fileoffset);
           if (*(uint32_t *)b==0x464c457f)
           {
             if (b[EI_CLASS]==ELFCLASS32)
-              i=ELF32_scan(f, fileoffset, (Elf32_Ehdr *)b, symbolname, (symcallback)FindSymbol_internal, (void*)&c);
+              ELF32_scan(f, fileoffset, (Elf32_Ehdr *)b, symbolname, (symcallback)FindSymbol_internal, (void*)&c);
             else
-              i=ELF64_scan(f, fileoffset, (Elf64_Ehdr *)b, symbolname, (symcallback)FindSymbol_internal, (void*)&c);
+              ELF64_scan(f, fileoffset, (Elf64_Ehdr *)b, symbolname, (symcallback)FindSymbol_internal, (void*)&c);
           }
 
           free(b);
