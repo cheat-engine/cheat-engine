@@ -50,7 +50,7 @@ MONOCMD_DISASSEMBLE=23
 MONOCMD_GETMETHODSIGNATURE=24
 MONOCMD_GETPARENTCLASS=25
 MONOCMD_GETSTATICFIELDADDRESSFROMCLASS=26
-MONOCMD_GETTYPECLASS=27
+MONOCMD_GETFIELDCLASS=27
 MONOCMD_GETARRAYELEMENTCLASS=28
 MONOCMD_FINDMETHODBYDESC=29
 MONOCMD_INVOKEMETHOD=30
@@ -1605,13 +1605,18 @@ function mono_field_getClass(field)
 
   local result=0
   monopipe.lock()
-  monopipe.writeByte(MONOCMD_GETTYPECLASS)
+  monopipe.writeByte(MONOCMD_GETFIELDCLASS)
   monopipe.writeQword(field)  
 
   result=monopipe.readQword()
 
   monopipe.unlock()
   return result;
+end
+
+function mono_type_getClass(field)
+  --ce <7.5.2
+  return mono_field_getClass(field)
 end
 
 function mono_class_get_type(kls)
@@ -3344,7 +3349,11 @@ function mono_array_element_size(arrayKlass)
   monopipe.writeByte(MONOCMD_ARRAYELEMENTSIZE)
   monopipe.writeQword(arrayKlass)
   local retv = monopipe.readQword()
-  monopipe.unlock()
+  if monopipe then
+    monopipe.unlock()
+  else
+    return 0
+  end
   return retv
 end
 
