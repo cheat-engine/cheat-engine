@@ -4389,38 +4389,36 @@ function monoAA_FINDMONOMETHOD(parameters, syntaxcheckonly)
   return result
 end
 
-local trim = function(s)
-  return s:match"^%s*(.*)":match"(.-)%s*$"
-end
 
-local take = function(s, sep)
-  sep = sep or ","
-  local position = string.find(s, sep)
-  if position then
-    local first = string.sub(s, 1, position - 1)
-    local remainder = string.sub(s, position + 1, #s)
-    return first, remainder
-  end
-  return s, nil
-end
-
-local take_and_trim = function(s, sep)
-  local a, b = take(s, sep)
-  return trim(a), b
-end
-
--- try in Underminer with this:
--- return monoAA_FINDMONOMETHODWITHPARAMS("address, :Inventory:TryRemoveItem, ItemType,int", false)
 function monoAA_FINDMONOMETHODWITHPARAMS(parameters, syntaxcheckonly)
-  print("parameters: "..tostring(parameters))
-  --called whenever an auto assembler script encounters the MONOMETHOD() line
+  --called whenever an auto assembler script encounters the FINDMONOMETHODWITHPARAMS() line
 
   --parameters: name, fullmethodnamestring, (OPTIONAL)method param types
   --turns into a define that sets up name as an address to this method
-  --example for Underminer - no namespace, method TryRemoveItem has three
-  --    instances, we want one with 'ItemType' and 'int' parameters:
-  --    NOTE: cannot be any spaces inside parameters with comma!
-  --FINDMONOMETHODWITHPARAMS(tryremoveitem, Inventory, ItemType,int)
+  --example for Underminer - no namespace, class Inventory method TryRemoveItem
+  --has three instances, we want one with 'ItemType' and 'int' parameters:
+  --NOTE: cannot be any spaces inside parameters with comma (ItemType,int)!
+  --FINDMONOMETHODWITHPARAMS(tryremoveitem, Inventory:TryRemoveItem, ItemType,int)
+
+  local trim = function(s)
+    return s:match"^%s*(.*)":match"(.-)%s*$"
+  end
+
+  local take = function(s, sep)
+    sep = sep or ","
+    local position = string.find(s, sep)
+    if position then
+      local first = string.sub(s, 1, position - 1)
+      local remainder = string.sub(s, position + 1, #s)
+      return first, remainder
+    end
+    return s, nil
+  end
+
+  local take_and_trim = function(s, sep)
+    local a, b = take(s, sep)
+    return trim(a), b
+  end
 
   local name, r = take_and_trim(parameters)
   local full_method_name, r = take_and_trim(r)
@@ -4430,7 +4428,15 @@ function monoAA_FINDMONOMETHODWITHPARAMS(parameters, syntaxcheckonly)
   --parse the parameters
   local namespace, r1 = take_and_trim(full_method_name, ":")
   local class_name, r2 = take_and_trim(r1, ":")
-  local method_name, r3 = take_and_trim(r2, ":")
+  local method_name = nil
+  if r2 == nil then
+    -- just Class:Method if no namespace
+    method_name = class_name
+    class_name = namespace
+    namespace = ""
+  else
+    method_name, r3 = take_and_trim(r2, ":")
+  end
 
   if syntaxcheckonly then
     return "define("..name..",00000000)"
@@ -4452,11 +4458,11 @@ function monoAA_FINDMONOMETHODWITHPARAMS(parameters, syntaxcheckonly)
     if v.name == method_name then
       v.parameters = mono_method_get_parameters(v.method)
       v.signature = mono_method_getSignature(v.method)
-      if v.signature == signature then exact = v end
+      if signature ~= nil and v.signature == signature then exact = v end
       table.insert(methods, v)
     end
   end
-  if #methods == 1 then exact = methods[1] end
+  if #methods == 1 then exact = methods[1] end -- no need for params if only 1
   if not exact then
      if #methods > 1 then
         return nil, full_method_name..translate(" has overrides, specify parameters")
