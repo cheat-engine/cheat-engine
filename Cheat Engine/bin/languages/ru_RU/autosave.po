@@ -1,0 +1,39 @@
+#: autosave-AioC
+msgid "Another instance of Cheat Engine has crashed and it created an autosave.  Autosave disabled until you go to settings and click ok"
+msgstr "Другой экземпляр Cheat Engine потерпел крах и создал автосохранение. Автосохранение будет отключено, пока вы не перейдёте в настройки и не нажмёте «Подтвердить»"
+
+#: autosave-Ftoa
+msgid "Failure to obtain a location to save the autosave data"
+msgstr "Не удалось получить расположение для сохранения данных автосохранения"
+
+#: autosave-UR
+msgid "Unknown Reason"
+msgstr "Неизвестная причина"
+
+#: autosave-Ftat
+msgid "Failure to autosave table : "
+msgstr "Сбой автосохранения таблицы : "
+
+#: autosave-Ftas
+msgid "Failure to autosave state : "
+msgstr "Сбой автосохранения состояния: "
+
+#: autosave-Ftla
+msgid "Failure to load autosave at %s  . Error: %s"
+msgstr "Сбой при загрузке автосохранения в %s . Ошибка: %s"
+
+#: autosave-Tssb
+msgid "The saved state belongs to a different autosave version that is not currently implemented"
+msgstr "Сохранённое состояние относится к другой версии автосохранения, которая в данный момент не реализована"
+
+#: autosave-ASI
+msgid "Auto Save Interval (In seconds. 0 is disabled)"
+msgstr "Интервал автосохранения(В секундах. 0 - отключен)"
+
+#: autosave-AS
+msgid "Auto Save"
+msgstr "Автосохранение"
+
+#: autosave-CEdn
+msgid "Cheat Engine did not properly close last time. Do you wish to restore your work?"
+msgstr "Cheat Engine не закрылся должным образом в прошлый раз. Вы хотите восстановить работу?"
