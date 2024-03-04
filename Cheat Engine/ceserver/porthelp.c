@@ -9,6 +9,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
+#include "api.h"
 #include "porthelp.h"
 
 typedef struct
@@ -19,8 +20,8 @@ typedef struct
 
 } HandleListEntry, *PHandleListEntry;
 
-volatile HandleListEntry *HandleList;
-int HandleList_max;
+static HandleListEntry *HandleList;
+static int HandleList_max;
 
 int CreateHandleFromPointer(void *p, handleType type)
 {
