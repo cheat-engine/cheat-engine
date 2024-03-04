@@ -96,7 +96,7 @@ resourcestring
     'In these cases you must find out how to distinguish between your and the enemies objects.'+#13#10+
     'Sometimes this is as easy as checking the first 4 bytes (Function pointer table) which often point to a unique location '+
     'for the player, and sometimes it''s a team number, or a pointer to a pointer to a pointer to a pointer to a pointer to a '+
-    'playername. It all depends on the complexity of the game, and your luck'+#13#10+
+    'player name. It all depends on the complexity of the game, and your luck'+#13#10+
     ''+#13#10+
     'The easiest method is finding what addresses the code you found writes to and then use the dissect data feature to '+
     'compare against two structures. (Your unit(s)/player and the enemies) And then see if you can find out a way to '+
@@ -113,7 +113,7 @@ resourcestring
     ''+#13#10+
     ''+#13#10+
     'Tip: Health is a float'+#13#10+
-    'Tip2: There are multiple solutions';
+    'Tip 2: There are multiple solutions';
   rsU10ThisWasTheLastTutorial = 'This was the last tutorial and you skipped it. You lose';
 
 procedure TPlayer.Hit(damage: integer);

@@ -4,7 +4,7 @@ object Form1: TForm1
   Top = 285
   Width = 640
   BorderIcons = [biSystemMenu]
-  Caption = 'Cheat Engine Tutorial v3.4'
+  Caption = 'Cheat Engine Tutorial v3.6'
   ClientHeight = 280
   ClientWidth = 640
   OnCloseQuery = FormCloseQuery
@@ -67,7 +67,7 @@ object Form1: TForm1
     AnchorSideBottom.Side = asrBottom
     Left = 445
     Height = 23
-    Hint = 'Use this to go imeadiatly to the step you want to try'
+    Hint = 'Use this to go immediately to the step you want to try'
     Top = 255
     Width = 149
     Anchors = [akRight, akBottom]
