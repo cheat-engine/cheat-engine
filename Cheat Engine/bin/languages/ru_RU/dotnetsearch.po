@@ -1,0 +1,23 @@
+#: dotnetsearch-FindC
+msgid "Find Class"
+msgstr "Найти Класс"
+
+#: dotnetsearch-Ltci
+msgid "Limit to current image"
+msgstr "Ограничение текущего изображения"
+
+#: dotnetsearch-FindF
+msgid "Find Field"
+msgstr "Найти Поле"
+
+#: dotnetsearch-Ltcc
+msgid "Limit to current class"
+msgstr "Ограничение текущего класса"
+
+#: dotnetsearch-FM
+msgid "Find Method"
+msgstr "Найти Метод"
+
+#: dotnetsearch-sear
+msgid "Search"
+msgstr "Поиск"

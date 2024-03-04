@@ -1,13 +1,3 @@
-msgid ""
-msgstr ""
-"Content-Type: text/plain; charset=UTF-8\n"
-"Project-Id-Version: monoscript.lua RU\n"
-"Language-Team: SER[G]ANT <rzn.dsa@gmail.com>\n"
-"Content-Transfer-Encoding: 8bit\n"
-"Language: ru_RU\n"
-"X-Generator: Poedit 2.0.2\n"
-
-
 #: monoscript-FITM
 msgid "Failure injecting the MonoDatacollector dll"
 msgstr "Не удалось внедрить MonoDatacollector dll"
@@ -22,7 +12,7 @@ msgstr "Экземпляры "
 
 #: monoscript-WTAJG
 msgid "Warning: These are just guesses. Validate them yourself"
-msgstr "Это просто предположения. Поверьте их самостоятельно"
+msgstr "Предупреждение: Это просто предположения. Подтвердите их самостоятельно"
 
 #: monoscript-AN
 msgid "address==nil"
@@ -143,3 +133,23 @@ msgstr "Класс "
 #: monoscript-HNF
 msgid " has no fields"
 msgstr " не имеет полей"
+
+#: monoscript-CSE
+msgid "Cancel symbol enum"
+msgstr "Отменить перечисление символов"
+
+#: monoscript-YCNUTW
+msgid "You can not use this while the process is frozen"
+msgstr "Вы не можете использовать это, пока процесс заморожен"
+
+#: monoscript-ISE
+msgid "IL2CPP symbol enum: 0%"
+msgstr "Перечисление символов IL2CPP: 0%"
+
+#: monoscript-ISA
+msgid "<Invalid string at %.8x>"
+msgstr "<Недопустимая строка в %.8x>"
+
+#: monoscript-NI
+msgid ".Net Info"
+msgstr ".Net Информация"

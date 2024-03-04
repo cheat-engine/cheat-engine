@@ -1,12 +1,3 @@
-msgid ""
-msgstr ""
-"Content-Type: text/plain; charset=UTF-8\n"
-"Project-Id-Version: versioncheck.lua RU\n"
-"Language-Team: SER[G]ANT <rzn.dsa@gmail.com>\n"
-"Content-Transfer-Encoding: 8bit\n"
-"Language: ru_RU\n"
-"X-Generator: Poedit 2.0.2\n"
-
 #: VC-U2CVICNEL
 msgid "Unable to check version (Invalid content, not enough lines)"
 msgstr "Не удалось проверить версию (Недействительное содержимое, не хватает строк)"
