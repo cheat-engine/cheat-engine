@@ -1,19 +1,10 @@
-msgid ""
-msgstr ""
-"Content-Type: text/plain; charset=UTF-8\n"
-"Project-Id-Version: java.lua;javaclass.lua;javaClassEditor.lua RU\n"
-"Language-Team: SER[G]ANT <rzn.dsa@gmail.com>\n"
-"Content-Transfer-Encoding: 8bit\n"
-"Language: ru_RU\n"
-"X-Generator: Poedit 2.0.2\n"
-
 #: java-AAF
 msgid "Auto assembler failed:"
 msgstr "Автоассемблер потерпел неудачу:"
 
 #: java-JEST
 msgid "Java:eventserver terminated"
-msgstr "Java: eventserver завершил работу"
+msgstr "Java: сервер событий завершил работу"
 
 #: java-JD
 msgid "Java:Disconnected"
@@ -109,7 +100,7 @@ msgstr "Поиск"
 
 #: java-JVScanner
 msgid "Java Variable Scanner"
-msgstr "Сканер Java переменных"
+msgstr "Сканер переменных Java"
 
 #: java-Value
 msgid "Value"
@@ -125,7 +116,7 @@ msgstr "Найдено:"
 
 #: java-FWATV
 msgid "Find what accesses this value"
-msgstr "Найти обращения к этому значению"
+msgstr "Выяснить, что обращается к этому значению"
 
 #: java-Search
 msgid "Search"
@@ -153,7 +144,7 @@ msgstr "Анализ java классов"
 
 #: java-JVScan
 msgid "Java variable scan"
-msgstr "Сканер Java переменных"
+msgstr "Сканирование переменных Java"
 
 #: java-DCP
 msgid "Debug child processes"
@@ -290,3 +281,7 @@ msgstr "Инструкция"
 #: javaclasseditor-DL
 msgid "Define label"
 msgstr "Определить метку"
+
+#: java-JI
+msgid "Java Info"
+msgstr "Информация о Java"
