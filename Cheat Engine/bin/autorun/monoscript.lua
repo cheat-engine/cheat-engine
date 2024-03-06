@@ -56,14 +56,12 @@ MONOCMD_FINDMETHODBYDESC=29
 MONOCMD_INVOKEMETHOD=30
 MONOCMD_LOADASSEMBLY=31
 MONOCMD_GETFULLTYPENAME=32
-
 MONOCMD_OBJECT_NEW=33
 MONOCMD_OBJECT_INIT=34
 MONOCMD_GETVTABLEFROMCLASS=35
 MONOCMD_GETMETHODPARAMETERS=36
 MONOCMD_ISCLASSGENERIC=37
 MONOCMD_ISIL2CPP=38
-
 MONOCMD_FILLOPTIONALFUNCTIONLIST=39
 MONOCMD_GETSTATICFIELDVALUE=40 --fallback for il2cpp which doesn't expose what's needed
 MONOCMD_SETSTATICFIELDVALUE=41
@@ -74,7 +72,6 @@ MONOCMD_GETCLASSNESTINGTYPE=45
 MONOCMD_LIMITEDCONNECTION=46
 MONOCMD_GETMONODATACOLLECTORVERSION=47
 MONOCMD_NEWSTRING=48
-
 MONOCMD_ENUMIMAGES=49 
 MONOCMD_ENUMCLASSESINIMAGEEX=50
 MONOCMD_ISCLASSENUM = 51
@@ -94,6 +91,14 @@ MONOCMD_TYPEISBYREF = 64
 MONOCMD_GETPTRTYPECLASS = 65
 MONOCMD_GETFIELDTYPE = 66
 MONOCMD_GETTYPEPTRTYPE = 67
+MONOCMD_ENUMPROPERTIESCLASS = 68
+MONOCMD_CLASSGETPROPERTYBYNAME = 69
+MONOCMD_PROPERTYGETGETTER = 70
+MONOCMD_PROPERTYGETSETTER = 71
+MONOCMD_PROPERTYGETNAME = 72
+MONOCMD_PROPERTYGETPARENT = 73
+MONOCMD_PROPERTYGETFLAGS = 74
+MONOCMD_CLASSFROMMONOTYPE = 75
 
 MONO_TYPE_END        = 0x00       -- End of List
 MONO_TYPE_VOID       = 0x01
@@ -1629,8 +1634,20 @@ function mono_class_get_type(kls)
  return retv
 end
 
+function mono_class_from_type(monotype)
+  if not monotype or monotype==0 then return nil end
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_CLASSFROMMONOTYPE)
+  monopipe.writeQword(monotype)
+  local retv = monopipe.readQword()
+  monopipe.unlock()
+ return retv
+end
+
 function mono_type_get_class(monotype)
   if not monotype or monotype==0 then return nil end
+  local tp = mono_type_get_type(monotype)
+  if tp~= MONO_TYPE_CLASS and tp~= MONO_TYPE_VALUETYPE then print('"mono_type_get_class" returns class of only MONO_TYPE_CLASS and MONO_TYPE_VALUETYPE. Use "mono_class_from_type" instead') end
   monopipe.lock()
   monopipe.writeByte(MONOCMD_GETCLASSOFTYPE)
   monopipe.writeQword(monotype)
@@ -2083,9 +2100,6 @@ function mono_class_findInstancesOfClass(domain, klass, OnScanDone, ProgressBar)
   
 end
 
-
-
-
 function mono_class_getStaticFieldAddress(domain, class)
   --if debug_canBreak() then return nil end
   if not monopipe then return nil end
@@ -2356,9 +2370,6 @@ function mono_class_setStaticFieldValue(class, field, value)
   return mono_setStaticFieldValue(vtable, field, value)
 end
 
-
-
-
 function mono_object_findRealStartOfObject(address, maxsize)
   --if debug_canBreak() then return nil end
 
@@ -2398,8 +2409,94 @@ function mono_object_findRealStartOfObject(address, maxsize)
 
 end
 
+function mono_class_enumProperties(class, includeParents)
+  local properties = {}
+  if includeParents then
+    local parent=mono_class_getParent(class)
+    if (parent) and (parent~=0) then
+      properties=mono_class_enumProperties(parent, includeParents);
+    end
+  end
+  monopipe.lock()
 
-
+  monopipe.writeByte(MONOCMD_ENUMPROPERTIESCLASS)
+  monopipe.writeQword(class)
+  local property
+  local bl = monopipe.readByte()
+  if bl == 1 then
+    repeat
+      property=monopipe.readQword()
+      if property and (property~=0) then
+        properties[#properties+1] = property
+      end
+    until (property==nil) or (property==0)
+  end
+  monopipe.unlock()
+  return properties
+end
+function mono_class_get_property_from_name(class, name)
+  name = name or ""
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_CLASSGETPROPERTYBYNAME)
+  monopipe.writeQword(class)
+  monopipe.writeWord(#name)
+  monopipe.writeString(name)
+  local property = monopipe.readQword()
+  monopipe.unlock()
+  return property
+end
+function mono_property_get_get_method(property)
+  if not property or property==0 then return nil end
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_PROPERTYGETGETTER)
+  monopipe.writeQword(property)
+  local method = monopipe.readQword()
+  monopipe.unlock()
+  return method
+end
+function mono_property_get_set_method(property)
+  if not property or property==0 then return nil end
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_PROPERTYGETSETTER)
+  monopipe.writeQword(property)
+  local method = monopipe.readQword()
+  monopipe.unlock()
+  return method
+end
+function mono_property_get_parent(property)
+  if not property or property==0 then return nil end
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_PROPERTYGETPARENT)
+  monopipe.writeQword(property)
+  local parent = monopipe.readQword()
+  monopipe.unlock()
+  return parent
+end
+function mono_property_get_name(property)
+  if not property or property==0 then return nil end
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_PROPERTYGETNAME)
+  monopipe.writeQword(property)
+  local chars = monopipe.readWord()
+  local name = '';
+  if chars > 0 then
+    name = monopipe.readString(chars)
+  end
+  monopipe.unlock()
+  return name
+end
+function mono_property_get_flags(property)
+  if not property or property==0 then return nil end
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_PROPERTYGETFLAGS)
+  monopipe.writeQword(property)
+  local flags = monopipe.readDword()
+  monopipe.unlock()
+  return flags
+end
+mono_property_get_class = mono_property_get_parent
+mono_property_get_getter = mono_property_get_get_method
+mono_property_get_setter = mono_property_get_set_method
 --function mono_findReferencesToObject(class) --scan the memory for objects with a vtable to a specific class
 --end
 
@@ -4632,9 +4729,10 @@ function monoform_exportStructInternal(s, caddr, recursive, static, structmap, m
   if (monopipe==nil) or (caddr==0) or (caddr==nil) then return nil end
 
   local className = mono_class_getFullName(caddr)
+  local ctype = mono_type_get_type(mono_class_get_type(caddr))
   --print('Populating '..className)
 
-  if string.sub(className,-2)=='[]' then
+  if string.sub(className,-2)=='[]' or ctype==MONO_TYPE_ARRAY or ctype==MONO_TYPE_SZARRAY then -- uni/multi-dimensional arrays
     local elemtype = mono_class_getArrayElementClass(caddr)
     return monoform_exportArrayStructInternal(s, caddr, elemtype, recursive, structmap, makeglobal, true)
   end
@@ -4668,57 +4766,6 @@ function monoform_exportStructInternal(s, caddr, recursive, static, structmap, m
         e.Bytesize = 999
       elseif ft == MONO_TYPE_PTR and loopnumber > 0 then
         monofrom_addPointerStructure(s, e, fields[i], recursive, static, structmap, loopnumber)
---[[        e.Vartype=vtPointer
---print(string.format("  Field: %d: %d: %d: %s", e.Offset, e.Vartype, ft, fieldname))
-
-         if mono_StringStruct==nil then
-         --  print("Creating string object")
-
-           mono_StringStruct = createStructure("String")
-
-           mono_StringStruct.beginUpdate()
-           local ce=mono_StringStruct.addElement()
-           ce.Name="Length"
-           if targetIs64Bit() then
-             ce.Offset=0x10
-		   else
-			 ce.Offset=0x8
-		   end
-
-           ce.Vartype=vtDword
-           ce=mono_StringStruct.addElement()
-           ce.Name="Value"
-           if targetIs64Bit() then
-             ce.Offset=0x14
-           else
-             ce.Offset=0xC
-           end
-           ce.Vartype=vtUnicodeString
-           ce.Bytesize=128
-           mono_StringStruct.endUpdate()
-           --mono_StringStruct.addToGlobalStructureList()
-         end
-         e.setChildStruct(mono_StringStruct)
-
-      elseif ft == MONO_TYPE_PTR or ft == MONO_TYPE_CLASS or ft == MONO_TYPE_BYREF
-          or ft == MONO_TYPE_GENERICINST then
-        --print("bla")
-        local typename = monoform_escapename(fields[i].typename)
-        if typename ~= nil then
-          local typeval = mono_field_getClass(fields[i].field)
-          --print(string.format("PTR: %X: %s", typeval, typename))
-          cs = monoform_exportStruct(typeval, typename, recursive, false, structmap, makeglobal)
-          if cs~=nil then e.setChildStruct(cs) end
-        end
-      elseif ft == MONO_TYPE_SZARRAY then
-        --print("bla2")
-        local typename = monoform_escapename(fields[i].typename)
-        local arraytype = mono_field_getClass(fields[i].field)
-        local elemtype = mono_class_getArrayElementClass(arraytype)
-	--print(typename)
-
-        --local acs = monoform_exportArrayStruct(arraytype, elemtype, typename, recursive, static, structmap, makeglobal, false)
-        --if acs~=nil then e.setChildStruct(acs) end --]]
       end
 
     end
@@ -4813,7 +4860,8 @@ function monoform_exportArrayStructInternal(acs, arraytype, elemtype, recursive,
       end
       local elementkls = mono_class_getArrayElementClass(arraytype)
       local elementmonotype = mono_type_get_type(mono_class_get_type(elementkls))
-      local isStruct = mono_class_isStruct(elementkls)--mono_class_isValueType(elementkls) and not(mono_class_IsPrimitive(elementkls)) and not(mono_class_isEnum(elementkls))
+      local isStruct = mono_class_isStruct(elementkls)
+	  local isenum = mono_class_isEnum(elementkls)
       --print(fu(elementkls),mono_class_getFullName(elementkls),fu(elementmonotype))
       if isStruct  then
          --print("yep, a struct")
@@ -4825,7 +4873,7 @@ function monoform_exportArrayStructInternal(acs, arraytype, elemtype, recursive,
           ce=acs.addElement()
           ce.Name=string.format("[%d]%s",j,mono_class_getName(elementkls))
           ce.Offset=j*psize+start
-          ce.Vartype= monoTypeToVarType( elementmonotype ) --vtPointer
+          ce.Vartype = isenum and vtDword or monoTypeToVarType(elementmonotype)
 	  if ce.Vartype == vtDword then
 	    ce.DisplayMethod = 'dtSignedInteger'
 	  end
