@@ -88,6 +88,14 @@
 #define MONOCMD_GETPTRTYPECLASS 65
 #define MONOCMD_GETFIELDTYPE 66
 #define MONOCMD_GETTYPEPTRTYPE 67
+#define MONOCMD_ENUMPROPERTIESCLASS 68
+#define MONOCMD_CLASSGETPROPERTYBYNAME 69
+#define MONOCMD_PROPERTYGETGETTER 70
+#define MONOCMD_PROPERTYGETSETTER 71
+#define MONOCMD_PROPERTYGETNAME 72
+#define MONOCMD_PROPERTYGETPARENT 73
+#define MONOCMD_PROPERTYGETFLAGS 74
+#define MONOCMD_CLASSFROMMONOTYPE 75
 
 
 typedef struct {} MonoType;
@@ -137,6 +145,8 @@ typedef void* (__cdecl *MONO_CLASS_GET_METHODS)(void *klass, void *iter);
 typedef void* (__cdecl *MONO_CLASS_GET_METHOD_FROM_NAME)(void *klass, char *methodname, int paramcount);
 typedef void* (__cdecl *MONO_CLASS_GET_FIELDS)(void *klass, void *iter);
 typedef void* (__cdecl *MONO_CLASS_GET_INTERFACES)(void *klass, void *iter);
+typedef void* (__cdecl *MONO_CLASS_GET_PROPERTIES)(void *klass, void *iter);
+typedef void* (__cdecl *MONO_CLASS_GET_PROPERTY_FROM_NAME)(void *klass, char* propertyname);
 typedef void* (__cdecl *MONO_CLASS_GET_PARENT)(void *klass);
 typedef void* (__cdecl *MONO_CLASS_GET_IMAGE)(void *klass);
 typedef void* (__cdecl *MONO_CLASS_VTABLE)(void *domain, void *klass);
@@ -150,6 +160,12 @@ typedef bool (__cdecl *MONO_CLASS_IS_SUBCLASS_OF)(void *klass, void* parentKlass
 
 typedef int (__cdecl *MONO_CLASS_NUM_FIELDS)(void *klass);
 typedef int (__cdecl *MONO_CLASS_NUM_METHODS)(void *klass);
+
+typedef void* (__cdecl *MONO_PROPERTY_GET_GETMETHOD)(void *monoproperty);
+typedef void* (__cdecl *MONO_PROPERTY_GET_SETMETHOD)(void *monoproperty);
+typedef char* (__cdecl *MONO_PROPERTY_GET_NAME)(void *monoproperty);
+typedef void* (__cdecl *MONO_PROPERTY_GET_PARENT)(void *monoproperty);
+typedef int   (__cdecl *MONO_PROPERTY_GET_FLAGS)(void *monoproperty);
 
 typedef char* (__cdecl *MONO_FIELD_GET_NAME)(void *field);
 typedef void* (__cdecl *MONO_FIELD_GET_TYPE)(void *field);
@@ -330,6 +346,14 @@ private:
 
 	MONO_CLASS_NUM_METHODS mono_class_num_methods;
 	MONO_CLASS_GET_METHODS mono_class_get_methods;
+
+	MONO_CLASS_GET_PROPERTIES mono_class_get_properties;
+	MONO_CLASS_GET_PROPERTY_FROM_NAME mono_class_get_property_from_name;
+	MONO_PROPERTY_GET_GETMETHOD mono_property_get_get_method;
+	MONO_PROPERTY_GET_SETMETHOD mono_property_get_set_method;
+	MONO_PROPERTY_GET_NAME mono_property_get_name;
+	MONO_PROPERTY_GET_PARENT mono_property_get_parent;
+	MONO_PROPERTY_GET_FLAGS mono_property_get_flags;
 
 	MONO_CLASS_GET_METHOD_FROM_NAME mono_class_get_method_from_name;
 	MONO_CLASS_GET_ELEMENT_CLASS mono_class_get_element_class;
@@ -515,6 +539,15 @@ private:
 
 	void GetClassFromPointer();
 	void GetTypeFromPointerType();
+	void GetClassFromMonoType();
+
+	void EnumPropertiesInClass();
+	void GetPropertyFromName();
+	void GetPropertyName();
+	void GetPropertyGetter();
+	void GetPropertySetter();
+	void GetPropertyParent();
+	void GetPropertyFlags();
 
 public:
 	CPipeServer(void);

@@ -505,8 +505,18 @@ void CPipeServer::InitMono()
 				mono_class_is_subclass_of = (MONO_CLASS_IS_SUBCLASS_OF)GetProcAddress(hMono, "il2cpp_class_is_subclass_of");
 				mono_class_vtable = (MONO_CLASS_VTABLE)GetProcAddress(hMono, "il2cpp_class_vtable");
 				mono_class_from_mono_type = (MONO_CLASS_FROM_MONO_TYPE)GetProcAddress(hMono, "il2cpp_class_from_mono_type");
+				mono_class_from_mono_type = mono_class_from_mono_type ? mono_class_from_mono_type : (MONO_CLASS_FROM_MONO_TYPE)GetProcAddress(hMono, "il2cpp_class_from_il2cpp_type");
+				mono_class_from_mono_type = mono_class_from_mono_type ? mono_class_from_mono_type : (MONO_CLASS_FROM_MONO_TYPE)GetProcAddress(hMono, "il2cpp_class_from_type");
 				mono_class_get_element_class = (MONO_CLASS_GET_ELEMENT_CLASS)GetProcAddress(hMono, "il2cpp_class_get_element_class");
 				mono_class_instance_size = (MONO_CLASS_INSTANCE_SIZE)GetProcAddress(hMono, "il2cpp_class_instance_size");
+
+				mono_class_get_properties = (MONO_CLASS_GET_PROPERTIES)GetProcAddress(hMono, "il2cpp_class_get_properties");
+				mono_class_get_property_from_name = (MONO_CLASS_GET_PROPERTY_FROM_NAME)GetProcAddress(hMono, "il2cpp_class_get_property_from_name");
+				mono_property_get_get_method = (MONO_PROPERTY_GET_GETMETHOD)GetProcAddress(hMono, "il2cpp_property_get_get_method");
+				mono_property_get_set_method = (MONO_PROPERTY_GET_SETMETHOD)GetProcAddress(hMono, "il2cpp_property_get_set_method");
+				mono_property_get_name = (MONO_PROPERTY_GET_NAME)GetProcAddress(hMono, "il2cpp_property_get_name");
+				mono_property_get_parent = (MONO_PROPERTY_GET_PARENT)GetProcAddress(hMono, "il2cpp_property_get_parent");
+				mono_property_get_flags = (MONO_PROPERTY_GET_FLAGS)GetProcAddress(hMono, "il2cpp_property_get_flags");
 
 				mono_class_num_fields = (MONO_CLASS_NUM_FIELDS)GetProcAddress(hMono, "il2cpp_class_num_fields");
 				mono_class_num_methods = (MONO_CLASS_NUM_METHODS)GetProcAddress(hMono, "il2cpp_class_num_methods");
@@ -672,6 +682,14 @@ void CPipeServer::InitMono()
 				mono_class_is_enum = (MONO_CLASS_IS_ENUM)GetProcAddress(hMono, "mono_class_is_enum");
 				mono_class_is_valuetype = (MONO_CLASS_IS_VALUETYPE)GetProcAddress(hMono, "mono_class_is_valuetype");
 				mono_class_is_subclass_of = (MONO_CLASS_IS_SUBCLASS_OF)GetProcAddress(hMono, "mono_class_is_subclass_of");
+
+				mono_class_get_properties = (MONO_CLASS_GET_PROPERTIES)GetProcAddress(hMono, "mono_class_get_properties");
+				mono_class_get_property_from_name = (MONO_CLASS_GET_PROPERTY_FROM_NAME)GetProcAddress(hMono, "mono_class_get_property_from_name");
+				mono_property_get_get_method = (MONO_PROPERTY_GET_GETMETHOD)GetProcAddress(hMono, "mono_property_get_get_method");
+				mono_property_get_set_method = (MONO_PROPERTY_GET_SETMETHOD)GetProcAddress(hMono, "mono_property_get_set_method");
+				mono_property_get_name = (MONO_PROPERTY_GET_NAME)GetProcAddress(hMono, "mono_property_get_name");
+				mono_property_get_parent = (MONO_PROPERTY_GET_PARENT)GetProcAddress(hMono, "mono_property_get_parent");
+				mono_property_get_flags = (MONO_PROPERTY_GET_FLAGS)GetProcAddress(hMono, "mono_property_get_flags");
 
 				mono_class_vtable = (MONO_CLASS_VTABLE)GetProcAddress(hMono, "mono_class_vtable");
 				mono_class_from_mono_type = (MONO_CLASS_FROM_MONO_TYPE)GetProcAddress(hMono, "mono_class_from_mono_type");
@@ -1542,6 +1560,7 @@ void CPipeServer::FindMethod()
 
 	method = mono_class_get_method_from_name(klass, methodname, -1);
 	WriteQword((UINT_PTR)method);
+	free(methodname);
 }
 
 void CPipeServer::GetMethodName()
@@ -1670,6 +1689,86 @@ void CPipeServer::GetTypeFromPointerType()
 	}
 	else
 		WriteQword(0);
+}
+
+void CPipeServer::GetClassFromMonoType()
+{
+	void* type = (void*)ReadQword();
+	if (type && mono_class_from_mono_type)
+	{
+		WriteQword((UINT64)mono_class_from_mono_type(type));
+	}
+	else
+		WriteQword(0);
+}
+
+void CPipeServer::EnumPropertiesInClass()
+{
+	void* klass = (void*)ReadQword();
+	void* iter = nullptr;
+	void* _property = nullptr;
+	if (klass && mono_class_get_properties)
+	{
+		WriteByte(1);//confirm flag
+		do
+		{
+			_property = mono_class_get_properties(klass, &iter);
+			WriteQword((UINT_PTR)_property);
+
+		} while (_property);
+	}
+	else
+		WriteByte(0);
+}
+
+void CPipeServer::GetPropertyFromName()
+{
+	void* klass = (void*)ReadQword();
+	char* propname = ReadString();
+	void* _property = nullptr;
+	_property = (mono_class_get_property_from_name && klass && propname) ? mono_class_get_property_from_name(klass, propname) : _property;
+	WriteQword((UINT_PTR)_property);
+	free(propname);
+}
+
+void CPipeServer::GetPropertyName()
+{
+	void* _property = (void*)ReadQword();
+	char* name = nullptr;
+	name = (mono_property_get_name && _property) ? mono_property_get_name(_property) : name;
+	WriteString(name);
+}
+
+void CPipeServer::GetPropertyGetter()
+{
+	void* _property = (void*)ReadQword();
+	void* mtd = nullptr;
+	mtd = (mono_property_get_get_method && _property) ? mono_property_get_get_method(_property) : mtd;
+	WriteQword((UINT_PTR)mtd);
+}
+
+void CPipeServer::GetPropertySetter()
+{
+	void* _property = (void*)ReadQword();
+	void* mtd = nullptr;
+	mtd = (mono_property_get_set_method && _property) ? mono_property_get_set_method(_property) : mtd;
+	WriteQword((UINT_PTR)mtd);
+}
+
+void CPipeServer::GetPropertyParent()
+{
+	void* _property = (void*)ReadQword();
+	void* klass = nullptr;
+	klass = (mono_property_get_parent && _property) ? mono_property_get_parent(_property) : klass;
+	WriteQword((UINT_PTR)klass);
+}
+
+void CPipeServer::GetPropertyFlags()
+{
+	void* _property = (void*)ReadQword();
+	int flags = 0;
+	flags = (mono_property_get_flags && _property) ? mono_property_get_flags(_property) : flags;
+	WriteDword(flags);
 }
 
 void CPipeServer::DisassembleMethod()
@@ -3063,7 +3162,7 @@ void CPipeServer::Start(void)
 				case MONOCMD_TERMINATE:
 					if (pipehandle != INVALID_HANDLE_VALUE)
 					{
-#ifdef WINDOWS
+#ifdef _WINDOWS
 						DisconnectNamedPipe(pipehandle);
                         CloseHandle(pipehandle);
 #else
@@ -3223,6 +3322,38 @@ void CPipeServer::Start(void)
 
 				case MONOCMD_GETTYPEPTRTYPE:
 					GetTypeFromPointerType();
+					break;
+
+				case MONOCMD_ENUMPROPERTIESCLASS:
+					EnumPropertiesInClass();
+					break;
+
+				case MONOCMD_CLASSGETPROPERTYBYNAME:
+					GetPropertyFromName();
+					break;
+
+				case MONOCMD_PROPERTYGETGETTER:
+					GetPropertyGetter();
+					break;
+
+				case MONOCMD_PROPERTYGETSETTER:
+					GetPropertySetter();
+					break;
+
+				case MONOCMD_PROPERTYGETNAME:
+					GetPropertyName();
+					break;
+
+				case MONOCMD_PROPERTYGETPARENT:
+					GetPropertyParent();
+					break;
+
+				case MONOCMD_PROPERTYGETFLAGS:
+					GetPropertyFlags();
+					break;
+
+				case MONOCMD_CLASSFROMMONOTYPE:
+					GetClassFromMonoType();
 					break;
 
 				}

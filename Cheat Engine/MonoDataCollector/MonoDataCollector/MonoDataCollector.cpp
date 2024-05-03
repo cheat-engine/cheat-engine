@@ -122,10 +122,10 @@ DWORD WINAPI DataCollectorEntry(LPVOID lpThreadParameter)
 #endif
 #endif
 
-	if (SuicideThread)
-		TerminateThread(SuicideThread, 0);
+	//if (SuicideThread)
+		//TerminateThread(SuicideThread, 0);
 	
-	Sleep(1000);
+	//Sleep(1000);
 
 #ifdef _WINDOWS
     OutputDebugString("Freeing Memory\n");
