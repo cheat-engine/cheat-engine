@@ -2804,7 +2804,13 @@ void CPipeServer::GetStaticFieldValue()
 	void* Vtable = (void*)ReadQword();
 	void* Field = (void*)ReadQword();
 
-	QWORD val = 0;
+	struct
+	{
+		QWORD a;
+		QWORD b;
+	} val; //il2cpp_field_static_get_value can return a 128 bit value
+	
+	val.a = 0;
 	if (il2cpp)
 	{
 		if (il2cpp_field_static_get_value)
@@ -2829,7 +2835,7 @@ void CPipeServer::GetStaticFieldValue()
 						if (EnumClass && mono_object_isinst(obj, EnumClass))
 						{
 							int v = *(int*)mono_object_unbox(obj);
-							val = v;
+							val.a = v;
 						}
 						else
 							goto NOTENUM;
@@ -2867,7 +2873,7 @@ void CPipeServer::GetStaticFieldValue()
 		}
 	}
 
-	WriteQword(val);
+	WriteQword(val.a);
 }
 
 
