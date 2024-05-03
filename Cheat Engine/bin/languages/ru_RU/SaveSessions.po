@@ -1,4 +1,4 @@
-SS-OaPF
+#:SS-OaPF
 msgid "Open a process first"
 msgstr "Сначала откройте процесс"
 

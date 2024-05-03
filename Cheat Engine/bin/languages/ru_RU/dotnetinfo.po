@@ -1,0 +1,69 @@
+#: dotnetinfo-LtNi dotnetinfo-LtNi2
+msgid "Launch the .NET interface"
+msgstr "Запустите .NET интерфейса"
+
+#: dotnetinfo-Fctm
+msgid "Failure compiling the method"
+msgstr "Сбой при компиляции метода"
+
+#: dotnetinfo-Fgma
+msgid "Failure getting method address"
+msgstr "Не удалось получить адрес метода"
+
+#: dotnetinfo-Fgmfmn
+msgid "Failure getting methodid for module named "
+msgstr "Сбой при получении адреса метода "
+
+#: dotnetinfo-Tmicnj
+msgid ""
+"This method is currently not jitted. Do you wish to inject the .NET Control "
+"DLL into the target process to force it to generate an entry point for this "
+"method? (Does not work if the target is suspended)"
+msgstr ""
+"В настоящее время этот метод не применяется. Внедрить DLL-библиотеку .NET "
+"Control в процесс цели, чтобы заставить его создать точку входа для этого "
+"метода? (Не работает, если цель приостановлена)"
+
+#: dotnetinfo-Address
+msgid "Address"
+msgstr "Адрес"
+
+#: dotnetinfo-Offset
+msgid "Offset"
+msgstr "Смещение"
+
+#: dotnetinfo-EUs
+msgid "<Error: Unreadable string>"
+msgstr "<Ошибка: Нечитаемая строка>"
+
+#: dotnetinfo-Scnbw
+msgid "Strings can not be written"
+msgstr "Строки не могут быть записаны"
+
+#: dotnetinfo-Uft
+msgid "Unsupported field type"
+msgstr "Неподдерживаемый тип поля"
+
+#: dotnetinfo-vcf
+msgid "value convertor failure"
+msgstr "сбой преобразователя значений"
+
+#: dotnetinfo-ItNCD
+msgid "Inject the .NET Control DLL into the target process?"
+msgstr "Внедрить библиотеку .NET Control DLL в процесс цели?"
+
+#: dotnetinfo-Cvo
+msgid "Change value of "
+msgstr "Изменить значение "
+
+#: dotnetinfo-TcsttN
+msgid ""
+"To change string types the .NET Control DLL needs to be injected into the "
+"target. Inject it?"
+msgstr ""
+"Чтобы изменить типы строк, необходимо внедрить в процесс библиотеку .NET "
+"Control DLL. Внедрить ее?"
+
+#: dotnetinfo-NNif
+msgid "No .NET info found"
+msgstr "Информация о .NET не найдена"

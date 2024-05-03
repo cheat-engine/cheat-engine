@@ -30,6 +30,10 @@ msgstr "Версиянезависимая"
 msgid "% Match"
 msgstr "% Совпадения"
 
+#: frmCEShareCheatBrowser.Signed.Caption
+msgid "Signed"
+msgstr "Подписано"
+
 #: frmCEShareCheatBrowser.btnLoadTable.Caption
 msgid "    Load    "
 msgstr "Загрузка"
@@ -66,8 +70,7 @@ msgstr "Просмотр Комментариев"
 msgid "Login to see more options"
 msgstr "Войдите, чтобы увидеть больше вариантов"
 
-#: frmCEShareCheatBrowser.miUpdateTable.Caption
-#: frmCEShareUpdateOrNew_1.btnChoose.Caption
+#: frmCEShareCheatBrowser.miUpdateTable.Caption frmCEShareUpdateOrNew_1.btnChoose.Caption
 msgid "Update table"
 msgstr "Обновить таблицу"
 
@@ -100,33 +103,23 @@ msgid "CEShare community URL:"
 msgstr "URL сообщества CEShare:"
 
 #: ceshare_initiaISetup.CELabel2.Caption
-msgid ""
-"By entering a CEShare URL you will be able to upload and download Cheat "
-"Tables from a ceshare server community"
-msgstr ""
-"Введя CEShare URL, вы сможете загружать и скачивать чит-таблицы из "
-"сообщества серверов ceshare"
+msgid "By entering a CEShare URL you will be able to upload and download Cheat Tables from a ceshare server community"
+msgstr "Введя CEShare URL, вы сможете загружать и скачивать чит-таблицы из сообщества серверов ceshare"
 
 #: ceshare_initiaISetup.CELabel3.Caption
 msgid ""
-"Disclaimer: These are third-party servers. They are not owned or maintained "
-"by the Cheat Engine project, and no warranty or responsiblity regarding "
-"their content is given. \n"
+"Disclaimer: These are third-party servers. They are not owned or maintained by the Cheat Engine project, and no warranty or responsiblity regarding their content is given. \n"
 "\n"
 "Please contact the respective server owner for further inquiries."
 msgstr ""
-"Отказ от ответственности: Это сторонние серверы. Они не принадлежат проекту "
-"Cheat Engine и не обслуживаются им, а также не дают никаких гарантий и не "
-"несут никакой ответственности за их содержание. \n"
+"Отказ от ответственности: Это сторонние серверы. Они не принадлежат проекту Cheat Engine и не обслуживаются им, а также не дают никаких гарантий и не несут никакой "
+"ответственности за их содержание. \n"
 "\n"
-"Пожалуйста, свяжитесь с владельцем соответствующего сервера для получения "
-"дополнительных сведений."
+"Пожалуйста, свяжитесь с владельцем соответствующего сервера для получения дополнительных сведений."
 
 #: ceshare_initiaISetup.CELabel4.Caption
 msgid "Click cancel or leave empty if you don't wish to use this"
-msgstr ""
-"Нажмите кнопку «Отмена» или оставьте пустым, если вы не хотите использовать "
-"это"
+msgstr "Нажмите кнопку «Отмена» или оставьте пустым, если вы не хотите использовать это"
 
 #: ceshare_initiaISetup.CEButton1.Caption
 msgid "OK"
@@ -174,13 +167,11 @@ msgstr "Разрешить всем изменять эту таблицу"
 
 #: frmCESharePublishCheat.cbPublic.Hint
 msgid ""
-"When this is enabled will let EVERYONE be able to edit/replace your table.  "
-"So be careful with enabling this and understand that once someone else has "
-"modified the table, you will not be able to delete it anymore"
+"When this is enabled will let EVERYONE be able to edit/replace your table.  So be careful with enabling this and understand that once someone else has modified the table, you "
+"will not be able to delete it anymore"
 msgstr ""
-"Когда эта опция включена, каждый сможет редактировать/заменять вашу "
-"таблицу.  Так что будьте осторожны с включением этой опции и поймите, что "
-"как только кто-то другой изменит таблицу, вы больше не сможете её удалить"
+"Когда эта опция включена, каждый сможет редактировать/заменять вашу таблицу.  Так что будьте осторожны с включением этой опции и поймите, что как только кто-то другой изменит "
+"таблицу, вы больше не сможете её удалить"
 
 #: frmCESharePublishCheat.btnPublish.Caption
 msgid "Publish"
@@ -216,12 +207,15 @@ msgstr "Проверить наличие модов/читов для теку�
 
 #: miRequestCheats.Caption
 msgid "Request and check other requests for mods/cheats for current process"
-msgstr ""
-"Запросить и проверить другие запросы на моды/читы для текущего процесса"
+msgstr "Запросить и проверить другие запросы на моды/читы для текущего процесса"
 
 #: miLoginToSeeMoreOptions.Caption
 msgid "Publish/Update table"
 msgstr "Опубликовать/Обновить таблицу"
+
+#: miViewAllTables.Caption
+msgid "View all available tables"
+msgstr "Просмотр всех доступных таблиц"
 
 #: lblCEShareLabel.Caption
 msgid "CEShare community URL"
@@ -237,14 +231,11 @@ msgstr "Разрешить"
 
 #: header.caption
 msgid ""
-"This process needs a special identifier to set it apart from others with the "
-"same name. To generate this identifier the below code is needed. Do you "
-"agree with the execution of this code to generate the identifier?"
+"This process needs a special identifier to set it apart from others with the same name. To generate this identifier the below code is needed. Do you agree with the execution "
+"of this code to generate the identifier?"
 msgstr ""
-"Этот процесс нуждается в специальном идентификаторе, чтобы отличить его от "
-"других с тем же именем. Для генерации этого идентификатора необходим код, "
-"приведённый ниже. Согласны ли вы с выполнением данного кода для генерации "
-"идентификатора?"
+"Этот процесс нуждается в специальном идентификаторе, чтобы отличить его от других с тем же именем. Для генерации этого идентификатора необходим код, приведённый ниже. "
+"Согласны ли вы с выполнением данного кода для генерации идентификатора?"
 
 #: Error
 msgid "Error:"
@@ -279,13 +270,8 @@ msgid "Logout when loading ceshare tables"
 msgstr "Выйти из системы при загрузке таблиц ceshare"
 
 #: ceshare_account-cbLogoutWhenLoadingTables.Hint
-msgid ""
-"When checked you will get logged out when loading a ceshare table. This to "
-"prevent malicious tables from using your account"
-msgstr ""
-"Если флажок установлен, то вы выйдете из системы при загрузке таблицы "
-"ceshare. Это предотвращает использование вашей учётной записи вредоносными "
-"таблицами"
+msgid "When checked you will get logged out when loading a ceshare table. This to prevent malicious tables from using your account"
+msgstr "Если флажок установлен, то вы выйдете из системы при загрузке таблицы ceshare. Это предотвращает использование вашей учётной записи вредоносными таблицами"
 
 #: ceshare_permissions
 msgid "Are you sure you wish to change the owner?"
@@ -339,13 +325,13 @@ msgstr "Пожалуйста, выберите чит-таблицу для об
 msgid "Invalid background update query list"
 msgstr "Неверный список запросов на обновление в фоновом режиме"
 
+#: ceshare_publish_TLAN
+msgid "This looks like an empty table. Are you sure?"
+msgstr "Выглядит как пустая таблица. Вы уверены?"
+
 #: ceshare_publish
-msgid ""
-"Are you sure you wish to let 'Everyone' overwrite your table in the ceshare "
-"system ?"
-msgstr ""
-"Вы действительно хотите разрешить «Всем» перезаписать вашу таблицу в системе "
-"ceshare?"
+msgid "Are you sure you wish to let 'Everyone' overwrite your table in the ceshare system ?"
+msgstr "Вы действительно хотите разрешить «Всем» перезаписать вашу таблицу в системе ceshare?"
 
 #: ceshare_publish
 msgid "Do you wish to sign this table?"
@@ -364,12 +350,8 @@ msgid "Table Owner"
 msgstr "Владелец таблицы"
 
 #: ceshare_querycheats
-msgid ""
-"Sorry, but there are currently no tables for this target. Perhaps you can be "
-"the first"
-msgstr ""
-"Извините, но в настоящее время нет таблиц для этой цели. Возможно, вы можете "
-"быть первым"
+msgid "Sorry, but there are currently no tables for this target. Perhaps you can be the first"
+msgstr "Извините, но в настоящее время нет таблиц для этого процесса. У вас есть возможность стать первым"
 
 #: ceshare_requests
 msgid "Requests"
@@ -378,3 +360,29 @@ msgstr "Запросы"
 #: ceshare_requests
 msgid "Score="
 msgstr "Оценка="
+
+#: ceshare_fulltablelist
+msgid "  and %d more tables..."
+msgstr "  и еще %d таблиц..."
+
+#: ceshare_fulltablelist
+msgid "All tables"
+msgstr "Все таблицы"
+
+#: ceshare_fulltablelist
+msgid "Search:"
+msgstr "Поиск:"
+
+#: ceshare_fulltablelist
+msgid "Previous (25)"
+msgstr "Предыдущие (25)"
+
+#: ceshare_fulltablelist
+msgid "Next (25)"
+msgstr "Следующие (25)"
+
+#: ceshare_querycheats_TCTI
+msgid "The current table is trying to load obfuscated code. This often means mallicious intent as tables are supposed to be public. Do you wish to execute this lua code anyhow?"
+msgstr ""
+"Текущая таблица пытается загрузить обфусцированный код. Это часто означает злой умысел, поскольку таблицы должны быть общедоступными. Хотите ли вы выполнить этот код lua в "
+"любом случае?"
