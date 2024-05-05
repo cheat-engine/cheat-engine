@@ -23,7 +23,7 @@ int getContext(int tid, CONTEXT *context)
   debug_log("context->fp=%p\n", &context->fp);
 
 #ifndef NT_PRSTATUS
-  int r,r2;
+  int r;
   r=safe_ptrace(PTRACE_GETREGS, tid, 0, &context->regs);
 
   if (r==0)
@@ -36,20 +36,20 @@ int getContext(int tid, CONTEXT *context)
       debug_log(" (THUMB MODE)");
 
     debug_log("\n");
-    r2=safe_ptrace(PTRACE_GETVFPREGS, tid, 0, &context->fp);
+    safe_ptrace(PTRACE_GETVFPREGS, tid, 0, &context->fp);
 #endif
 
 #ifdef __i386__
     debug_log("EIP=%x\n", context->regs.eip);
 
-    r2=safe_ptrace(PTRACE_GETFPXREGS, tid,0, &context->fp);
+    safe_ptrace(PTRACE_GETFPXREGS, tid,0, &context->fp);
 
 #endif
 
 #ifdef __x86_64__
     debug_log("RIP=%x\n", context->regs.rip);
 
-    r2=safe_ptrace(PTRACE_GETFPREGS, tid,0, &context->fp);
+    safe_ptrace(PTRACE_GETFPREGS, tid,0, &context->fp);
 
 #endif
 
@@ -144,12 +144,12 @@ int getContext(int tid, CONTEXT *context)
 
 int setContext(int tid, CONTEXT *context)
 {
-  int r;
   //todo FPU
   debug_log("setContext\n");
 #ifndef NT_PRSTATUS
   return safe_ptrace(PTRACE_SETREGS, tid, 0, &context->regs);
 #else
+  int r;
   struct iovec iov;
   iov.iov_base=&context->regs;
   iov.iov_len=sizeof(CONTEXT_REGS);

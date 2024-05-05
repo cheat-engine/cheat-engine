@@ -548,7 +548,8 @@ int StartDebug(HANDLE hProcess)
 
               threadname="CEServer Debugger Thread";
 
-              socketpair(PF_LOCAL, SOCK_STREAM, 0, &p->debuggerServer);  //also sets debuggerClient
+              int pair[2] = { p->debuggerServer, p->debuggerClient };
+              socketpair(PF_LOCAL, SOCK_STREAM, 0, &pair[0]);
 
               //first event, create process
               DebugEvent createProcessEvent;
@@ -3465,7 +3466,7 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
           if (ATTACH_TO_ACCESS_MEMORY)
           {
             int r=safe_ptrace(PTRACE_DETACH, pid,0,0);
-            //debug_log("PTRACE_DETACH returned %d\n", r);
+            debug_log("PTRACE_DETACH returned %d\n", r);
 
           }
 

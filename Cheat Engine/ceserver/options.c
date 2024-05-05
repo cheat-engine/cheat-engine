@@ -66,7 +66,6 @@ void handleSetOption(int currentsocket)
 {
   char *optname=receivestring16(currentsocket);
   char *newvalue=receivestring16(currentsocket);
-  char r=0;
   int i;
 
   if (optname && newvalue)
