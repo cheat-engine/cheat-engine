@@ -421,7 +421,7 @@ resourcestring
   rsPSExporting = 'Exporting...';
   rsPSThisDatabaseDoesntContainAnyPointerFiles = 'This database does not contain any pointer files';
   rsPSInvalidDatabase = 'Invalid database';
-  rsPSThereIsAlreadyaPointerFileWithThsiNamePresentinThisDatabase = 'There is already a pointerfile with this name present in this database. Replace it''s content with this one ?';
+  rsPSThereIsAlreadyaPointerFileWithThsiNamePresentinThisDatabase = 'There is already a pointerfile with this name present in this database. Replace its content with this one?';
   rsPSExportAborted = 'Export aborted';
   rsPSImporting = 'Importing...';
   rsPSImporting_sortOrNot = 'Do you wish to sort pointerlist by level, then module, then offsets?';

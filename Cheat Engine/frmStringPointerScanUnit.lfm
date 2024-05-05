@@ -533,7 +533,7 @@ object frmStringPointerScan: TfrmStringPointerScan
         AnchorSideTop.Side = asrBottom
         Left = 133
         Height = 19
-        Hint = 'Use this if you''re spidering a previously saved memory region that currently resides in a different location.'#13#10'Most commonly used for stacks where stack pointers point to it''s own structure'
+        Hint = 'Use this if you''re spidering a previously saved memory region that currently resides in a different location.'#13#10'Most commonly used for stacks where stack pointers point to its own structure'
         Top = 48
         Width = 85
         BorderSpacing.Top = 2
@@ -636,7 +636,7 @@ object frmStringPointerScan: TfrmStringPointerScan
           AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 19
-          Hint = 'Use this if you''re spidering a previously saved memory region that currently resides in a different location.'#13#10'Most commonly used for stacks where stack pointers point to it''s own structure'
+          Hint = 'Use this if you''re spidering a previously saved memory region that currently resides in a different location.'#13#10'Most commonly used for stacks where stack pointers point to its own structure'
           Top = 40
           Width = 85
           BorderSpacing.Top = 2

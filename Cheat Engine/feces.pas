@@ -34,7 +34,7 @@ resourcestring
     +'provider';
   rsFailedToLoadPrivateKey = 'Failed to load private key';
   rsIsPasswordCorrect='Is the password correct?';
-  rsCouldNotOpenTheAlgorithmProvider = 'Could not open the algorithm provider.  Load the table as if it''s signature is valid?';
+  rsCouldNotOpenTheAlgorithmProvider = 'Could not open the algorithm provider.  Load the table as if its signature is valid?';
   rsBcryptCouldNotBeUsed = 'bcrypt could not be used';
   rsSelectYourCheatEngineSignatureFile = 'Select your '+strCheatEngine+' signature '
     +'file';
