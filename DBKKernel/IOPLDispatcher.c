@@ -1,4 +1,4 @@
-#pragma warning( disable: 4100 4101 4103 4189)
+#pragma warning( disable: 4100 4101 4103 4189 4305)
 
 
 #include "IOPLDispatcher.h"
