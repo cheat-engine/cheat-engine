@@ -101,7 +101,7 @@ resourcestring
           'In step 6 you had a simple level-1 pointer, with the first address found already being the real base address.'+#13#10+
           'This step however is a level-4 pointer. It has a pointer to a pointer to a pointer to a pointer to a pointer to the health.'+#13#10+
           ''+#13#10+
-          'You basicly do the same as in step 6. Find out what accesses the value, look at the instruction and what probably is '+
+          'You basically do the same as in step 6. Find out what accesses the value, look at the instruction and what probably is '+
           'the base pointer value, and what is the offset, and already fill that in or write it down. But in this case the address '+
           'you''ll find will also be a pointer. You just have to find out the pointer to that pointer exactly the same way as you did '+
           'with the value. Find out what accesses that address you found, look at the assembler instruction, note the probable '+
