@@ -200,7 +200,7 @@ implementation
 
 { TFormDesigner }
 
-uses mainunit, DPIHelper,lazdialogs{$ifdef windows}, DwmApi, UxTheme{$endif}, mainunit2;
+uses mainunit, DPIHelper,lazdialogs{$ifdef windows}, DwmApi, UxTheme{$endif}, mainunit2,trainergenerator;
 
 resourcestring
   rsInvalidObject = '{Invalid object}';
@@ -1405,7 +1405,8 @@ begin
   f.designsurface.PopupMenu:=controlPopup;
   f.show;
 
-
+  //re align
+  frmTrainerGenerator.reAlignCheatList;
 
   TCEForm(GlobalDesignHook.LookupRoot).designsurface.Change;
   {$if lcl_fullversion < 2020000}
