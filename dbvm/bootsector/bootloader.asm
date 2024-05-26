@@ -38,13 +38,17 @@ currenthead:    dw 0
 loader:
 ;cflush
 wbinvd
+; ------------------------------
+; Save the current CPU state   ;
+; ------------------------------
 
-mov [cs:0x7000],eax
-mov ax,ds
-mov [cs:0x7024],ax
-xor ax,ax
-mov ds,ax
-
+; save old data segment and make new data segment zero
+mov [cs:0x7000],eax ; save eax
+mov ax,ds          ; data segment pointer
+mov [cs:0x7024],ax ; save it
+xor ax,ax          ; ax=0
+mov ds,ax          ; data segment is zero now
+; save general purpose registers
 mov [0x7004],ebx
 mov [0x7008],ecx
 mov [0x700c],edx
@@ -53,25 +57,26 @@ mov [0x7014],edi
 mov [0x7018],ebp
 mov [0x701c],esp
 
-mov ax,ss
+mov ax,ss ; save stack segment
 mov [0x7022],ax
-mov ax,es
+mov ax,es ; save extra segment
 mov [0x7026],ax
-mov ax,fs
+mov ax,fs ; save general purpose segment
 mov [0x7028],ax
-mov ax,gs
+mov ax,gs ; save general purpose segment
 mov [0x702a],ax
 
+; save the eflags
 pushf
 pop ax
-mov [0x702c],ax
+mov [0x702c],ax 
 
-cli
+cli ; clear the interrupt flag (ignore maskable interrupts)
 
-sgdt [0x7030]
+sgdt [0x7030] ; save the current Global Descriptor Table Register
 
 
-mov eax,cr0
+mov eax,cr0 ; save the control register
 mov [start_CR0],eax
 
 ;setup gs segment
@@ -100,7 +105,7 @@ call writeline
 
 
 
-sti
+sti ;re enable interrupts
 
 push es
 push ds
@@ -290,6 +295,7 @@ pop es
 ret
 
 
+; https://wiki.osdev.org/Detecting_Memory_(x86)#Detecting_Low_Memory
 zeroUsableMemory:
 push es
 pusha
