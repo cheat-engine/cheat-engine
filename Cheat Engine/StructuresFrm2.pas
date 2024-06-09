@@ -4038,22 +4038,21 @@ begin
 
 
   i:=0;
+  displacement:=0;
   while node.level>1 do
   begin
     prevnode:=TStructureTreeNode(node.parent);
 
     parentelement:=getStructElementFromNode(prevnode);
     if parentelement<>nil then
-      displacement:=parentelement.ChildStructStart
-    else
-      displacement:=0;
+      inc(displacement,parentelement.ChildStructStart);
 
     {$ifdef NESTEDSTRUCTURES}
     if parentelement.NestedStructure then
     begin
       n:=getStructElementFromNode(node);
       if n<>nil then
-        inc(baseaddress,n.Offset);
+        dec(displacement,n.Offset);
 
       node:=prevnode;
       continue;
@@ -4073,11 +4072,13 @@ begin
     offsetlist[i]:=n.Offset-displacement;
     inc(i);
 
+    displacement:=0;
     node:=prevnode;
   end;
 
   {$ifdef NESTEDSTRUCTURES}
   setlength(offsetlist,i);
+  dec(baseaddress,displacement);
   {$endif}
 
   //now at node.level=1
