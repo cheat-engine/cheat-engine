@@ -348,12 +348,17 @@ function startPatchScan()
       lv.RowSelect=true
       lv.HideSelection=false
       lv.Name="lvResults"     
-      local caddress=lv.Columns.add()            
+      local clistid=lv.Columns.add()
+      local rawaddress=lv.Columns.add()
+      local caddress=lv.Columns.add()
       local coriginal=lv.Columns.add()          
       local cpatched=lv.Columns.add()      
 
+      clistid.Caption=translate('Index')
+      rawaddress.Caption=translate('Address')
+      rawaddress.Width=rform.Canvas.GetTextWidth('XXXXXXXXXXXXXXXXXXXXXXXX')
       caddress.Width=rform.Canvas.GetTextWidth('XXXXXXXXXXXXXXXXXXXXXXXX')
-      caddress.Caption=translate('Address')
+      caddress.Caption=translate('Name')
       coriginal.Width=rform.Canvas.GetTextWidth('XX XX XX XX XX XX XX XX XX')
       coriginal.Caption=translate('Original')
       cpatched.Width=coriginal.Width
@@ -362,7 +367,9 @@ function startPatchScan()
       for i=1,#allpatches do
         local li=lv.Items.add()
         local s=allpatches[i]
-        li.Caption=getNameFromAddress(s.Address)
+        li.Caption=i
+        li.SubItems.Add(string.format("%.2x ", s.Address))
+        li.SubItems.Add(getNameFromAddress(s.Address))
         li.SubItems.Add(byteTableToHexString(s.OriginalBytes))
         li.SubItems.Add(byteTableToHexString(s.PatchedBytes))
 
