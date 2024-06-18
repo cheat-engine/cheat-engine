@@ -44,10 +44,12 @@ begin
   deleteKey('\Software\Wow6432Node\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\Cheat Engine.exe');
   deleteKey('\Software\Wow6432Node\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\cheatengine-i386.exe');
   deleteKey('\Software\Wow6432Node\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\cheatengine-x86_64.exe');
+  deleteKey('\Software\Wow6432Node\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\cheatengine-x86_64-SSE4-AVX2.exe');
 
   deleteKey('\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\Cheat Engine.exe');
   deleteKey('\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\cheatengine-i386.exe');
   deleteKey('\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\cheatengine-x86_64.exe');
+  deleteKey('\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\cheatengine-x86_64-SSE4-AVX2.exe');
 
   reg:=Tregistry.Create;
   try
@@ -57,6 +59,7 @@ begin
       reg.deletekey('Cheat Engine.exe');
       reg.deletekey('cheatengine-i386.exe');
       reg.deletekey('cheatengine-x86_64.exe');
+      reg.deletekey('cheatengine-x86_64-SSE4-AVX2.exe');
     end;
 
     if reg.OpenKey('\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options',false) then
@@ -64,6 +67,7 @@ begin
       reg.deletekey('Cheat Engine.exe');
       reg.deletekey('cheatengine-i386.exe');
       reg.deletekey('cheatengine-x86_64.exe');
+      reg.deletekey('cheatengine-x86_64-SSE4-AVX2.exe');
     end;
   finally
     reg.free;
