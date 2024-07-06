@@ -43,8 +43,8 @@ Cheat Engine is a development environment focused on modding games and applicati
          * lazarus-2.2.6-fpc-3.2.2-win64.exe
          * lazarus-2.2.6-fpc-3.2.2-cross-i386-win32-win64.exe
   
-  3. Run Lazarus and click on `Project->Open Project`. Select `cheatengine.lpi` from the `Cheat Engine` folder as the project.
-  4. Click on `Run->Build` or press <kbd>SHIFT+F9</kbd>.
+  2. Run Lazarus and click on `Project->Open Project`. Select `cheatengine.lpi` from the `Cheat Engine` folder as the project.
+  3. Click on `Run->Build` or press <kbd>SHIFT+F9</kbd>.
       * you can also click on `Run->Compile many Modes` (tip: select first three compile modes)
       * If you want to run or debug from the IDE on Windows you will need to run Lazarus as administrator.
       
