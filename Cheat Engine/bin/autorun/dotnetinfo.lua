@@ -1,4 +1,8 @@
 --dotnetinfo is a passive .net query tool, but it can go to a active state if needed
+if dotNetInfo==nil then
+  dotNetInfo={}
+end
+
 
 if getTranslationFolder()~='' then
   loadPOFile(getTranslationFolder()..'dotnetinfo.po')
@@ -42,14 +46,60 @@ local ELEMENT_TYPE_U          = 0x19
 
 local frmDotNetInfos={} --keep track of the windows
 
+settings={}
+settings.s=getSettings('dotnetinfo',true)
+settings.ColorPublic=tonumber(settings.s['ColorPublic']) or clGreen
+settings.ColorPrivate=tonumber(settings.s['ColorPrivate']) or clRed
+settings.ColorMixed=tonumber(settings.s['ColorMixed']) or clOrange
+settings.ColorStaticBackground=tonumber(settings.s['StaticBackground']) or clAqua
 
-local function AccessMaskToColor(AccessMask) --todo: userdefined colors
+
+
+frmDotNetInfoConfig=nil
+
+local function SpawnConfigDialog()
+  if frmDotNetInfoConfig==nil then
+    frmDotNetInfoConfig=createFormFromFile(getAutorunPath()..'forms'..pathsep..'DotNetInfoConfig.FRM')
+    frmDotNetInfoConfig.registerFirstShowCallback(function(f)
+      f.cbPublic.Width=f.Canvas.getTextWidth("XXXXXXXXXXXX")
+      f.cbPrivate.Width=f.cbPublic.Width
+      f.cbMixed.Width=f.cbPublic.Width
+
+      f.cbPublic.ItemHeight=f.Canvas.getTextHeight("qjX")
+      f.cbPrivate.ItemHeight=f.cbPublic.ItemHeight
+      f.cbMixed.ItemHeight=f.cbPublic.ItemHeight
+
+      frmDotNetInfoConfig.cbStaticBackground.ItemHeight=f.cbPublic.ItemHeight
+    end)
+  end
+  
+  frmDotNetInfoConfig.cbPrivate.selected=settings.ColorPrivate
+  frmDotNetInfoConfig.cbPublic.selected=settings.ColorPublic
+  frmDotNetInfoConfig.cbMixed.selected=settings.ColorMixed
+  frmDotNetInfoConfig.cbStaticBackground.selected=settings.ColorStaticBackground
+  frmDotNetInfoConfig.OnShow=function()
+  
+  end
+  if frmDotNetInfoConfig.showModal()==mrOK then
+    settings.ColorPublic=frmDotNetInfoConfig.cbPublic.selected
+    settings.ColorMixed=frmDotNetInfoConfig.cbMixed.selected
+    settings.ColorPrivate=frmDotNetInfoConfig.cbPrivate.selected
+    settings.ColorStaticBackground=frmDotNetInfoConfig.cbStaticBackground.selected
+    
+    settings.s['ColorPublic']=settings.ColorPublic
+    settings.s['ColorPrivate']=settings.ColorPrivate
+    settings.s['ColorMixed']=settings.ColorMixed
+    settings.s['ColorStaticBackground']=settings.ColorStaticBackground
+  end
+end
+
+local function AccessMaskToColor(AccessMask)
   if AccessMask==FIELD_ATTRIBUTE_PUBLIC then       
-    return clGreen
+    return settings.ColorPublic
   elseif (AccessMask==FIELD_ATTRIBUTE_PRIVATE) then
-    return clRed
+    return settings.ColorPrivate
   else
-    return clOrange
+    return settings.ColorMixed
   end
 end
 
@@ -130,6 +180,9 @@ local function getClassMethods(Class)
         e.Name=methods[i].name
         e.Class=Class
         e.Attribs=methods[i].flags
+        e.Static=(e.Attribs & METHOD_ATTRIBUTE_STATIC) == METHOD_ATTRIBUTE_STATIC
+        
+        
         
         --e.Parameters=getParameterFromMethod(e.Handle)    
         local types,paramnames,returntype=mono_method_getSignature(e.Handle)        
@@ -178,6 +231,7 @@ local function getClassMethods(Class)
         e.ILCode=methods[i].ILCode
         e.NativeCode=methods[i].NativeCode
         e.Attribs=methods[i].Attributes
+        e.Static=(e.Attribs & METHOD_ATTRIBUTE_STATIC) == METHOD_ATTRIBUTE_STATIC
         
 
         --build parameter list
@@ -294,6 +348,8 @@ local function getClasses(Image)
     print("getClasses Error: Image.Classes was not busy")
     return
   end 
+  
+
 
   --get the classlist
   local i
@@ -321,7 +377,8 @@ local function getClasses(Image)
         e.ParentHandle=classlist[i].ParentHandle          
         e.Image=Image        
         
-        table.insert(Image.Classes,e)        
+        table.insert(Image.Classes,e)
+        Image.Domain.ClassHandleLookup[e.Handle]=e         
       end     
     end
   else
@@ -336,7 +393,8 @@ local function getClasses(Image)
       e.ParentHandle=DataSource.DotNetDataCollector.GetTypeDefParent(Image.Handle, e.Handle) --classlist[i].Extends
       e.Image=Image
       
-      table.insert(Image.Classes,e)      
+      table.insert(Image.Classes,e) 
+      Image.Domain.ClassHandleLookup[e.Handle]=e        
     end
   end
 
@@ -394,6 +452,7 @@ end
 
 local function getDomains()  
   DataSource.Domains={}
+  DataSource.Domains.ClassHandleLookup={} 
     
   if monopipe then
     local mr=mono_enumDomains() 
@@ -404,6 +463,7 @@ local function getDomains()
       local e={}
       e.Handle=mr[i]
       e.Control=CONTROL_MONO
+      e.ClassHandleLookup={}
       table.insert(DataSource.Domains,e)
     end
   end
@@ -415,6 +475,7 @@ local function getDomains()
       e.Handle=mr[i].DomainHandle
       e.Name=mr[i].Name
       e.Control=CONTROL_DOTNET
+      e.ClassHandleLookup={}
       table.insert(DataSource.Domains,e)
    end
   end
@@ -665,10 +726,18 @@ local function edtClassFilterChange(frmDotNetInfo, sender)
 end
 
 local function ClassListDataRequest(frmDotNetInfo, sender, listitem)
+  if listitem.index==-1 then
+    listitem.Caption=''
+  end
+  
   if frmDotNetInfo.FilteredClassList then    
     listitem.Caption=frmDotNetInfo.FilteredClassList[listitem.index+1].FullName
-  else    
-    listitem.Caption=DataSource.Domains[frmDotNetInfo.lbDomains.ItemIndex+1].Images[frmDotNetInfo.lbImages.ItemIndex+1].Classes[listitem.index+1].FullName
+  else 
+    if DataSource.Domains[frmDotNetInfo.lbDomains.ItemIndex+1].Images[frmDotNetInfo.lbImages.ItemIndex+1].Classes and
+       DataSource.Domains[frmDotNetInfo.lbDomains.ItemIndex+1].Images[frmDotNetInfo.lbImages.ItemIndex+1].Classes[listitem.index+1]
+    then   
+      listitem.Caption=DataSource.Domains[frmDotNetInfo.lbDomains.ItemIndex+1].Images[frmDotNetInfo.lbImages.ItemIndex+1].Classes[listitem.index+1].FullName
+    end
   end
 end
 
@@ -731,7 +800,7 @@ local function ClassSelectionChange(frmDotNetInfo, sender)
         l=createLabel(frmDotNetInfo.gbInheritance)        
         local fullname=ClassList[i].Class.Name
         if ClassList[i].Class.NameSpace and ClassList[i].Class.NameSpace~='' then
-          fullname=ClassList[i].Class.NameSpace..fullname
+          fullname=ClassList[i].Class.NameSpace..'.'..fullname
         end
         l.Caption=fullname
         ClassList[i].Label=l
@@ -1331,13 +1400,10 @@ old]]..methodname..'('..varstring..[[);
   createAutoAssemblerForm(script)
 end
 
-local function SpawnInjectMethodDialog(frmDotNetInfo)
-  local Class=frmDotNetInfo.CurrentlyDisplayedClass
-  if Class==nil then return end
+function dotNetInfo.SpawnInvokeMethodDialog(Method, instanceAddress, OnResult, OnCreateInstance)
+  --spawns an invoke method dialog.
+  --It's a modal form, unless OnResult is set
   
-  local Method=Class.Methods[frmDotNetInfo.lvMethods.ItemIndex+1]
-  if Method==nil then return end
- 
   if (Method.Class.Image.Domain.Control~=CONTROL_MONO) then
     if dotnetpipe==nil then    
       if messageDialog("Inject the CE .NET interface into the target process?", mtConfirmation,mbYes,mbNo)~=mrYes then
@@ -1349,29 +1415,88 @@ local function SpawnInjectMethodDialog(frmDotNetInfo)
       end    
     end
     
-    local moduleid=dotnet_getModuleID(Class.Image.FileName)
+    local moduleid=dotnet_getModuleID(Method.Class.Image.FileName)
     local methodtoken=Method.Handle
-    local address=getAddressSafe(frmDotNetInfo.comboFieldBaseAddress.Text)
+    local address=instanceAddress
     local wrappedAddress=dotnet_wrapobject(address)
     local newaddress=readPointer(wrappedAddress)
-    if newaddress~=address then --wrapping sometimes changes the original address
-      frmDotNetInfo.comboFieldBaseAddress.Text=string.format("%.8x",newaddress)
-    end
+    --if newaddress~=address then --wrapping sometimes changes the original address
+   --   frmDotNetInfo.comboFieldBaseAddress.Text=string.format("%.8x",newaddress)
+    --end
     
     
-    local mifinfo=dotnet_invoke_method_dialog(Class.Name..'.'..Method.Name, moduleid, methodtoken, wrappedAddress)
+    local midinfo=dotnet_invoke_method_dialog(Method.Class.Name..'.'..Method.Name, moduleid, methodtoken, wrappedAddress, OnResult)
     
     --also unwrap this address when done with it
-    local od=mifinfo.mif.onDestroy   --save the old ondestroy 
-    mifinfo.mif.onDestroy=function(sender)
+    local od=midinfo.mid.onDestroy   --save the old ondestroy 
+    midinfo.mid.onDestroy=function(sender)
       dotnet_unwrapobject(wrappedAddress)    
       od(sender) --call the old ondestroy
     end
   else
     --use the already existing mono way
-    mono_invoke_method_dialog(Method.Class.Image.Domain.Handle, Method.Handle, getAddressSafe(frmDotNetInfo.comboFieldBaseAddress.Text)) 
+    
+    return mono_invoke_method_dialog(Method.Class.Image.Domain.Handle, Method.Handle, instanceAddress, OnResult, OnCreateInstance) 
   end
+end
+
+dotNetInfo_SpawnInvokeMethodDialog=dotNetInfo.SpawnInvokeMethodDialog --compatibility fix for old version (that was never releaseD)
+
+
+local function SpawnInjectMethodDialog(frmDotNetInfo)
+  --called from the invoke method popupmenu item
+  local Class=frmDotNetInfo.CurrentlyDisplayedClass
+  if Class==nil then return end
   
+  local Method=Class.Methods[frmDotNetInfo.lvMethods.ItemIndex+1]
+  if Method==nil then return end
+  
+  dotNetInfo.SpawnInvokeMethodDialog(Method, getAddressSafe(frmDotNetInfo.comboFieldBaseAddress.Text), 
+    function(result, _secondary, vtype, hrs)       --OnResult
+      --if result and vtype and hrs and hrs~='' then
+      --  print(hrs)
+      --end
+    end,
+
+    function(classHandle) --OnCreateInstance
+      print("dotnetinfo.SpawnInjectMethodDialog:  OnCreateInstance")
+      
+      --find this class and all the classes that inherit from this
+      local newClass=Class.Image.Domain.ClassHandleLookup[classHandle]
+      if newClass==nil then
+        --print("Class not yet found. Searching unopened images")
+        local d=Class.Image.Domain
+        
+        if d.Images==nil then
+          DataSource.getImages(d)
+        end
+        
+        if d.Images==nil then return end
+        
+        for i=1,#d.Images do --assuming that the images list is already populated
+          if d.Images[i].Classes==nil then
+            --not yet loaded, check it
+            d.Images[i].Classes={}
+            d.Images[i].Classes.Busy=true            
+            DataSource.getClasses(d.Images[i])
+            d.Images[i].Classes.Busy=false 
+            
+            newClass=Class.Image.Domain.ClassHandleLookup[classHandle] --check if found
+            if newClass then break end --it has been found           
+          end         
+        end
+      end
+      
+      if newClass==nil then MessageDialog('Failure finding the class to instantiate', mtError) return end
+      local newInstance,msg=dotNetInfo.createInstanceOfClassDialog(Class)
+      
+      if newInstance==nil then
+        MessageDialog(msg, mtError)
+      else
+        return string.format('0x%x', newInstance)
+      end
+    end
+  )
   
 end
 
@@ -1569,6 +1694,10 @@ DotNetValueReaders[ELEMENT_TYPE_PTR]=function(address)
 end
 DotNetValueReaders[ELEMENT_TYPE_CLASS]=DotNetValueReaders[ELEMENT_TYPE_PTR]
 
+--global
+function getDotNetValueReader(dotnettype)
+  return DotNetValueReaders[dotnettype]
+end
 
 
 
@@ -1912,6 +2041,8 @@ local function btnLookupInstancesClick(frmDotNetInfo, sender)
       for i=1,#results do
         frmDotNetInfo.comboFieldBaseAddress.Items.add(string.format("%.8x",results[i]))
       end 
+      
+      frmDotNetInfo.comboFieldBaseAddress.Items.add('<Create new instance>')
 
       if #results then
         frmDotNetInfo.comboFieldBaseAddress.ItemIndex=0      
@@ -2097,6 +2228,7 @@ end
 
 
 function miDotNetInfoClick(sender)
+
   --print("miDotNetInfoClick")
   --in case of a double case scenario where there's both .net and mono, go for net first if the user did not activate mono explicitly 
   if (DataSource.DotNetDataCollector==nil) or (CurrentProcess~=getOpenedProcessID()) then
@@ -2109,7 +2241,7 @@ function miDotNetInfoClick(sender)
   
   
   --print("miDotNetInfoClick 2")
-  if miMonoTopMenuItem and miMonoTopMenuItem.miMonoActivate.Visible and (monopipe==nil)  then
+  if miMonoTopMenuItem and MainForm.miMonoActivate.Visible and (monopipe==nil)  then
     --print("checking with getDotNetDataCollector().Attached")
     local dndc=getDotNetDataCollector()
     if dndc==nil or dndc.Attached==false then --no .net and the user hasn't activated mono features. Do it for the user
@@ -2271,6 +2403,8 @@ function miDotNetInfoClick(sender)
   frmDotNetInfo.miGeneratePatchTemplateForMethod.OnClick=function() GeneratePatchTemplateForMethod(frmDotNetInfo) end
   
   
+  frmDotNetInfo.miChangeColors.OnClick=function() SpawnConfigDialog() end
+  
   frmDotNetInfo.lvMethods.OnDblClick=frmDotNetInfo.miJitMethod.OnClick
   
   frmDotNetInfo.comboFieldBaseAddress.OnChange=function(sender) 
@@ -2279,7 +2413,22 @@ function miDotNetInfoClick(sender)
   end
     
   frmDotNetInfo.btnLookupInstances.OnClick=function(sender) btnLookupInstancesClick(frmDotNetInfo, sender) end
-
+  frmDotNetInfo.comboFieldBaseAddress.OnSelect=function(sender) 
+    if sender.ItemIndex==sender.Items.Count-1 then 
+      local r,err=dotNetInfo.createInstanceOfClassDialog(frmDotNetInfo.CurrentlyDisplayedClass) 
+      if r==nil and err then
+        messageDialog(err, mtError)
+      else
+        local addressString=string.format('%x',r)
+        frmDotNetInfo.comboFieldBaseAddress.Items.insert(0,addressString)
+        frmDotNetInfo.comboFieldBaseAddress.Items.ItemIndex=0
+        
+        frmDotNetInfo.comboFieldBaseAddress.Text=addressString
+        frmDotNetInfo.comboFieldBaseAddress.OnChange(frmDotNetInfo.comboFieldBaseAddress)
+      end
+    end     
+  end 
+  frmDotNetInfo.comboFieldBaseAddress.Items.add('<Create new instance>')
 
   frmDotNetInfo.tFieldValueUpdater.OnTimer=function(t) FieldValueUpdaterTimer(frmDotNetInfo,t) end
   frmDotNetInfo.lvStaticFields.OnDblClick=function(sender) lvStaticFieldsDblClick(frmDotNetInfo,sender) end
@@ -2294,8 +2443,23 @@ function miDotNetInfoClick(sender)
     end
   end
   
-  frmDotNetInfo.pmMethods.OnPopup=function(sender)
-    frmDotNetInfo.miInvokeMethod.Enabled=(frmDotNetInfo.comboFieldBaseAddress.Text~='') and (getAddressSafe(frmDotNetInfo.comboFieldBaseAddress.Text)~=nil)
+  frmDotNetInfo.pmMethods.OnPopup=function(sender)    
+    local enabled=(frmDotNetInfo.comboFieldBaseAddress.Text~='') and (getAddressSafe(frmDotNetInfo.comboFieldBaseAddress.Text)~=nil)
+    if not enabled then 
+      local Class=frmDotNetInfo.CurrentlyDisplayedClass
+      if Class then      
+        --maybe it's a static method
+        if frmDotNetInfo.lvMethods.ItemIndex~=-1 then
+          local Method=Class.Methods[frmDotNetInfo.lvMethods.ItemIndex+1]
+          if Method and Method.Static then
+            enabled=true
+          end
+        end
+      end
+      
+    end
+
+    frmDotNetInfo.miInvokeMethod.Enabled=enabled
   end
   
   
@@ -2395,6 +2559,11 @@ function miDotNetInfoClick(sender)
      local AccessMask=Method.Attribs & METHOD_ATTRIBUTE_MEMBER_ACCESS_MASK
 
      Sender.Canvas.Font.Color=AccessMaskToColor(AccessMask)
+     
+     --if Method.Attribs & METHOD_ATTRIBUTE_STATIC == METHOD_ATTRIBUTE_STATIC then
+     if Method.Static then
+       Sender.Canvas.Brush.Color=clBlue
+     end
      return true
    end
    
@@ -2409,6 +2578,8 @@ function miDotNetInfoClick(sender)
         c=invertColor(c)        
       end
       canvas.Font.Color=c
+      
+      
     end    
     
     frmDotNetInfo.lvFields2.OnExpanding=function(sender, node)

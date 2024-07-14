@@ -119,10 +119,11 @@ __stdcall uint64_t new_gettickcount(void)
   uint64_t currenttime;
   float wantedspeed; //small issue with tcc where you can not compare against extern directly
 
-  csenter(&gtc_cs);
+
   
   currenttime=gtc_originalcode();
-  
+
+  csenter(&gtc_cs);  
   wantedspeed=speedhack_wantedspeed;
 
   if (gtc_initialtime==0)
@@ -241,11 +242,11 @@ __stdcall int  new_RtlQueryPerformanceCounter(uint64_t *count)
 
   float wantedspeed; //small issue with tcc where you can not compare against extern directly
 
-  csenter(&qpc_cs);
+
 
   int result=qpc_originalcode(&currenttime);
 
-
+  csenter(&qpc_cs);
   
   wantedspeed=speedhack_wantedspeed;
 

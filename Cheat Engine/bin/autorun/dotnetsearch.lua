@@ -53,7 +53,7 @@ function spawnDotNetSearchDialog(DataSource, frmDotNetInfo, searchtype)
     end
     
     index=index+1
-    if index<#searchresults then
+    if index<=#searchresults then
       local r=searchresults[index]
       if r then
         --print(string.format('Domain %d Image %d Class %d', r.DomainIndex, r.ImageIndex, r.ClassIndex))
@@ -179,10 +179,15 @@ function spawnDotNetSearchDialog(DataSource, frmDotNetInfo, searchtype)
                 DataSource.Domains[i].Images[j].Classes.Busy=false                      
               end
 
-              if DataSource.Domains[i].Images[j].Classes==nil then return end
               for k=1,#DataSource.Domains[i].Images[j].Classes do                                    
-                if searchtype==0 then
-                  local name=DataSource.Domains[i].Images[j].Classes[k].Name
+                if searchtype==0 then 
+                  
+                  local fullname=DataSource.Domains[i].Images[j].Classes[k].FullName
+                  if fullname==nil then
+                    name=DataSource.Domains[i].Images[j].Classes[k].Name
+                  end
+                  
+                  local name=fullname
                     
                   if not caseSensitive then 
                     name=name:upper()
@@ -195,7 +200,7 @@ function spawnDotNetSearchDialog(DataSource, frmDotNetInfo, searchtype)
                       if t.Terminated then return end
                       local li=frmSearch.lvResults.Items.add()
                       li.Caption=DataSource.Domains[i].Images[j].FileName
-                      li.SubItems.add(DataSource.Domains[i].Images[j].Classes[k].Name)
+                      li.SubItems.add(fullname)
                       
                       local e={}
                       e.DomainIndex=i

@@ -11,8 +11,8 @@
 #define DEBUG_CONSOLE 1
 #endif // CUSTOM_DEBUG
 
-                                //yyyymmdd
-#define MONO_DATACOLLECTORVERSION 20231214
+                                //yyyymmdd  (update each time the protocol gets updated)
+#define MONO_DATACOLLECTORVERSION 20240511
 
 #define MONO_TYPE_NAME_FORMAT_IL  0
 #define MONO_TYPE_NAME_FORMAT_REFLECTION  1
@@ -88,6 +88,10 @@
 #define MONOCMD_GETPTRTYPECLASS 65
 #define MONOCMD_GETFIELDTYPE 66
 #define MONOCMD_GETTYPEPTRTYPE 67
+#define MONOCMD_GETCLASSNESTEDTYPES 68
+
+#define MONOCMD_COLLECTGARBAGE 69
+#define MONOCMD_GETMETHODFLAGS 70
 
 
 typedef struct {} MonoType;
@@ -224,6 +228,7 @@ typedef char* (__cdecl *MONO_STRING_TO_UTF8)(void*);
 typedef void* (__cdecl *MONO_ARRAY_NEW)(void *domain, void *eclass, uintptr_t n);
 typedef void* (__cdecl *IL2CPP_ARRAY_NEW)(void *eclass, uintptr_t n);
 typedef int (__cdecl *MONO_ARRAY_ELEMENT_SIZE)(void * klass);
+typedef int(__cdecl *MONO_CLASS_GET_RANK)(void * klass);
 typedef void* (__cdecl *MONO_OBJECT_TO_STRING)(void *object, void **exc);
 typedef void* (__cdecl *MONO_OBJECT_NEW)(void *domain, void *klass);
 
@@ -247,6 +252,9 @@ typedef void* (__cdecl *MONO_OBJECT_ISINST)(void *obj, void* kls);
 typedef void* (__cdecl *MONO_GET_ENUM_CLASS)(void);
 typedef void* (__cdecl *MONO_CLASS_GET_TYPE)(void *klass);
 typedef void* (__cdecl *MONO_CLASS_GET_NESTING_TYPE)(void *klass);
+
+typedef void* (__cdecl *MONO_CLASS_GET_NESTED_TYPES)(void *klass, void* iter);
+
 
 typedef int (__cdecl *MONO_RUNTIME_IS_SHUTTING_DOWN)(void);
 
@@ -393,6 +401,7 @@ private:
 	MONO_STRING_TO_UTF8 mono_string_to_utf8;
 	MONO_ARRAY_NEW mono_array_new;
 	IL2CPP_ARRAY_NEW il2cpp_array_new;
+	MONO_CLASS_GET_RANK mono_class_get_rank;
 	MONO_ARRAY_ELEMENT_SIZE mono_array_element_size;
 	MONO_OBJECT_TO_STRING mono_object_to_string;
 	MONO_OBJECT_NEW mono_object_new;
@@ -404,6 +413,8 @@ private:
 
 	MONO_CLASS_GET_TYPE mono_class_get_type;
 	MONO_CLASS_GET_NESTING_TYPE mono_class_get_nesting_type;
+	MONO_CLASS_GET_NESTED_TYPES mono_class_get_nested_types;
+
 
 
 	MONO_METHOD_DESC_SEARCH_IN_IMAGE mono_method_desc_search_in_image;
@@ -471,6 +482,7 @@ private:
 	void GetMethodName();
 	void GetMethodFullName();
 	void GetMethodClass();
+	void GetMethodFlags();
 	void GetKlassName();
 	void GetClassNamespace();
 	void FreeMethod();
@@ -479,6 +491,7 @@ private:
 	void GetMethodSignature();
 	void GetMethodParameters();
 	void GetParentClass();
+	void GetClassNestedTypes();
 	void GetClassNestingType();
 	void GetClassImage();
 	void GetClassType();

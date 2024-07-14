@@ -3,7 +3,7 @@
 --loads the scan into this tab
 
 function splitScanIntoNewTab()
-  if miAddTab.enabled then
+  if MainForm.miAddTab.enabled then
     local filename=getCurrentMemscan().ScanresultFolder..'.splitscan.savestate' --files starting with a . do not get copied so this is safe
  
     saveMemoryScan_internal(filename)

@@ -567,6 +567,7 @@ void CPipeServer::InitMono()
 				mono_string_to_utf8 = (MONO_STRING_TO_UTF8)GetProcAddress(hMono, "il2cpp_string_to_utf8");
 				il2cpp_array_new = (IL2CPP_ARRAY_NEW)GetProcAddress(hMono, "il2cpp_array_new");
 				mono_array_element_size = (MONO_ARRAY_ELEMENT_SIZE)GetProcAddress(hMono, "il2cpp_array_element_size");
+				mono_class_get_rank = (MONO_CLASS_GET_RANK)GetProcAddress(hMono, "il2cpp_class_get_rank");
 				mono_value_box = (MONO_VALUE_BOX)GetProcAddress(hMono, "il2cpp_value_box");
 				mono_object_unbox = (MONO_OBJECT_UNBOX)GetProcAddress(hMono, "il2cpp_object_unbox");
 				mono_object_new = (MONO_OBJECT_NEW)GetProcAddress(hMono, "il2cpp_object_new");
@@ -592,6 +593,15 @@ void CPipeServer::InitMono()
 				mono_image_get_filename = (MONO_IMAGE_GET_FILENAME)GetProcAddress(hMono, "il2cpp_image_get_filename");
 
 				mono_class_get_nesting_type = (MONO_CLASS_GET_NESTING_TYPE)GetProcAddress(hMono, "mono_class_get_nesting_type");
+				if (mono_class_get_nesting_type==NULL)
+					mono_class_get_nesting_type = (MONO_CLASS_GET_NESTING_TYPE)GetProcAddress(hMono, "il2cpp_class_get_nesting_type");
+
+
+				mono_class_get_nested_types = (MONO_CLASS_GET_NESTED_TYPES)GetProcAddress(hMono, "mono_class_get_nested_types");	
+				if (mono_class_get_nested_types == NULL)
+					mono_class_get_nested_types = (MONO_CLASS_GET_NESTED_TYPES)GetProcAddress(hMono, "l2cpp_class_get_nested_types");
+
+
 
 				il2cpp_field_static_get_value = (IL2CPP_FIELD_STATIC_GET_VALUE)GetProcAddress(hMono, "il2cpp_field_static_get_value");
 				il2cpp_field_static_set_value = (IL2CPP_FIELD_STATIC_SET_VALUE)GetProcAddress(hMono, "il2cpp_field_static_set_value");
@@ -734,6 +744,7 @@ void CPipeServer::InitMono()
 				mono_string_to_utf8 = (MONO_STRING_TO_UTF8)GetProcAddress(hMono, "mono_string_to_utf8");
 				mono_array_new = (MONO_ARRAY_NEW)GetProcAddress(hMono, "mono_array_new");
 				mono_array_element_size = (MONO_ARRAY_ELEMENT_SIZE)GetProcAddress(hMono, "mono_array_element_size");
+				mono_class_get_rank = (MONO_CLASS_GET_RANK)GetProcAddress(hMono, "mono_class_get_rank");
 				mono_value_box = (MONO_VALUE_BOX)GetProcAddress(hMono, "mono_value_box");
 				mono_object_unbox = (MONO_OBJECT_UNBOX)GetProcAddress(hMono, "mono_object_unbox");
 				mono_object_new = (MONO_OBJECT_NEW)GetProcAddress(hMono, "mono_object_new");
@@ -744,6 +755,7 @@ void CPipeServer::InitMono()
 				mono_class_get_type = (MONO_CLASS_GET_TYPE)GetProcAddress(hMono, "mono_class_get_type");
 				mono_type_get_class = (MONO_TYPE_GET_CLASS)GetProcAddress(hMono, "mono_type_get_class");
 				mono_class_get_nesting_type = (MONO_CLASS_GET_NESTING_TYPE)GetProcAddress(hMono, "mono_class_get_nesting_type");
+				mono_class_get_nested_types = (MONO_CLASS_GET_NESTED_TYPES)GetProcAddress(hMono, "mono_class_get_nested_types");
 
 				mono_method_desc_search_in_image = (MONO_METHOD_DESC_SEARCH_IN_IMAGE)GetProcAddress(hMono, "mono_method_desc_search_in_image");
 				mono_runtime_invoke = (MONO_RUNTIME_INVOKE)GetProcAddress(hMono, "mono_runtime_invoke");
@@ -842,16 +854,24 @@ void CPipeServer::Object_GetClass()
 		classname = mono_class_get_name(klass);
 
 		//small test to see if the classname is readable
-		for (i = 0; i < strlen(classname); i++)
+		if (classname)
 		{
-			char x = classname[i];
-			if (x == '\0')
-				break;
+			for (i = 0; i < strlen(classname); i++)
+			{
+				char x = classname[i];
+				if (x == '\0')
+					break;
+			}
+		}
+		else
+		{
+			WriteQword(0);
+			return;
 		}
 
 		if (klass != 0)
 		{
-			WriteQword((UINT64)klass);
+			WriteQword((UINT64)klass);			
 			WriteWord((WORD)strlen(classname));
 			Write(classname, (int)strlen(classname));
 		}
@@ -1567,6 +1587,15 @@ void CPipeServer::GetMethodFullName()
 		WriteWord(0);
 }
 
+void CPipeServer::GetMethodFlags()
+{
+	uint32_t flags;
+	void* method = (void*)ReadQword();
+	flags = mono_method_get_flags(method, NULL);
+
+	WriteDword(flags);
+}
+
 void CPipeServer::GetMethodClass()
 {
 	void* method = (void*)ReadQword();
@@ -1871,6 +1900,31 @@ void CPipeServer::GetParentClass(void)
 	WriteQword(parent);
 }
 
+void CPipeServer::GetClassNestedTypes(void)
+{
+	INT32 count = 0;
+	void* klass = (void*)ReadQword();
+	if (klass && mono_class_get_nested_types)
+	{
+		void *iter = NULL;
+		void* nklass;
+
+		std::vector<UINT64> nestedlist;
+
+		while ((nklass = mono_class_get_nested_types(klass, &iter)))
+			nestedlist.push_back((UINT64)nklass);
+
+		count = (INT32)nestedlist.size();
+		WriteDword(count);
+		int i;
+		for (i = 0; i < count; i++)
+			WriteQword(nestedlist[i]);
+	}
+	else
+		WriteDword(0);
+
+}
+
 void CPipeServer::GetClassNestingType(void)
 {
 	UINT_PTR nestingtype = 0;
@@ -1952,9 +2006,10 @@ void CPipeServer::GetReflectionMethodOfMethod()
 
 void CPipeServer::UnBoxMonoObject()
 {
+	OutputDebugString("Unbox Object Called");
 	void* object = (void*)ReadQword();
 	WriteQword(object ? (UINT64)mono_object_unbox(object) : 0);
-	OutputDebugString("Unbox Object Called");
+	
 }
 
 
@@ -2030,8 +2085,13 @@ void CPipeServer::GetFieldType()
 void CPipeServer::GetArrayElementClass(void)
 {
 	void* klass = (void*)ReadQword();
-	void* eklass = klass ? mono_class_get_element_class(klass) : NULL;
-	WriteQword((UINT_PTR)eklass);
+	if (mono_class_get_rank(klass))
+	{
+		void* eklass = klass ? mono_class_get_element_class(klass) : NULL;
+		WriteQword((UINT_PTR)eklass);
+	}
+	else
+		WriteQword(0);
 }
 
 void CPipeServer::FindMethodByDesc(void)
@@ -2533,7 +2593,7 @@ void CPipeServer::InvokeMethod(void)
 				WriteQword(*(UINT64*)mono_object_unbox(result));
 				break;
 			case MONO_TYPE_VALUETYPE:
-				WriteQword((UINT64)mono_object_unbox(result));
+				WriteQword((UINT64)result); //don't unbox, CE likes having it as object so it can inspect the distinct fields
 				break;
 				/*case MONO_TYPE_PTR:
 				case MONO_TYPE_BYREF:
@@ -2767,10 +2827,17 @@ void CPipeServer::IsTypeByReference()
 void CPipeServer::GetArrayElementSize()
 {
 	void* klass = (void*)ReadQword();
-	if (mono_array_element_size)
-		WriteDword(mono_array_element_size(klass));
+
+
+	if (mono_class_get_rank(klass))
+	{
+		if (mono_array_element_size)
+			WriteDword(mono_array_element_size(klass));
+		else
+			WriteDword(0);
+	}
 	else
-		WriteDword(0);
+		WriteDword(0); //0 dimensional array...
 }
 
 void CPipeServer::NewCSArray()
@@ -3048,6 +3115,10 @@ void CPipeServer::Start(void)
 					GetMethodClass();
 					break;
 
+				case MONOCMD_GETMETHODFLAGS:
+					GetMethodFlags();
+					break;
+
 				case MONOCMD_GETCLASSNAME:
 					GetKlassName();
 					break;
@@ -3165,6 +3236,10 @@ void CPipeServer::Start(void)
 					GetClassImage();
 					break;
 
+				case MONOCMD_GETCLASSNESTEDTYPES:
+					GetClassNestedTypes();
+					break;
+
 				case MONOCMD_GETCLASSNESTINGTYPE:
 					GetClassNestingType();
 					break;
@@ -3206,7 +3281,7 @@ void CPipeServer::Start(void)
 					break;
 
 				case MONOCMD_LIMITEDCONNECTION:
-					limitedConnection = true;
+					limitedConnection = ReadByte();
 					break;
 
 				case MONOCMD_ARRAYELEMENTSIZE:
@@ -3223,6 +3298,13 @@ void CPipeServer::Start(void)
 
 				case MONOCMD_GETTYPEPTRTYPE:
 					GetTypeFromPointerType();
+					break;
+
+				case MONOCMD_COLLECTGARBAGE:
+					if (mono_thread_detach)
+						mono_thread_detach(mono_selfthread); //release the thread owned objects so they can get garbage collected
+
+					ConnectThreadToMonoRuntime();
 					break;
 
 				}

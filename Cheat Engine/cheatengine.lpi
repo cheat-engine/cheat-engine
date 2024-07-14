@@ -27,7 +27,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="7"/>
       <MinorVersionNr Value="5"/>
-      <BuildNr Value="7707"/>
+      <BuildNr Value="7712"/>
       <Language Value="041C"/>
       <CharSet Value="04B0"/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.5"/>
@@ -83,9 +83,6 @@
             <CompilerMessages>
               <IgnoredMessages idx6058="True" idx5066="True" idx5043="True" idx4105="True" idx4104="True" idx3177="True" idx3175="True" idx2005="True"/>
             </CompilerMessages>
-            <ConfigFile>
-              <WriteConfigFilePath Value="$(ProjOutDir)\fpclaz.cfg"/>
-            </ConfigFile>
             <CustomOptions Value="-WB00400000
 -dbenchmarkps
 -dcemain
@@ -168,9 +165,6 @@
             <CompilerMessages>
               <IgnoredMessages idx6058="True" idx5066="True" idx5043="True" idx4105="True" idx4104="True" idx3177="True" idx3175="True" idx2005="True"/>
             </CompilerMessages>
-            <ConfigFile>
-              <WriteConfigFilePath Value="$(ProjOutDir)\fpclaz.cfg"/>
-            </ConfigFile>
             <CustomOptions Value="-WB00400000
 -CfAVX2
 -CpCOREAVX2
@@ -254,7 +248,6 @@
             <WriteFPCLogo Value="False"/>
             <ConfigFile>
               <StopAfterErrCount Value="1000"/>
-              <WriteConfigFilePath Value="$(ProjOutDir)\fpclaz.cfg"/>
             </ConfigFile>
             <CustomOptions Value="-dbenchmarkps
 -dcemain
@@ -323,9 +316,6 @@
               <ShowHints Value="False"/>
             </Verbosity>
             <WriteFPCLogo Value="False"/>
-            <ConfigFile>
-              <WriteConfigFilePath Value="$(ProjOutDir)\fpclaz.cfg"/>
-            </ConfigFile>
             <CustomOptions Value="-dbenchmarkps -dcemain -WB00400000 -dNDEBUG -dNESTEDSTRUCTURES"/>
           </Other>
         </CompilerOptions>
@@ -371,7 +361,6 @@
             <WriteFPCLogo Value="False"/>
             <ConfigFile>
               <StopAfterErrCount Value="1000"/>
-              <WriteConfigFilePath Value="$(ProjOutDir)\fpclaz.cfg"/>
             </ConfigFile>
             <CustomOptions Value="-WB00400000
 -dbenchmarkps
@@ -456,9 +445,6 @@
             <CompilerMessages>
               <IgnoredMessages idx6058="True" idx5066="True" idx5043="True" idx4105="True" idx4104="True" idx3177="True" idx3175="True" idx2005="True"/>
             </CompilerMessages>
-            <ConfigFile>
-              <WriteConfigFilePath Value="$(ProjOutDir)\fpclaz.cfg"/>
-            </ConfigFile>
             <CustomOptions Value="-WB00400000
 -dbenchmarkps
 -dcemain
@@ -536,7 +522,6 @@
             <WriteFPCLogo Value="False"/>
             <ConfigFile>
               <StopAfterErrCount Value="1000"/>
-              <WriteConfigFilePath Value="$(ProjOutDir)\fpclaz.cfg"/>
             </ConfigFile>
             <CustomOptions Value="-dNOTMULTITHREADED -dbenchmarkps -dcemain -WB00400000 -dNDEBUG -dD3DDebug -dNOVMX -dCUSTOMFLOAT -dXDEBUG -dNESTEDSTRUCTURES -dDEBUGTHREADERRORS"/>
             <OtherDefines Count="13">
@@ -602,7 +587,6 @@
             <WriteFPCLogo Value="False"/>
             <ConfigFile>
               <StopAfterErrCount Value="1000"/>
-              <WriteConfigFilePath Value="$(ProjOutDir)\fpclaz.cfg"/>
             </ConfigFile>
             <CustomOptions Value="-dNOTMULTITHREADED
 -dbenchmarkps
@@ -677,7 +661,6 @@
             <WriteFPCLogo Value="False"/>
             <ConfigFile>
               <StopAfterErrCount Value="1000"/>
-              <WriteConfigFilePath Value="$(ProjOutDir)\fpclaz.cfg"/>
             </ConfigFile>
             <CustomOptions Value="-WB00400000
 -dNOTMULTITHREADED
@@ -750,7 +733,6 @@
             <WriteFPCLogo Value="False"/>
             <ConfigFile>
               <StopAfterErrCount Value="1000"/>
-              <WriteConfigFilePath Value="$(ProjOutDir)\fpclaz.cfg"/>
             </ConfigFile>
             <CompilerMessages>
               <IgnoredMessages idx9201="True" idx6058="True" idx5089="True" idx5066="True" idx5043="True" idx4105="True" idx4104="True" idx3177="True" idx3175="True"/>
@@ -3130,9 +3112,6 @@
       <CompilerMessages>
         <IgnoredMessages idx6058="True"/>
       </CompilerMessages>
-      <ConfigFile>
-        <WriteConfigFilePath Value="$(ProjOutDir)\fpclaz.cfg"/>
-      </ConfigFile>
       <CustomOptions Value="-WB00400000
 -dbenchmarkps
 -dcemain
