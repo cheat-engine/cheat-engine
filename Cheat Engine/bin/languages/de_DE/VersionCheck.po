@@ -1,0 +1,52 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: Patrick/Sencait/Wentoss <Wentoss@outlook.de>\n"
+"Language-Team: \n"
+"Language: de_DE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.4.4\n"
+
+#: VC-U2CVICNEL
+msgid "Unable to check version (Invalid content, not enough lines)"
+msgstr "Version kann nicht geprüft werden (ungültiger Inhalt, nicht genügend Zeilen)"
+
+#: VC-U2CVIC
+msgid "Unable to check version (Invalid content)"
+msgstr "Version kann nicht geprüft werden (ungültiger Inhalt)"
+
+#: VC-CFNV
+msgid "Check for new version"
+msgstr "Nach neuer Version suchen"
+
+#: VC-NCA
+msgid "Cheat Engine %s is available at www.cheatengine.org. Go there now?"
+msgstr "Die Cheat Engine %s ist unter www.cheatengine.org verfügbar. Jetzt dahin gehen?"
+
+#: VC-UP2D
+msgid "You are up to date. The latest version is %s"
+msgstr "Du bist auf dem laufenden. Die neueste Version ist %s"
+
+#: VC-WTF
+msgid "Unable to check version (Can't connect)"
+msgstr "Version kann nicht geprüft werden (Verbindung kann nicht hergestellt werden)"
+
+#: VC-UPDATETO
+msgid "Update to %s"
+msgstr "Aktualisieren zu %s"
+
+#: VC-UPDATETO
+msgid "In how many days should I notify you again?"
+msgstr "In wie vielen Tagen soll ich dich erneut benachrichtigen?"
+
+#: VC-SETTINGS-TEXT
+msgid "Check for updates when Cheat Engine starts"
+msgstr "Beim Start von Cheat Engine nach Updates suchen"
+
+#: VC-INTERVAL
+msgid "Interval(days):"
+msgstr "Intervall(Tage)"

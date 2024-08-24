@@ -1,0 +1,196 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: Patrick/Sencait/Wentoss <Wentoss@outlook.de>\n"
+"Language-Team: \n"
+"Language: de_DE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.4.4\n"
+
+#: pseudocodediagram-file
+msgid "File"
+msgstr "Datei"
+
+#: pseudocodediagram-lff
+msgid "Load from file"
+msgstr "Von Datei laden"
+
+#: pseudocodediagram-stfywto
+msgid "Select the file you wish to open"
+msgstr "Wähle die Datei aus, die du öffnen möchtest"
+
+#: pseudocodediagram-dfcc
+msgid "Diagram files (*.CEDIAG )|*.CEDIAG"
+msgstr "Diagrammdateien (*.CEDIAG ) |*.CEDIAG"
+
+#: pseudocodediagram-stf
+msgid "Save to file"
+msgstr "Speichern unter"
+
+#: pseudocodediagram-fitfywtstda
+msgid "Fill in the filename you wish to save this diagram as"
+msgstr "Gib den Dateinamen ein, unter dem dieses Diagramm gespeichert werden soll"
+
+#: pseudocodediagram-sdti
+msgid "Save diagram to image"
+msgstr "Diagramm als Bild speichern"
+
+#: pseudocodediagram-fitfywtstdi
+msgid "Fill in the filename you wish to save this diagram image"
+msgstr "Gib den Dateinamen ein, unter dem dieses Diagrammbild gespeichert werden soll"
+
+#: pseudocodediagram-pfpp
+msgid "PNG files (*.PNG )|*.PNG"
+msgstr "PNG Dateien (*.PNG )|*.PNG"
+
+#: pseudocodediagram-close
+msgid "Close"
+msgstr "Schließen"
+
+#: pseudocodediagram-display
+msgid "Display"
+msgstr "Anzeige"
+
+#: pseudocodediagram-spfu2oc
+msgid "Show path from Ultimap1/2 or Codefilter"
+msgstr "Zeige den Pfad von Ultimap1/2 oder Codefilter"
+
+#: pseudocodediagram-spftw
+msgid "Show path from tracer window"
+msgstr "Zeige den Pfad von tracer window"
+
+#: pseudocodediagram-tsa
+msgid "Tracer starting at %8x (%s)"
+msgstr "Tracer statet ab %8x (%s)"
+
+#: pseudocodediagram-tp
+msgid "Tracer paths"
+msgstr "Tracer Wege"
+
+#: pseudocodediagram-wtwsbu
+msgid "Which tracer window shall be used?"
+msgstr "Welches Tracer-Fenster soll benutzt werden?"
+
+#: pseudocodediagram-ntwrv
+msgid "No tracerform with results visible"
+msgstr "Keine tracerform mit Ergebnissen sichtbar"
+
+#: pseudocodediagram-v
+msgid "View"
+msgstr "Ansicht"
+
+#: pseudocodediagram-z
+msgid "Zoom"
+msgstr "Zoom"
+
+#: pseudocodediagram-zi
+msgid "Zoom in"
+msgstr "Hineinzoomen"
+
+#: pseudocodediagram-zo
+msgid "Zoom out"
+msgstr "Rauszoomen"
+
+#: pseudocodediagram-e
+msgid "Edit"
+msgstr "Bearbeiten"
+
+#: pseudocodediagram-nh
+msgid "new header"
+msgstr "Neue Kopfzeile"
+
+#: pseudocodediagram-nbbc
+msgid "new block background color (0xBBGGRR)"
+msgstr "Neue Hintergrundfarbe (0xBBGGRR)"
+
+#: pseudocodediagram-sl
+msgid "Sources list"
+msgstr "Quellenliste"
+
+#: pseudocodediagram-dl
+msgid "Destinations list"
+msgstr "Zielliste"
+
+#: pseudocodediagram-be
+msgid "Block editor"
+msgstr "Block editor"
+
+#: pseudocodediagram-ok
+msgid "OK"
+msgstr "OK"
+
+#: pseudocodediagram-cancel
+msgid "Cancel"
+msgstr "Abbrechen"
+
+#: pseudocodediagram-gts
+msgid "Go to source"
+msgstr "Gehe zu Quelle"
+
+#: pseudocodediagram-gtd
+msgid "Go to destination"
+msgstr "Gehe zu Ziel"
+
+#: pseudocodediagram-rap
+msgid "Remove all points"
+msgstr "Alle Punkte entfernen"
+
+#: pseudocodediagram-ebh
+msgid "Edit block header"
+msgstr "Blockheader bearbeiten"
+
+#: pseudocodediagram-ebc
+msgid "Edit block color"
+msgstr "Blockfarbe bearbeiten"
+
+#: pseudocodediagram-ls
+msgid "List sources"
+msgstr "Quellen auflisten"
+
+#: pseudocodediagram-ld
+msgid "List destinations"
+msgstr "Ziele auflisten"
+
+#: pseudocodediagram-eac
+msgid "Edit annotation color"
+msgstr "Anmerkungsfarbe bearbeiten"
+
+#: pseudocodediagram-da
+msgid "Delete annotation"
+msgstr "Anmerkung löschen"
+
+#: pseudocodediagram-ca
+msgid "Create annotation"
+msgstr "Anmerkung erstellen"
+
+#: pseudocodediagram-mdi
+msgid "[Diagram info]"
+msgstr "[Diagramm information]"
+
+#: pseudocodediagram-fstart
+msgid " Function start: 0x%X"
+msgstr " Funktion start: 0x%X"
+
+#: pseudocodediagram-fstop
+msgid " Function stop: 0x%X"
+msgstr " Funktion stopp: 0x%X"
+
+#: pseudocodediagram-dbc
+msgid " Diagram blocks count: %d"
+msgstr "Anzahl der Diagrammblöcke: %d"
+
+#: pseudocodediagram-dlc
+msgid " Diagram links count: %d"
+msgstr "Anzahl der Diagrammlinks: %d"
+
+#: pseudocodediagram-diagram
+msgid "Diagram"
+msgstr "Diagramm"
+
+#: pseudocodediagram-sd
+msgid "Spawn diagram"
+msgstr "Diagramm erzeugen"
