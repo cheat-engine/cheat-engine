@@ -1,0 +1,296 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: Patrick/Sencait/Wentoss <Wentoss@outlook.de>\n"
+"Language-Team: \n"
+"Language: de_DE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.4.4\n"
+
+#: java-AAF
+msgid "Auto assembler failed:"
+msgstr "Auto assembler fehlgeschlagen:"
+
+#: java-JEST
+msgid "Java:eventserver terminated"
+msgstr "Java:Eventserver beendet"
+
+#: java-JD
+msgid "Java:Disconnected"
+msgstr "Java:Getrennt"
+
+#: java-JUER
+msgid "Java:Unexpected event received"
+msgstr "Java:Unerwartetes Ereignis empfangen"
+
+#: java-JEHT
+msgid "Java:Event handler terminating"
+msgstr "Java:Eventhandler wird abgebrochen"
+
+#: java-IJS
+msgid "Invalid java signature"
+msgstr "Ungültige Java Signatur"
+
+#: java-ARTANS
+msgid "Array return types are not supported"
+msgstr "Array Rückgabetypen werden nicht unterstützt"
+
+#: java-PCDNM
+msgid "Parameter count does not match"
+msgstr "Die Parameteranzahl stimmt nicht überein"
+
+#: java-SWNS
+msgid "Scantype was not set"
+msgstr "Scantype wurde nicht gesetzt"
+
+#: java-Class
+msgid "Class"
+msgstr "Klasse"
+
+#: java-Method
+msgid "Method"
+msgstr "Methode"
+
+#: java-Position
+msgid "Position"
+msgstr "Position"
+
+#: java-MI
+msgid "More info %s.%s(%d)"
+msgstr "Mehr Informationen %s.%s(%d)"
+
+#: java-TDMATGV
+msgid "The following methods accessed the given variable"
+msgstr "Die folgenden Methoden haben auf die angegebene Variable zugegriffen"
+
+#: java-results
+msgid "results"
+msgstr "ergebnisse"
+
+#: java-OWWTJAILAS
+msgid "java_find_what_writes only works when the jvmti agent is launched at start"
+msgstr "java_find_what_writes Funktioniert nur, wenn der Jvmti-Agent beim Start gestartet wird"
+
+#: java-Generic
+msgid "  Generic="
+msgstr "  Generisch="
+
+#: java-SC
+msgid "superclass="
+msgstr "Oberklasse="
+
+#: java-II
+msgid "---Implemented interfaces---"
+msgstr "---Implementierte Schnittstellen---"
+
+#: java-Fields
+msgid "---Fields---"
+msgstr "---Felder---"
+
+#: java-Methods
+msgid "---Methods---"
+msgstr "---Methoden---"
+
+#: java-SFC
+msgid "Search for class..."
+msgstr "Suche nach Klasse..."
+
+#: java-SF
+msgid "Search for..."
+msgstr "Suche nach..."
+
+#: java-NewS
+msgid "New Scan"
+msgstr "Neuer Scan"
+
+#: java-FS
+msgid "First Scan"
+msgstr "Erster Scan"
+
+#: java-JVScanner
+msgid "Java Variable Scanner"
+msgstr "Java-Variablenscanner"
+
+#: java-Value
+msgid "Value"
+msgstr "Wert"
+
+#: java-NextS
+msgid "Next Scan"
+msgstr "Nächster Scan"
+
+#: java-Found
+msgid "Found:"
+msgstr "Gefunden:"
+
+#: java-FWATV
+msgid "Find what accesses this value"
+msgstr "Finde heraus, was auf diesen Wert zugreift"
+
+#: java-Search
+msgid "Search"
+msgstr "Suchen"
+
+#: java-FC
+msgid "Find Class"
+msgstr "Klasse finden"
+
+#: java-Finddotdotdot
+msgid "Find..."
+msgstr "Finden..."
+
+#: java-EM
+msgid "Edit method"
+msgstr "Methode bearbeiten"
+
+#: java-AJF
+msgid "Activate java features"
+msgstr "Aktiviere Java Feature"
+
+#: java-DJC
+msgid "Dissect java classes"
+msgstr "Java-Klassen zergliedern"
+
+#: java-JVScan
+msgid "Java variable scan"
+msgstr "Java-Variablenscanner"
+
+#: java-DCP
+msgid "Debug child processes"
+msgstr "Debuggen von untergeordneten Prozessen"
+
+#: java-JHDTI
+msgid "The java handler failed to initialize"
+msgstr "Der Java-Handler konnte nicht initialisiert werden"
+
+#: java-SJMIEITTP
+msgid "Show java menu item even if the target process hasn't loaded jvm.dll (Used for the local setEnvironment option)"
+msgstr "Java-Menüelement anzeigen, auch wenn der Zielprozess jvm.dll nicht geladen hat (wird für die lokale setEnvironment-Option verwendet)"
+
+#: javaclass-ICPTE
+msgid "Invalid constant pool tag encountered: "
+msgstr "Ungültiger konstanter Pool-Tag gefunden: "
+
+#: javaclass-Tag
+msgid " (tag="
+msgstr " (tag="
+
+#: javaclass-NAVC
+msgid "Not a valid classfile"
+msgstr "Keine gültige Klassendatei"
+
+#: javaclasseditor-ICNI
+msgid " is currently not implemented"
+msgstr " ist derzeit nicht implementiert"
+
+#: javaclasseditor-WCNBUW
+msgid "wide can not be used with "
+msgstr "breit kann nicht mit verwendet werden "
+
+#: javaclasseditor-IAOPPF
+msgid "Invalid amount of parameters provided for "
+msgstr "Ungültige Anzahl von Parametern angegeben "
+
+#: javaclasseditor-TL
+msgid "The label "
+msgstr "Das Etikett "
+
+#: javaclasseditor-INYD
+msgid "is not yet defined"
+msgstr "ist noch nicht definiert"
+
+#: javaclasseditor-TIICNI
+msgid "This instruction is currently not implemented"
+msgstr "Diese Anweisung ist derzeit nicht implementiert"
+
+#: javaclasseditor-UI
+msgid "unknown instruction:"
+msgstr "unbekannte Anweisung:"
+
+#: javaclasseditor-YCORI
+msgid "You can only replace instructions on an instruction boundary"
+msgstr "Du kannst Anweisungen nur an einer Befehlsgrenze ersetzen"
+
+#: javaclasseditor-StartIndex
+msgid "si="
+msgstr "si="
+
+#: javaclasseditor-Offset
+msgid " offset="
+msgstr " offset="
+
+#: javaclasseditor-IL
+msgid "Insert line"
+msgstr "Zeile einfügen"
+
+#: javaclasseditor-ITJAC
+msgid "Input the java assembly code you wish to insert at line "
+msgstr "Gebe den Java-Assemblycode ein, den du in die Zeile einfügen möchtest "
+
+#: javaclasseditor-EL
+msgid "Edit line"
+msgstr "Zeile bearbeiten"
+
+#: javaclasseditor-DNL
+msgid "Define new label"
+msgstr "Neues Etikett definieren"
+
+#: javaclasseditor-GALFL
+msgid "Give a labelname for line "
+msgstr "Gib einen Labelnamen für Zeile "
+
+#: javaclasseditor-TIAALWTN
+msgid "There is already a label with this name"
+msgstr "Es gibt bereits ein Label mit diesem Namen"
+
+#: javaclasseditor-OBSNBS
+msgid "old bsize=%d new bsize=%d"
+msgstr "alte bgröße=%d neue bgröße=%d"
+
+#: javaclasseditor-OSNS
+msgid "old size=%d new size=%d"
+msgstr "alte bgröße=%d neue bgröße=%d"
+
+#: javaclasseditor-Method
+msgid "Method: "
+msgstr "Methode: "
+
+#: javaclasseditor-MS
+msgid "Max Stack"
+msgstr "Maximaler Stapel"
+
+#: javaclasseditor-ML
+msgid "Max Locals"
+msgstr "Maximale Einheimische"
+
+#: javaclasseditor-SC
+msgid "Save changes"
+msgstr "Änderungen speichern"
+
+#: javaclasseditor-Index
+msgid "Index"
+msgstr "Verzeichnis"
+
+#: javaclasseditor-BI
+msgid "ByteIndex"
+msgstr "ByteVerzeichnis"
+
+#: javaclasseditor-Label
+msgid "Label"
+msgstr "Label"
+
+#: javaclasseditor-Exception
+msgid "Exception"
+msgstr "Ausnahme"
+
+#: javaclasseditor-Instruction
+msgid "Instruction"
+msgstr "Anweisung"
+
+#: javaclasseditor-DL
+msgid "Define label"
+msgstr "Label definieren"

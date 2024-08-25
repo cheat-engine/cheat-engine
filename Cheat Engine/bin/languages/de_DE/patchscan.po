@@ -1,0 +1,79 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: Patrick/Sencait/Wentoss <Wentoss@outlook.de>\n"
+"Language-Team: \n"
+"Language: de_DE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.4.4\n"
+
+msgid "Not a valid executable"
+msgstr "Keine gültige ausführbare Datei"
+
+#: patchscan-navwe
+msgid "Not a valid windows executable"
+msgstr "Keine gültige ausführbare Windows Datei"
+
+#: patchscan-ttomicns
+msgid "This type of module is currently not supported"
+msgstr "Diese Art von Modul wird derzeit nicht unterstützt"
+
+#: patchscan-ce
+msgid "Compare error. "
+msgstr "Fehler vergleichen. "
+
+#: patchscan-ml
+msgid "Module List"
+msgstr "Module Liste"
+
+#: patchscan-stmtsfp
+msgid "Select the modules to scan for patches. Hold shift/ctrl to select multiple modules"
+msgstr "Wähle die Module aus, die nach Patches durchsucht werden sollen. Halte Umschalt/Strg gedrückt, um mehrere Module auszuwählen"
+
+#: patchscan-ok
+msgid "  OK  "
+msgstr "  OK  "
+
+#: patchscan-cancel
+msgid "Cancel"
+msgstr "Abbrechen"
+
+#: patchscan-scanning
+msgid "Scanning: %s"
+msgstr "Scanne: %s"
+
+#: patchscan-ei
+msgid "Error in "
+msgstr "Fehler in "
+
+#: patchscan-pl
+msgid "Patch list"
+msgstr "Patchliste"
+
+#: patchscan-address
+msgid "Address"
+msgstr "Adresse"
+
+#: patchscan-original
+msgid "Original"
+msgstr "Original"
+
+#: patchscan-patched
+msgid "Patched"
+msgstr "Gepatcht"
+
+#: patchscan-rwo
+msgid "Restore with original"
+msgstr "Mit dem Originalen wiederherstellen"
+
+#: patchscan-rp
+msgid "Reapply patch"
+msgstr "Patch erneut anwenden"
+
+#: patchscan-sfp
+msgid "Scan for patches"
+msgstr "Nach Patches scannen"

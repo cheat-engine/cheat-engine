@@ -1,0 +1,32 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: Patrick/Sencait/Wentoss <Wentoss@outlook.de>\n"
+"Language-Team: \n"
+"Language: de_DE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.4.4\n"
+
+#: SS-OaPF
+msgid "Open a process first"
+msgstr "Öffne zuerst einen Prozess"
+
+#: SS-CESF
+msgid "Cheat Engine Scan files"
+msgstr "Cheat Engine Scan-Dateien"
+
+#: SS-OaPFDaS
+msgid "Open a process first and do a scan"
+msgstr "Öffne zuerst einen Prozess und mach dann einen Scan"
+
+#: SS-SSS
+msgid "Save scan session"
+msgstr "Scan-Sitzung speichern"
+
+#: SS-LSS
+msgid "Load scan session"
+msgstr "Scan-Sitzung laden"
