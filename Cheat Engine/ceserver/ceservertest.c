@@ -25,6 +25,7 @@
 
 #include "ceserver.h"
 #include "api.h" //for debugevent
+#include "symbols.h"
 
 int pHandle;
 
@@ -388,7 +389,7 @@ uint64_t cenet_VirtualAllocEx(int fd, int pHandle, void *addr, size_t length, in
     return result;
 }
 
-int cenet_VirtualQueryExFull(int fd, int pHandle, DWORD flags)
+void cenet_VirtualQueryExFull(int fd, int pHandle, DWORD flags)
 {
 #pragma pack(1)
     struct
@@ -449,8 +450,8 @@ void *CESERVERTEST_DEBUGGERTHREAD(void *arg)
   int count=0;
   int fd=cenet_connect();
 
-  int dscr=0;
 #ifdef __arm__
+  int dscr=0;
   ARM_DBG_READ(c0, c1, 0, dscr);
   debug_log("after: %x\n", dscr);
 #endif
@@ -476,7 +477,7 @@ void *CESERVERTEST_DEBUGGERTHREAD(void *arg)
       {
         debug_log("going to set breakpoint\n");
 
-        i=cenet_setBreakpoint(fd, pHandle, -1, 0x00ce0000, 3, 4,0);
+        i=cenet_setBreakpoint(fd, pHandle, -1, (void *)0x00ce0000, 3, 4,0);
         //cenet_setBreakpoint(fd, pHandle, -1, 0x85e4, 0, 1,2);
         //cenet_setBreakpoint(fd, pHandle, -1, 0x85e4, 0, 1,3);
        // cenet_setBreakpoint(fd, pHandle, -1, 0x85e4, 0, 1,4);
@@ -563,7 +564,6 @@ int hp;
 
 void *CESERVERTEST(int pid )
 {
-  CONTEXT c;
   int fd;
   int arch;
   int dest;
@@ -572,7 +572,7 @@ void *CESERVERTEST(int pid )
 
   pthread_t pth;
 
-  char *output;
+  unsigned char *output;
   debug_log("CESERVERTEST: running (v2)\n");
 
   i=GetModuleSize("/home/eric/x/ld-linux-x86-64.so.2",0x00027000, 123);

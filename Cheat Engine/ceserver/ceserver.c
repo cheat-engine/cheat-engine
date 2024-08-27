@@ -1465,9 +1465,9 @@ case CMD_SETTHREADCONTEXT:
       {
         struct dirent* dc;
 
-        while (dc=readdir(d))
+        while ((dc=readdir(d)))
         {
-          if ((dc->d_name) && (strlen(dc->d_name)))
+          if (strnlen(dc->d_name, sizeof(dc->d_name)))
           {
             sendstring16(currentsocket, dc->d_name, MSG_MORE);
             sendall(currentsocket, &dc->d_type,1,MSG_MORE);
@@ -2095,7 +2095,7 @@ int main(int argc, char *argv[])
     memset(&addr_client, 0, sizeof(addr_client));
 
     #ifndef SHARED_LIBRARY
-    sigaction(SIGPIPE, &(struct sigaction){SIG_IGN}, NULL);
+    signal(SIGPIPE, SIG_IGN);
 
 
     if (TEST_MODE == 1)
