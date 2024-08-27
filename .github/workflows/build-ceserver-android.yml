@@ -1,0 +1,33 @@
+name: Build CheatEngine server for android
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        android-abi: [x86, armeabi-v7a, arm64-v8a]
+        artifact-mode: [EXECUTABLE, SHARED_LIBRARY]
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r25c
+
+      - name: Build ceserver
+        working-directory: Cheat Engine/ceserver/ndk-build/${{ matrix.artifact-mode }}
+        run: ndk-build APP_ABI=${{ matrix.android-abi }} NDK_PROJECT_PATH="."
+
+      - name: Upload ceserver
+        uses: actions/upload-artifact@v3.1.2
+
+        with:
+          name: android-ceserver-${{ matrix.artifact-mode }}-${{ matrix.android-abi }}
+          path: Cheat Engine/ceserver/ndk-build/${{ matrix.artifact-mode }}/libs/${{ matrix.android-abi }}
