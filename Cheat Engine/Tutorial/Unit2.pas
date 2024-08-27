@@ -64,7 +64,7 @@ resourcestring
     ' bytes after the address are 0, but I wouldn''t take the bet.'+#13#10+
     'Single, double, and the other scans just don''t work, because they store the value in a different way.'+#13#10+
     ''+#13#10+
-    'When the value type is set correctly, make sure the scantype is set to ''Exact Value'''+#13#10+
+    'When the value type is set correctly, make sure the scan type is set to ''Exact Value'''+#13#10+
     'Then fill in the number your health is in the value box. And click ''First Scan'''+#13#10+
     'After a while (if you have an extremely slow pc) the scan is done and the results are shown in the list on the'+
     ' left.'+#13#10+
