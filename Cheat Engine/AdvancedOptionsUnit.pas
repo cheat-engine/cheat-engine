@@ -156,7 +156,7 @@ var
 
 resourcestring
   strnotreadable='This address is not readable';
-  strNotWhatitshouldbe='The memory at this address is''nt what it should be! Continue?';
+  strNotWhatitshouldbe='The memory at this address isn''t what it should be! Continue?';
 
 
 implementation
