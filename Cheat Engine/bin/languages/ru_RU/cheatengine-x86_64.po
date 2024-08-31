@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: Cheat Engine 7.5.2 RU\n"
+"Project-Id-Version: Cheat Engine 7.6.1 RU\n"
 "POT-Creation-Date: \n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
@@ -1869,6 +1869,10 @@ msgstr "Удалить адреса"
 msgid "Please designate a group to at least some addresses"
 msgstr "Пожалуйста, назначьте группу хотя бы некоторым адресам"
 
+#: formchangedaddresses.rsdisassemblethisaddress
+msgid "Disassemble this address"
+msgstr "Дизассемблировать этот адрес"
+
 #: formchangedaddresses.rsenterluaformula
 msgid "Enter a Lua formula to use to filter. E.g RCX==0x2301adc0.  Empty for no filter"
 msgstr "Введите формулу Lua для фильтрации. Например, RCX==0x2301adc0. Если пусто, то без фильтрации"
@@ -1932,7 +1936,7 @@ msgstr "{Недопустимый объект}"
 
 #: formdesignerunit.rsshowcheckboxesforboolean
 msgid "Show checkboxes for boolean"
-msgstr "Показывать флажки для логических типов"
+msgstr "Показывать чекбоксы для логических типов"
 
 #: formdifferentbitsizeunit.rsthelasttimeyouscannedthenumberofbitswasandnowitisp
 msgid "The last time you scanned the number of bits was %s and now it is %s. Please tell me how and how much i must change the bit offset to scan successfully. (Left+right arrow keys move the bits)"
@@ -4114,6 +4118,10 @@ msgstr " занимает "
 msgid " where expected"
 msgstr " ожидалось"
 
+#: groupscancommandparser.rsaobdoesnotsupportrange
+msgid "AOB does not support range"
+msgstr "Массив байт не поддерживает диапазон"
+
 #: groupscancommandparser.rsarangecantbeawildcard
 msgid "A range can't be a wildcard"
 msgstr "Диапазон не может быть подстановочным знаком"
@@ -4273,7 +4281,7 @@ msgstr "Увеличить значение на:"
 
 #: hotkeys.rsrestoretooriginalonrelease
 msgid "Restore to original on release"
-msgstr "Восстановление в исходное состояние при отпускании"
+msgstr "Восстановить в исходное состояние при отпускании"
 
 #: hotkeys.rssetvalueto
 msgid "Set value to:"
@@ -4831,6 +4839,14 @@ msgstr "Генерация группового поиска"
 #: mainunit.rsnetworkoption
 msgid "Network option :"
 msgstr "Сетевой параметр :"
+
+#: mainunit.rsnewvalueuponactivatingaddress
+msgid "New value upon activating address"
+msgstr "Новое значение при активации адреса"
+
+#: mainunit.rsnewvalueupondeactivatingaddress
+msgid "New value upon deactivating address"
+msgstr "Новое значение при деактивации адреса"
 
 #: mainunit.rsoverlay
 msgid "overlay "
@@ -5738,7 +5754,7 @@ msgstr "Введите свой ассемблерный код: (адрес=%s)
 
 #: memorybrowserformunit.rsunlinkfromotherhexview
 msgid "Unlink from other hexview"
-msgstr "Разорвать связь с другим Hex-редактором"
+msgstr "Отвязать от другого hex-редактора"
 
 #: memorybrowserformunit.rsvalue
 msgctxt "memorybrowserformunit.rsvalue"
@@ -7859,6 +7875,14 @@ msgctxt "structuresfrm2.rsihavenoideawhatmeans"
 msgid "I have no idea what %s means"
 msgstr "Понятия не имею, что означает «%s»"
 
+#: structuresfrm2.rslinkwithmemoryview
+msgid "Link with memoryview"
+msgstr "Связать с редактором памяти"
+
+#: structuresfrm2.rslinkwithmemoryviewwindow
+msgid "Link with memoryview window"
+msgstr "Связать с окном редактора памяти"
+
 #: structuresfrm2.rslock
 msgctxt "structuresfrm2.rslock"
 msgid "Lock"
@@ -8149,6 +8173,10 @@ msgctxt "structuresfrm2.rsunkownfileextension"
 msgid "Unknown file extension"
 msgstr "Неизвестное расширения файла"
 
+#: structuresfrm2.rsunlinkfrommemoryviewwindow
+msgid "Unlink from memoryview window"
+msgstr "Отвязать от окна редактора памяти"
+
 #: structuresfrm2.rsunlockmemory
 msgctxt "structuresfrm2.rsunlockmemory"
 msgid "Unlock memory"
@@ -8188,6 +8216,10 @@ msgstr "Следить за изменениями"
 msgctxt "structuresfrm2.rswhichgroupdoyouwanttosetthisaddressto"
 msgid "Which group do you want to set this address to?"
 msgstr "В какую группу вы хотите определить этот адрес?"
+
+#: structuresfrm2.rswhichmemoryviewtolinkwith
+msgid "Which memoryview to link with?"
+msgstr "С каким редактором памяти связать?"
 
 #: structuresfrm2.rswrongversion
 msgctxt "structuresfrm2.rswrongversion"
@@ -9287,6 +9319,10 @@ msgstr "Пассивная сборка мусора"
 msgid "Constantly runs a few steps of the garbage collector sequence. (Will take a while till all garbage is cleaned if there is a lot)"
 msgstr "Постоянно выполняет несколько шагов последовательности сборщика мусора. (Займёт некоторое время, пока весь мусор не будет очищен, если его много)"
 
+#: tformsettings.cbmanualmapveh.caption
+msgid "Manual map vehdebug dll"
+msgstr "Ручной маппинг vehdebug dll"
+
 #: tformsettings.cbmemimage.caption
 msgid "MEM_IMAGE:Memory that is mapped into the view of an image section"
 msgstr "MEM_IMAGE: Страницы памяти в пределах региона сопоставляются в представление изображения раздела"
@@ -9345,7 +9381,7 @@ msgid ""
 "When deselected you can only get the trace information when stopped on a breakpoint. "
 msgstr ""
 "Если эта опция включена, то каждый отдельный элемент в процедурах «Выяснить...» получит копию трассировки для этого потока в данный момент(Может потреблять много памяти, при установке большого значения).\n"
-"Если выключена, то получить информацию о трассировке вы можете только при остановке на брейкпоинте. "
+"Если выключена, то получить информацию о трассировке вы можете только при остановке на брейкпоинта. "
 
 #: tformsettings.cbsavememoryregionscansettings.caption
 msgid "Save the memoryregions to scan options"
@@ -12112,6 +12148,14 @@ msgctxt "tfrmluaengine.micopy.caption"
 msgid "Copy"
 msgstr "Копировать"
 
+#: tfrmluaengine.mictrlccancelsscript.caption
+msgid "Ctrl+C cancels current script"
+msgstr "Ctrl+C отменяет текущий скрипт"
+
+#: tfrmluaengine.mictrlccancelsscript.hint
+msgid "This makes the the script run under the Lua debugger even when no breakpoint is set. This will allow the script to get canceled when it sees CTRL and C are down (Slows down the script slightly)"
+msgstr "Заставит скрипт запускаться под отладчиком Lua, даже если брейкпоинт не установлен. И позволит скрипту отменяться, когда он видит, что CTRL и C не работают (немного замедляет его работу)."
+
 #: tfrmluaengine.micut.caption
 msgctxt "tfrmluaengine.micut.caption"
 msgid "Cut"
@@ -12397,6 +12441,10 @@ msgstr "Отмена"
 msgid "Disassembler Preferences"
 msgstr "Настройки дизассемблера"
 
+#: tfrmmemviewpreferences.cbcenterdisassemblerwhenoutsideview.caption
+msgid "Center disassembler when changing address outside of current view"
+msgstr "Центрировать дизассемблер при изменении адреса вне текущего представления"
+
 #: tfrmmemviewpreferences.cbcolorgroup.text
 msgctxt "tfrmmemviewpreferences.cbcolorgroup.text"
 msgid "Normal"
@@ -12416,9 +12464,13 @@ msgstr "По умолчанию"
 msgid "Original rendering system (Slow on mac)"
 msgstr "Оригинальная система отрисовки (медленная на Mac)"
 
-#: tfrmmemviewpreferences.cbCenterDisassemblerWhenOutsideView.caption
-msgid "Center disassembler when changing address outside of current view"
-msgstr "Центрировать дизассемблер при изменении адреса вне текущего представления"
+#: tfrmmemviewpreferences.cbpastemovescursor.caption
+msgid "Paste moves cursor"
+msgstr "Вставка перемещает курсор"
+
+#: tfrmmemviewpreferences.cbpastemovescursor.hint
+msgid "When pasting move the cursor by the size of the paste"
+msgstr "Вставка перемещает курсор на расстояние, равное размеру вставки"
 
 #: tfrmmemviewpreferences.cbshowstatusbar.caption
 msgid "Show statusbar"
@@ -12534,7 +12586,7 @@ msgstr "Обычный"
 
 #: tfrmmemviewpreferences.lblhexsecondaryediting.caption
 msgid "SecondaryEditing"
-msgstr "Вторичное редактирование"
+msgstr "Вторичное редактирование  "
 
 #: tfrmmemviewpreferences.lblhexseperator.caption
 msgid "Seperator line"
@@ -12555,11 +12607,11 @@ msgstr "Цвет по умолчанию"
 
 #: tfrmmemviewpreferences.lblreghighlightaccess.caption
 msgid "Highlight Access"
-msgstr "Подсветка Доступа"
+msgstr "Подсветка обращения"
 
 #: tfrmmemviewpreferences.lblreghighlightchange.caption
 msgid "Highlight Change"
-msgstr "Подсветка Изменения"
+msgstr "Подсветка изменения"
 
 #: tfrmmemviewpreferences.lblregister.caption
 msgctxt "tfrmmemviewpreferences.lblregister.caption"
@@ -13134,6 +13186,10 @@ msgstr "Только статичные адреса и адреса куч"
 #: tfrmpointerscannersettings.cbheaponly.hint
 msgid "If the address you search for isn't a heap address, the scan will return 0 results"
 msgstr "Если адрес, который вы ищете, не является адресом кучи, то результатом сканирования будет 0"
+
+#: tfrmpointerscannersettings.cbignoreupperbyte.caption
+msgid "Ignore upper byte of pointers"
+msgstr "Игнорировать верхний байт указателей"
 
 #: tfrmpointerscannersettings.cbincludesystemmodules.caption
 msgctxt "tfrmpointerscannersettings.cbincludesystemmodules.caption"
@@ -16848,6 +16904,14 @@ msgstr "Документация по Lua"
 msgid "Manual expand/collapse"
 msgstr "Ручное развёртывание/сворачивание"
 
+#: tmainform.mimemrechidecheckbox.caption
+msgid "Hide checkbox"
+msgstr "Скрыть чекбокс"
+
+#: tmainform.mimemrecwithnocheckboxstartsleft.caption
+msgid "Description at start"
+msgstr "Описание в начале"
+
 #: tmainform.minetwork.caption
 msgctxt "tmainform.minetwork.caption"
 msgid "Network"
@@ -16869,6 +16933,31 @@ msgstr "Предустановка: Сканировать всю память"
 #: tmainform.mipresetwritable.caption
 msgid "Preset: Scan writable memory"
 msgstr "Предустановка: Сканировать перезаписываемую память"
+
+#: tmainform.mirecordconfig.caption
+msgid "Record config"
+msgstr "Конфигурация записи"
+
+#: tmainform.mirecordconfigactivatesetvalue.caption
+msgctxt "tmainform.mirecordconfigactivatesetvalue.caption"
+msgid "Set Value"
+msgstr "Установить Значение"
+
+#: tmainform.mirecordconfigdeactivaterestore.caption
+msgid "Restore to original"
+msgstr "Восстановить в исходное состояние"
+
+#: tmainform.mirecordconfigdeactivatesetvalue.caption
+msgid "Set value"
+msgstr "Установить значение"
+
+#: tmainform.mirecordconfigonactivate.caption
+msgid "On Activate"
+msgstr "При активации"
+
+#: tmainform.mirecordconfigondeactivate.caption
+msgid "On Deactivate"
+msgstr "При деактивации"
 
 #: tmainform.mirecursivesetvalue.caption
 msgid "Setting a value to this entry sets same value to children"
@@ -17117,7 +17206,7 @@ msgid "Find out what writes to this address"
 msgstr "Выяснить, что записывает по этому адресу"
 
 #: tmainform.sethotkey1.caption
-msgid "Assign Hotkey"
+msgid "Assign hotkey"
 msgstr "Назначить горячую клавишу"
 
 #: tmainform.settings1.caption
