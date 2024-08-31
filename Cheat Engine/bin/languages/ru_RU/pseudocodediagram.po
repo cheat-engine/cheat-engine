@@ -181,3 +181,7 @@ msgstr "Диаграмма"
 #: pseudocodediagram-sd
 msgid "Spawn diagram"
 msgstr "Породить диаграмму"
+
+#: pseudocodediagram-cbc
+msgid "Change background color"
+msgstr "Изменить цвет фона"
