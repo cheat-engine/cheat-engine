@@ -82,28 +82,31 @@ function findDotNetMethodAddress(name, modulename)
     --first try to get it manually using the .net interface currently used, if that fails, go for the symbolhandler method
 
     --find the image      
-    local assemblies=mono_enumAssemblies() 
+    local assemblies=mono_enumAssemblies()
     for i=1,#assemblies do
       local img=mono_getImageFromAssembly(assemblies[i])
       local imagename=mono_image_get_filename(img):lower()
-      local ln=extractFileName(imagename)
-	  
-      if ln==dllmodulelower then
+
+      if imagename==dllmodulelower or extractFileName(imagename)==dllmodulelower then
         --find the class and method
-        local class=mono_image_findClass(img, namespace, classname)          
-        
+        local class=mono_image_findClass(img, namespace, classname)
+
         if class then
           local method=mono_class_findMethod(class, methodname)
           if method then
             return mono_compile_method(method)
           end
-          
+
         end
         break
       end
     end
-    
+
     --still here
+    local monoformat=''
+    if namespace~='' then monoformat=namespace..':' end
+        monoformat=monoformat..classname..':'..methodname
+    
     result=getAddressSafe(monoformat) --monoscript's symbolhandler will cause this method to get compiled
     
     if result==nil then
