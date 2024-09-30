@@ -39,7 +39,7 @@ uses
   customtypehandler, lua, luahandler, lauxlib, lualib, frmSelectionlistunit,
   htmlhelp, win32int, {defaulttranslator,} fileaccess, formdesignerunit,
   ceguicomponents, frmautoinjectunit, cesupport, trainergenerator, genericHotkey,
-  luafile, xmplayer_server, sharedMemory{$ifdef windows}, win32proc{$endif},
+  luafile, xmplayer_server, sharedMemory, win32proc,
   vmxfunctions, FileUtil, networkInterfaceApi, networkconfig, d3dhookUnit, PNGcomn,
   FPimage, byteinterpreter, frmgroupscanalgoritmgeneratorunit, vartypestrings,
   groupscancommandparser, GraphType, IntfGraphics, RemoteMemoryManager,
