@@ -502,6 +502,7 @@ void CPipeServer::InitMono()
 				mono_class_is_generic = (MONO_CLASS_IS_GENERIC)GetProcAddress(hMono, "il2cpp_class_is_generic");
 				mono_class_is_enum = (MONO_CLASS_IS_ENUM)GetProcAddress(hMono, "il2cpp_class_is_enum");
 				mono_class_is_valuetype = (MONO_CLASS_IS_VALUETYPE)GetProcAddress(hMono, "il2cpp_class_is_valuetype");
+				mono_class_is_blittable = (MONO_CLASS_IS_BLITTABLE)GetProcAddress(hMono, "il2cpp_class_is_blittable");
 				mono_class_is_subclass_of = (MONO_CLASS_IS_SUBCLASS_OF)GetProcAddress(hMono, "il2cpp_class_is_subclass_of");
 				mono_class_vtable = (MONO_CLASS_VTABLE)GetProcAddress(hMono, "il2cpp_class_vtable");
 				mono_class_from_mono_type = (MONO_CLASS_FROM_MONO_TYPE)GetProcAddress(hMono, "il2cpp_class_from_mono_type");
@@ -517,6 +518,16 @@ void CPipeServer::InitMono()
 				mono_property_get_name = (MONO_PROPERTY_GET_NAME)GetProcAddress(hMono, "il2cpp_property_get_name");
 				mono_property_get_parent = (MONO_PROPERTY_GET_PARENT)GetProcAddress(hMono, "il2cpp_property_get_parent");
 				mono_property_get_flags = (MONO_PROPERTY_GET_FLAGS)GetProcAddress(hMono, "il2cpp_property_get_flags");
+				
+				mono_class_get_events = (MONO_CLASS_GET_EVENTS)GetProcAddress(hMono, "il2cpp_class_get_events");
+				//No methods for il2cpp; We will rely on the struct EventInfo
+				mono_event_get_name = nullptr;
+				mono_event_get_add_method = nullptr;
+				mono_event_get_remove_method = nullptr;
+				mono_event_get_raise_method = nullptr;
+				mono_event_get_parent = nullptr;
+				mono_event_get_flags = nullptr;
+				mono_event_get_object = nullptr;
 
 				mono_class_num_fields = (MONO_CLASS_NUM_FIELDS)GetProcAddress(hMono, "il2cpp_class_num_fields");
 				mono_class_num_methods = (MONO_CLASS_NUM_METHODS)GetProcAddress(hMono, "il2cpp_class_num_methods");
@@ -545,6 +556,9 @@ void CPipeServer::InitMono()
 				mono_method_get_flags = (MONO_METHOD_GET_FLAGS)GetProcAddress(hMono, "il2cpp_method_get_flags");
 				mono_method_signature = (MONO_METHOD_SIG)GetProcAddress(hMono, "il2cpp_method_signature");
 				mono_method_get_param_names = (MONO_METHOD_GET_PARAM_NAMES)GetProcAddress(hMono, "il2cpp_method_get_param_names");
+				mono_method_is_generic = (MONO_METHOD_IS_GENERIC)GetProcAddress(hMono, "il2cpp_method_is_generic");
+				mono_method_is_inflated = (MONO_METHOD_IS_INFLATED)GetProcAddress(hMono, "il2cpp_method_is_inflated");
+				mono_method_is_instance = (MONO_METHOD_IS_INSTANCE)GetProcAddress(hMono, "il2cpp_method_is_instance");
 
 
 
@@ -577,6 +591,7 @@ void CPipeServer::InitMono()
 				mono_string_to_utf8 = (MONO_STRING_TO_UTF8)GetProcAddress(hMono, "il2cpp_string_to_utf8");
 				il2cpp_array_new = (IL2CPP_ARRAY_NEW)GetProcAddress(hMono, "il2cpp_array_new");
 				mono_array_element_size = (MONO_ARRAY_ELEMENT_SIZE)GetProcAddress(hMono, "il2cpp_array_element_size");
+				mono_class_get_rank = (MONO_CLASS_GET_RANK)GetProcAddress(hMono, "il2cpp_class_get_rank");
 				mono_value_box = (MONO_VALUE_BOX)GetProcAddress(hMono, "il2cpp_value_box");
 				mono_object_unbox = (MONO_OBJECT_UNBOX)GetProcAddress(hMono, "il2cpp_object_unbox");
 				mono_object_new = (MONO_OBJECT_NEW)GetProcAddress(hMono, "il2cpp_object_new");
@@ -594,6 +609,7 @@ void CPipeServer::InitMono()
 				mono_ptr_class_get = mono_ptr_class_get ? mono_ptr_class_get : (MONO_PTR_GET_CLASS)GetProcAddress(hMono, "mono_ptr_class_get");
 				mono_type_get_ptr_type = (MONO_PTR_GET_CLASS)GetProcAddress(hMono, "il2cpp_type_get_ptr_type");
 				mono_type_get_ptr_type = mono_type_get_ptr_type ? mono_type_get_ptr_type : (MONO_PTR_GET_CLASS)GetProcAddress(hMono, "mono_type_get_ptr_type");
+				mono_type_get_attrs = (MONO_TYPE_GET_ATTRS)GetProcAddress(hMono, "il2cpp_type_get_attrs");
 
 				mono_assembly_name_new = (MONO_ASSEMBLY_NAME_NEW)GetProcAddress(hMono, "il2cpp_assembly_name_new");
 				mono_assembly_loaded = (MONO_ASSEMBLY_LOADED)GetProcAddress(hMono, "il2cpp_assembly_loaded");
@@ -601,7 +617,17 @@ void CPipeServer::InitMono()
 				mono_image_open = (MONO_IMAGE_OPEN)GetProcAddress(hMono, "il2cpp_image_open");
 				mono_image_get_filename = (MONO_IMAGE_GET_FILENAME)GetProcAddress(hMono, "il2cpp_image_get_filename");
 
-				mono_class_get_nesting_type = (MONO_CLASS_GET_NESTING_TYPE)GetProcAddress(hMono, "mono_class_get_nesting_type");
+				mono_class_get_nesting_type = (MONO_CLASS_GET_NESTING_TYPE)GetProcAddress(hMono, "il2cpp_class_get_nesting_type");
+				if (mono_class_get_nesting_type == NULL)
+					mono_class_get_nesting_type = (MONO_CLASS_GET_NESTING_TYPE)GetProcAddress(hMono, "mono_class_get_nesting_type");
+				mono_class_get_nested_types = (MONO_CLASS_GET_NESTED_TYPES)GetProcAddress(hMono, "il2cpp_class_get_nested_types");
+				if (mono_class_get_nested_types == NULL)
+					mono_class_get_nested_types = (MONO_CLASS_GET_NESTED_TYPES)GetProcAddress(hMono, "mono_class_get_nested_types");
+
+				mono_gchandle_new = (MONO_GCHANDLE_NEW)GetProcAddress(hMono, "il2cpp_gchandle_new");
+				mono_gchandle_new_weakref = (MONO_GCHANDLE_NEW_WEAKREF)GetProcAddress(hMono, "il2cpp_gchandle_new_weakref");
+				mono_gchandle_get_target = (MONO_GCHANDLE_GET_TARGET)GetProcAddress(hMono, "il2cpp_gchandle_get_target");
+				mono_gchandle_free = (MONO_GCHANDLE_FREE)GetProcAddress(hMono, "il2cpp_gchandle_free");
 
 				il2cpp_field_static_get_value = (IL2CPP_FIELD_STATIC_GET_VALUE)GetProcAddress(hMono, "il2cpp_field_static_get_value");
 				il2cpp_field_static_set_value = (IL2CPP_FIELD_STATIC_SET_VALUE)GetProcAddress(hMono, "il2cpp_field_static_set_value");
@@ -681,6 +707,7 @@ void CPipeServer::InitMono()
 				mono_class_is_generic = (MONO_CLASS_IS_GENERIC)GetProcAddress(hMono, "mono_class_is_generic"); 
 				mono_class_is_enum = (MONO_CLASS_IS_ENUM)GetProcAddress(hMono, "mono_class_is_enum");
 				mono_class_is_valuetype = (MONO_CLASS_IS_VALUETYPE)GetProcAddress(hMono, "mono_class_is_valuetype");
+				mono_class_is_blittable = (MONO_CLASS_IS_BLITTABLE)GetProcAddress(hMono, "mono_class_is_blittable");
 				mono_class_is_subclass_of = (MONO_CLASS_IS_SUBCLASS_OF)GetProcAddress(hMono, "mono_class_is_subclass_of");
 
 				mono_class_get_properties = (MONO_CLASS_GET_PROPERTIES)GetProcAddress(hMono, "mono_class_get_properties");
@@ -690,6 +717,16 @@ void CPipeServer::InitMono()
 				mono_property_get_name = (MONO_PROPERTY_GET_NAME)GetProcAddress(hMono, "mono_property_get_name");
 				mono_property_get_parent = (MONO_PROPERTY_GET_PARENT)GetProcAddress(hMono, "mono_property_get_parent");
 				mono_property_get_flags = (MONO_PROPERTY_GET_FLAGS)GetProcAddress(hMono, "mono_property_get_flags");
+				
+				mono_class_get_events = (MONO_CLASS_GET_EVENTS)GetProcAddress(hMono, "mono_class_get_events");
+				mono_event_get_name = (MONO_EVENT_GET_NAME)GetProcAddress(hMono, "mono_event_get_name");
+				mono_event_get_add_method = (MONO_EVENT_GET_ADD_METHOD)GetProcAddress(hMono, "mono_event_get_add_method");
+				mono_event_get_remove_method = (MONO_EVENT_GET_REMOVE_METHOD)GetProcAddress(hMono, "mono_event_get_remove_method");
+				mono_event_get_raise_method = (MONO_EVENT_GET_RAISE_METHOD)GetProcAddress(hMono, "mono_event_get_raise_method");
+				mono_event_get_parent = (MONO_EVENT_GET_PARENT)GetProcAddress(hMono, "mono_event_get_parent");
+				mono_event_get_flags = (MONO_EVENT_GET_FLAGS)GetProcAddress(hMono, "mono_event_get_flags");
+				mono_event_get_object = (MONO_EVENT_GET_OBJECT)GetProcAddress(hMono, "mono_event_get_object");
+				
 
 				mono_class_vtable = (MONO_CLASS_VTABLE)GetProcAddress(hMono, "mono_class_vtable");
 				mono_class_from_mono_type = (MONO_CLASS_FROM_MONO_TYPE)GetProcAddress(hMono, "mono_class_from_mono_type");
@@ -721,7 +758,13 @@ void CPipeServer::InitMono()
 				mono_method_get_flags = (MONO_METHOD_GET_FLAGS)GetProcAddress(hMono, "mono_method_get_flags");
 				mono_method_signature = (MONO_METHOD_SIG)GetProcAddress(hMono, "mono_method_signature");
 				mono_method_get_param_names = (MONO_METHOD_GET_PARAM_NAMES)GetProcAddress(hMono, "mono_method_get_param_names");
-
+				mono_method_is_generic = (MONO_METHOD_IS_GENERIC)GetProcAddress(hMono, "mono_method_is_generic");
+				mono_method_is_generic = !!mono_method_is_generic ? mono_method_is_generic : (MONO_METHOD_IS_GENERIC)GetProcAddress(hMono, "mono_method_is_generic_impl");
+				mono_method_is_generic = !!mono_method_is_generic ? mono_method_is_generic : (MONO_METHOD_IS_GENERIC)GetProcAddress(hMono, "unity_mono_method_is_generic");
+				mono_method_is_inflated = (MONO_METHOD_IS_INFLATED)GetProcAddress(hMono, "mono_method_is_inflated");
+				mono_method_is_inflated = !!mono_method_is_inflated ? mono_method_is_inflated : (MONO_METHOD_IS_GENERIC)GetProcAddress(hMono, "unity_mono_method_is_inflated");
+				mono_method_is_instance = (MONO_METHOD_IS_INSTANCE)GetProcAddress(hMono, "mono_signature_is_instance"); //Needs MonoMethodSignature*
+				//mono_method_is_instance = !!mono_method_is_instance ? mono_method_is_instance : (MONO_METHOD_IS_GENERIC)GetProcAddress(hMono, "mono_method_is_instance");
 
 
 				mono_signature_get_desc = (MONO_SIGNATURE_GET_DESC)GetProcAddress(hMono, "mono_signature_get_desc");
@@ -752,6 +795,7 @@ void CPipeServer::InitMono()
 				mono_string_to_utf8 = (MONO_STRING_TO_UTF8)GetProcAddress(hMono, "mono_string_to_utf8");
 				mono_array_new = (MONO_ARRAY_NEW)GetProcAddress(hMono, "mono_array_new");
 				mono_array_element_size = (MONO_ARRAY_ELEMENT_SIZE)GetProcAddress(hMono, "mono_array_element_size");
+				mono_class_get_rank = (MONO_CLASS_GET_RANK)GetProcAddress(hMono, "mono_class_get_rank");
 				mono_value_box = (MONO_VALUE_BOX)GetProcAddress(hMono, "mono_value_box");
 				mono_object_unbox = (MONO_OBJECT_UNBOX)GetProcAddress(hMono, "mono_object_unbox");
 				mono_object_new = (MONO_OBJECT_NEW)GetProcAddress(hMono, "mono_object_new");
@@ -762,6 +806,7 @@ void CPipeServer::InitMono()
 				mono_class_get_type = (MONO_CLASS_GET_TYPE)GetProcAddress(hMono, "mono_class_get_type");
 				mono_type_get_class = (MONO_TYPE_GET_CLASS)GetProcAddress(hMono, "mono_type_get_class");
 				mono_class_get_nesting_type = (MONO_CLASS_GET_NESTING_TYPE)GetProcAddress(hMono, "mono_class_get_nesting_type");
+				mono_class_get_nested_types = (MONO_CLASS_GET_NESTED_TYPES)GetProcAddress(hMono, "mono_class_get_nested_types");
 
 				mono_method_desc_search_in_image = (MONO_METHOD_DESC_SEARCH_IN_IMAGE)GetProcAddress(hMono, "mono_method_desc_search_in_image");
 				mono_runtime_invoke = (MONO_RUNTIME_INVOKE)GetProcAddress(hMono, "mono_runtime_invoke");
@@ -769,6 +814,7 @@ void CPipeServer::InitMono()
 
 				mono_ptr_class_get = (MONO_PTR_GET_CLASS)GetProcAddress(hMono, "mono_ptr_class_get");
 				mono_type_get_ptr_type = (MONO_PTR_GET_CLASS)GetProcAddress(hMono, "mono_type_get_ptr_type");
+				mono_type_get_attrs = (MONO_TYPE_GET_ATTRS)GetProcAddress(hMono, "mono_type_get_attrs");
 
 				mono_assembly_name_new = (MONO_ASSEMBLY_NAME_NEW)GetProcAddress(hMono, "mono_assembly_name_new");
 				mono_assembly_loaded = (MONO_ASSEMBLY_LOADED)GetProcAddress(hMono, "mono_assembly_loaded");
@@ -779,6 +825,12 @@ void CPipeServer::InitMono()
 				mono_field_static_set_value = (MONO_FIELD_STATIC_SET_VALUE)GetProcAddress(hMono, "mono_field_static_set_value");
 
 				mono_runtime_is_shutting_down = (MONO_RUNTIME_IS_SHUTTING_DOWN)GetProcAddress(hMono, "mono_runtime_is_shutting_down");
+				
+				mono_gchandle_new = (MONO_GCHANDLE_NEW)GetProcAddress(hMono, "mono_gchandle_new");
+				mono_gchandle_new_weakref = (MONO_GCHANDLE_NEW_WEAKREF)GetProcAddress(hMono, "mono_gchandle_new_weakref");
+				mono_gchandle_get_target = (MONO_GCHANDLE_GET_TARGET)GetProcAddress(hMono, "mono_gchandle_get_target");
+				mono_gchandle_free = (MONO_GCHANDLE_FREE)GetProcAddress(hMono, "mono_gchandle_free");
+				
 				domain = mono_get_root_domain();
 			}
 
@@ -860,11 +912,14 @@ void CPipeServer::Object_GetClass()
 		classname = mono_class_get_name(klass);
 
 		//small test to see if the classname is readable
-		for (i = 0; i < strlen(classname); i++)
+		if (!!classname)
 		{
-			char x = classname[i];
-			if (x == '\0')
-				break;
+			for (i = 0; i < strlen(classname); i++)
+			{
+				char x = classname[i];
+				if (x == '\0')
+					break;
+			}
 		}
 
 		if (klass != 0)
@@ -1585,6 +1640,57 @@ void CPipeServer::GetMethodFullName()
 	else
 		WriteWord(0);
 }
+void CPipeServer::GetMethodFlags()
+{
+	uint32_t flags;
+	void* method = (void*)ReadQword();
+	flags = !!mono_method_get_flags ? mono_method_get_flags(method, NULL) : 0;
+	WriteDword(flags);
+}
+
+void CPipeServer::GetMethodInfo()
+{
+	//Instead of writing multiple functions, write one function with data type variations
+	MonoMethodInfo infotype = (MonoMethodInfo)ReadByte();
+	void* method = (void*)ReadQword();
+ 	switch (infotype)
+	{
+	case MonoMethodInfo::Get_IsGeneric:
+		if (!!mono_method_is_generic)
+			WriteByte(mono_method_is_generic(method));
+		else
+			WriteByte(-1);
+		break;
+	case MonoMethodInfo::Get_IsInflated:
+		if (!!mono_method_is_inflated)
+			WriteByte(mono_method_is_inflated(method));
+		else
+			WriteByte(-1);
+		break;
+	case MonoMethodInfo::Get_IsInstance:
+		if (!!mono_method_is_instance)
+		{
+			if (il2cpp)
+				WriteByte(mono_method_is_instance(method));
+			else
+			{
+				if (void* Sig = mono_method_signature(method))
+				{
+					//mono_method_is_instance for general Mono needs a MonoMethodSignature*
+					WriteByte(mono_method_is_instance(method));
+				}
+				else
+					WriteByte(-1);
+			}
+		}
+		else
+			WriteByte(-1);
+		break;
+	default:
+		WriteDword(-1);
+		break;
+	}
+}
 
 void CPipeServer::GetMethodClass()
 {
@@ -1769,6 +1875,251 @@ void CPipeServer::GetPropertyFlags()
 	int flags = 0;
 	flags = (mono_property_get_flags && _property) ? mono_property_get_flags(_property) : flags;
 	WriteDword(flags);
+}
+
+void CPipeServer::EnumEventsInClass()
+{
+	void* klass = (void*)ReadQword();
+	void* iter = nullptr;
+	void* _event = nullptr;
+	if (klass && mono_class_get_events)
+	{
+		WriteByte(1);//confirm flag
+		do
+		{
+			_event = mono_class_get_events(klass, &iter);
+			WriteQword((UINT_PTR)_event);
+
+		} while (_event);
+	}
+	else
+		WriteByte(0);
+}
+
+void CPipeServer::EventsGetInfo()
+{
+	typedef struct EventInfo
+	{
+		const char* name;
+		const void* eventType;
+		void* parent;
+		const void* add;
+		const void* remove;
+		const void* raise;
+		uint32_t token;
+	} EventInfo;
+
+	MonoEventsInfo eventinfotype = (MonoEventsInfo)ReadByte();
+	EventInfo* monoevent = (EventInfo*)ReadQword();
+	switch (eventinfotype)
+	{
+	case MonoEventsInfo::Name:
+		if (!!mono_event_get_name)
+			WriteString(mono_event_get_name(monoevent));
+		else if (il2cpp)
+		{
+			try
+			{
+				WriteString(monoevent->name);
+			}
+			catch (...)
+			{
+				WriteString("");
+			}
+		}
+		else
+			WriteString("");
+		break;
+	case MonoEventsInfo::Class:
+		if (!!mono_event_get_parent)
+			WriteQword((UINT64)mono_event_get_parent(monoevent));
+		else if (il2cpp)
+		{
+			try
+			{
+				WriteQword((UINT64)monoevent->parent);
+			}
+			catch (...)
+			{
+				WriteQword(0);
+			}
+		}
+		else
+			WriteQword(0);
+		break;
+	case MonoEventsInfo::AddMethod:
+		if (!!mono_event_get_add_method)
+			WriteQword((UINT64)mono_event_get_add_method(monoevent));
+		else if (il2cpp)
+		{
+			try
+			{
+				WriteQword((UINT64)monoevent->add);
+			}
+			catch (...)
+			{
+				WriteQword(0);
+			}
+		}
+		else
+			WriteQword(0);
+		break;
+	case MonoEventsInfo::RemoveMethod:
+		if (!!mono_event_get_remove_method)
+			WriteQword((UINT64)mono_event_get_remove_method(monoevent));
+		else if (il2cpp)
+		{
+			try
+			{
+				WriteQword((UINT64)monoevent->remove);
+			}
+			catch (...)
+			{
+				WriteQword(0);
+			}
+		}
+		else
+			WriteQword(0);
+		break;
+	case MonoEventsInfo::RaiseMethod:
+		if (!!mono_event_get_raise_method)
+			WriteQword((UINT64)mono_event_get_raise_method(monoevent));
+		else if (il2cpp)
+		{
+			try
+			{
+				WriteQword((UINT64)monoevent->raise);
+			}
+			catch (...)
+			{
+				WriteQword(0);
+			}
+		}
+		else
+			WriteQword(0);
+		break;
+	case MonoEventsInfo::Flags:
+		if (!!mono_event_get_flags)
+			WriteDword(mono_event_get_flags(monoevent));
+		else if (il2cpp)
+		{
+			try
+			{
+				WriteDword(monoevent->token);
+			}
+			catch (...)
+			{
+				WriteDword(0);
+			}
+		}
+		else
+			WriteDword(0);
+		break;
+	case MonoEventsInfo::Object:
+		if (!!mono_event_get_object && mono_event_get_parent)
+		{
+			WriteQword((UINT64)mono_event_get_object(mono_domain_get(), mono_event_get_parent(monoevent), monoevent));
+		}
+		else
+			WriteQword(0);
+		break;
+	default:
+		break;
+	}
+}
+
+void CPipeServer::GCActionsMethod()
+{
+	struct GCHandlesStore
+	{
+		void* object = nullptr;
+		uint32_t handle = 0;
+		bool operator == (void* obj) { return object == obj; }
+		bool operator == (uint32_t hdl) { return hdl == handle; }
+	};
+	static std::vector<GCHandlesStore> handles;
+	
+	MonoGCActions action = (MonoGCActions)ReadByte();
+	switch (action)
+	{
+	case MonoGCActions::MakeNew:
+	case MonoGCActions::MakeNewWeak:
+	{
+		void* obj = (void*)ReadQword();
+		auto existing = std::find(handles.begin(), handles.end(), obj);
+		if (existing != handles.end())
+		{
+			WriteDword(existing->handle);
+		}
+		else
+		{
+			uint32_t handle = action == MonoGCActions::MakeNew ? mono_gchandle_new(obj, false) : mono_gchandle_new_weakref(obj, false);
+			handles.push_back(GCHandlesStore{ obj, handle });
+			WriteDword(handle);
+		}
+	}
+		break;
+	case MonoGCActions::GetTarget:
+		WriteQword((UINT64)mono_gchandle_get_target(ReadDword()));
+		break;
+	case MonoGCActions::FreeHandle:
+	{
+		uint32_t handle = ReadDword();
+		mono_gchandle_free(handle);
+		auto existing = std::find(handles.begin(), handles.end(), handle);
+		if (existing != handles.end())
+			handles.erase(existing);
+	}
+		break;
+	case MonoGCActions::FreeAll:
+		for (GCHandlesStore& hs : handles)
+			mono_gchandle_free(hs.handle);
+		handles.clear();
+		break;
+	default:
+		break;
+	}
+}
+
+void CPipeServer::MonoClassActionsMethod()
+{
+	MonoClassInfo action = (MonoClassInfo)ReadByte();
+	switch (action)
+	{
+	case MonoClassInfo::IsBlittable:
+		if (void* klass = (void*)ReadQword())
+			WriteByte(mono_class_is_blittable(klass));
+		else
+			WriteByte(0);
+		break;
+	case MonoClassInfo::InstanceSize:
+		if (void* klass = (void*)ReadQword())
+			WriteDword(mono_class_instance_size(klass));
+		else
+			WriteDword(-1);
+		break;
+	default:
+		break;
+	}
+}
+
+void CPipeServer::MonoTypeActionsMethod()
+{
+	MonoTypeInfo action = (MonoTypeInfo)ReadByte();
+	switch (action)
+	{
+	case MonoTypeInfo::GetAttrs:
+	{
+		void* monotype = (void*)ReadQword();
+		if (!!monotype && !!mono_type_get_attrs)
+			WriteDword(mono_type_get_attrs(monotype));
+		else
+			WriteDword(0);
+	}
+		break;
+	default:
+		break;
+	}
 }
 
 void CPipeServer::DisassembleMethod()
@@ -1970,6 +2321,27 @@ void CPipeServer::GetParentClass(void)
 	WriteQword(parent);
 }
 
+void CPipeServer::GetClassNestedTypes(void)
+{
+	INT32 count = 0;
+	void* klass = (void*)ReadQword();
+	if (klass && mono_class_get_nested_types)
+	{
+		void* iter = NULL;
+		void* nklass;
+		std::vector<UINT64> nestedlist;
+		while ((nklass = mono_class_get_nested_types(klass, &iter)))
+			nestedlist.push_back((UINT64)nklass);
+		count = (INT32)nestedlist.size();
+		WriteDword(count);
+		int i;
+		for (i = 0; i < count; i++)
+			WriteQword(nestedlist[i]);
+	}
+	else
+		WriteDword(0);
+}
+
 void CPipeServer::GetClassNestingType(void)
 {
 	UINT_PTR nestingtype = 0;
@@ -2051,9 +2423,9 @@ void CPipeServer::GetReflectionMethodOfMethod()
 
 void CPipeServer::UnBoxMonoObject()
 {
+	OutputDebugString("Unbox Object Called");
 	void* object = (void*)ReadQword();
 	WriteQword(object ? (UINT64)mono_object_unbox(object) : 0);
-	OutputDebugString("Unbox Object Called");
 }
 
 
@@ -2129,8 +2501,13 @@ void CPipeServer::GetFieldType()
 void CPipeServer::GetArrayElementClass(void)
 {
 	void* klass = (void*)ReadQword();
-	void* eklass = klass ? mono_class_get_element_class(klass) : NULL;
-	WriteQword((UINT_PTR)eklass);
+	if (!mono_class_get_rank || mono_class_get_rank(klass)) //if mono_class_get_rank was null, get the rank regardless
+	{
+		void* eklass = klass ? mono_class_get_element_class(klass) : NULL;
+		WriteQword((UINT_PTR)eklass);
+	}
+	else
+		WriteQword(0);
 }
 
 void CPipeServer::FindMethodByDesc(void)
@@ -2866,8 +3243,13 @@ void CPipeServer::IsTypeByReference()
 void CPipeServer::GetArrayElementSize()
 {
 	void* klass = (void*)ReadQword();
-	if (mono_array_element_size)
-		WriteDword(mono_array_element_size(klass));
+	if (!mono_class_get_rank || mono_class_get_rank(klass))
+	{
+		if (mono_array_element_size)
+			WriteDword(mono_array_element_size(klass));
+		else
+			WriteDword(0);
+	}
 	else
 		WriteDword(0);
 }
@@ -3141,6 +3523,14 @@ void CPipeServer::Start(void)
 					GetMethodClass();
 					break;
 
+				case MONOCMD_GETMETHODFLAGS:
+					GetMethodFlags();
+					break;
+
+				case MONOCMD_GETMETHODINFO:
+					GetMethodInfo();
+					break;
+
 				case MONOCMD_GETCLASSNAME:
 					GetKlassName();
 					break;
@@ -3258,6 +3648,10 @@ void CPipeServer::Start(void)
 					GetClassImage();
 					break;
 
+				case MONOCMD_GETCLASSNESTEDTYPES:
+					GetClassNestedTypes();
+					break;
+
 				case MONOCMD_GETCLASSNESTINGTYPE:
 					GetClassNestingType();
 					break;
@@ -3299,7 +3693,7 @@ void CPipeServer::Start(void)
 					break;
 
 				case MONOCMD_LIMITEDCONNECTION:
-					limitedConnection = true;
+					limitedConnection = ReadByte();
 					break;
 
 				case MONOCMD_ARRAYELEMENTSIZE:
@@ -3348,6 +3742,34 @@ void CPipeServer::Start(void)
 
 				case MONOCMD_CLASSFROMMONOTYPE:
 					GetClassFromMonoType();
+					break;
+
+				case MONOCMD_MONOGCACTIONS:
+					GCActionsMethod();
+					break;
+
+				case MONOCMD_ENUMEVENTSINCLASS:
+					EnumEventsInClass();
+					break;
+
+				case MONOCMD_CLASSEVENTSACTIONS:
+					EventsGetInfo();
+					break;
+					
+				case MONOCMD_MONOCLASSACTIONS:
+					MonoClassActionsMethod();
+					break;
+
+				case MONOCMD_MONOTYPEACTIONS:
+					MonoTypeActionsMethod();
+					break;
+
+				case MONOCMD_COLLECTGARBAGE:
+					WriteByte(MonoGCActions::FreeAll);
+					GCActionsMethod();
+					if (mono_thread_detach)
+						mono_thread_detach(mono_selfthread); //release the thread owned objects so they can get garbage collected
+					ConnectThreadToMonoRuntime();
 					break;
 
 				}

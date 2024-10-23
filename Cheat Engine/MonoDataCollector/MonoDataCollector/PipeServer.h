@@ -12,7 +12,7 @@
 #endif // CUSTOM_DEBUG
 
                                 //yyyymmdd
-#define MONO_DATACOLLECTORVERSION 20231214
+#define MONO_DATACOLLECTORVERSION 20241014
 
 #define MONO_TYPE_NAME_FORMAT_IL  0
 #define MONO_TYPE_NAME_FORMAT_REFLECTION  1
@@ -96,12 +96,63 @@
 #define MONOCMD_PROPERTYGETPARENT 73
 #define MONOCMD_PROPERTYGETFLAGS 74
 #define MONOCMD_CLASSFROMMONOTYPE 75
+#define MONOCMD_GETCLASSNESTEDTYPES 76
+#define MONOCMD_COLLECTGARBAGE 77
+#define MONOCMD_GETMETHODFLAGS 78
+#define MONOCMD_GETMETHODINFO 79
+#define MONOCMD_MONOGCACTIONS 80
+#define MONOCMD_ENUMEVENTSINCLASS 81
+#define MONOCMD_CLASSEVENTSACTIONS 82
+#define MONOCMD_MONOCLASSACTIONS 83
+#define MONOCMD_MONOTYPEACTIONS 84
+
+typedef enum
+{
+	Get_IsGeneric,
+	Get_IsInflated,
+	Get_IsInstance
+} MonoMethodInfo;
+
+typedef enum
+{
+	MakeNew,
+	MakeNewWeak,
+	GetTarget,
+	FreeHandle,
+	FreeAll
+} MonoGCActions;
+
+typedef enum
+{
+	Name,
+	Class, //Parent
+	AddMethod,
+	RemoveMethod,
+	RaiseMethod,
+	Flags,
+	Object, //Only Mono
+} MonoEventsInfo;
+
+typedef enum
+{
+	IsBlittable,
+	InstanceSize
+} MonoClassInfo;
+
+typedef enum
+{
+	GetAttrs
+} MonoTypeInfo;
+
 
 
 typedef struct {} MonoType;
 typedef struct {} MonoObject;
 typedef struct {} MonoMethodSignature;
 typedef void * gpointer;
+typedef int32_t		mono_bool;
+typedef uint8_t		mono_byte;
+typedef mono_byte       MonoBoolean;
 
 typedef void (__cdecl *MonoDomainFunc) (void *domain, void *user_data);
 typedef void (__cdecl *GFunc)          (void *data, void *user_data);
@@ -146,6 +197,7 @@ typedef void* (__cdecl *MONO_CLASS_GET_METHOD_FROM_NAME)(void *klass, char *meth
 typedef void* (__cdecl *MONO_CLASS_GET_FIELDS)(void *klass, void *iter);
 typedef void* (__cdecl *MONO_CLASS_GET_INTERFACES)(void *klass, void *iter);
 typedef void* (__cdecl *MONO_CLASS_GET_PROPERTIES)(void *klass, void *iter);
+typedef void* (__cdecl *MONO_CLASS_GET_EVENTS)(void *klass, void *iter);
 typedef void* (__cdecl *MONO_CLASS_GET_PROPERTY_FROM_NAME)(void *klass, char* propertyname);
 typedef void* (__cdecl *MONO_CLASS_GET_PARENT)(void *klass);
 typedef void* (__cdecl *MONO_CLASS_GET_IMAGE)(void *klass);
@@ -156,6 +208,7 @@ typedef void* (__cdecl *MONO_CLASS_GET_ELEMENT_CLASS)(void *klass);
 typedef int (__cdecl *MONO_CLASS_IS_GENERIC)(void *klass);
 typedef bool (__cdecl *MONO_CLASS_IS_ENUM)(void *klass);
 typedef bool (__cdecl *MONO_CLASS_IS_VALUETYPE)(void *klass);
+typedef bool (__cdecl *MONO_CLASS_IS_BLITTABLE)(void *klass);
 typedef bool (__cdecl *MONO_CLASS_IS_SUBCLASS_OF)(void *klass, void* parentKlass, bool check_interface);
 
 typedef int (__cdecl *MONO_CLASS_NUM_FIELDS)(void *klass);
@@ -182,6 +235,7 @@ typedef void* (__cdecl *MONO_METHOD_GET_OBJECT)(void *domain, void *method, void
 typedef void* (__cdecl *IL2CPP_METHOD_GET_OBJECT)(void* method, void* klass);
 typedef void* (__cdecl* MONO_PTR_GET_CLASS)(void* monotype);
 typedef void* (__cdecl* MONO_TYPE_GET_PTR_TYPE)(void* ptrmonotype);
+typedef int (__cdecl* MONO_TYPE_GET_ATTRS)(void* monotype);
 
 
 typedef char* (__cdecl *MONO_TYPE_GET_NAME_FULL)(void *type, int format);
@@ -213,6 +267,12 @@ typedef void* (__cdecl *MONO_METHOD_GET_HEADER)(void *method);
 typedef void* (__cdecl *MONO_METHOD_GET_CLASS)(void *method);
 typedef void* (__cdecl *MONO_METHOD_SIG)(void *method);
 typedef void* (__cdecl *MONO_METHOD_GET_PARAM_NAMES)(void *method, const char **names);
+typedef bool (__cdecl* MONO_METHOD_IS_GENERIC)(void* method);
+typedef bool (__cdecl* MONO_METHOD_IS_INFLATED)(void* method);
+typedef bool (__cdecl* MONO_METHOD_IS_INSTANCE)(void* method);
+typedef void* (__cdecl* MONO_METHOD_DESC_NEW)(const char* name, int include_namespace);
+typedef void* (__cdecl* MONO_METHOD_DESC_FROM_METHOD)(void* method);
+typedef void(__cdecl* MONO_METHOD_DESC_FREE)(void* desc);
 
 typedef void* (__cdecl *MONO_METHOD_HEADER_GET_CODE)(void *methodheader, UINT32 *code_size, UINT32 *max_stack);
 typedef char* (__cdecl *MONO_DISASM_CODE)(void *dishelper, void *method, void *ip, void *end);
@@ -226,11 +286,6 @@ typedef MonoType* (__cdecl *MONO_SIGNATURE_GET_RETURN_TYPE)(void *signature);
 typedef void* (__cdecl *MONO_IMAGE_RVA_MAP)(void *image, UINT32 addr);
 typedef void* (__cdecl *MONO_VTABLE_GET_STATIC_FIELD_DATA)(void *vtable);
 
-
-typedef void* (__cdecl *MONO_METHOD_DESC_NEW)(const char *name, int include_namespace);
-typedef void* (__cdecl *MONO_METHOD_DESC_FROM_METHOD)(void *method);
-typedef void  (__cdecl *MONO_METHOD_DESC_FREE)(void *desc);
-
 typedef void* (__cdecl *MONO_ASSEMBLY_NAME_NEW)(const char *name);
 typedef void* (__cdecl *MONO_ASSEMBLY_LOADED)(void *aname);
 typedef void* (__cdecl *MONO_IMAGE_LOADED)(void *aname);
@@ -240,9 +295,9 @@ typedef char* (__cdecl *MONO_STRING_TO_UTF8)(void*);
 typedef void* (__cdecl *MONO_ARRAY_NEW)(void *domain, void *eclass, uintptr_t n);
 typedef void* (__cdecl *IL2CPP_ARRAY_NEW)(void *eclass, uintptr_t n);
 typedef int (__cdecl *MONO_ARRAY_ELEMENT_SIZE)(void * klass);
+typedef int(__cdecl* MONO_CLASS_GET_RANK)(void* klass);
 typedef void* (__cdecl *MONO_OBJECT_TO_STRING)(void *object, void **exc);
 typedef void* (__cdecl *MONO_OBJECT_NEW)(void *domain, void *klass);
-
 
 typedef void  (__cdecl *MONO_FREE)(void*);
 
@@ -263,10 +318,22 @@ typedef void* (__cdecl *MONO_OBJECT_ISINST)(void *obj, void* kls);
 typedef void* (__cdecl *MONO_GET_ENUM_CLASS)(void);
 typedef void* (__cdecl *MONO_CLASS_GET_TYPE)(void *klass);
 typedef void* (__cdecl *MONO_CLASS_GET_NESTING_TYPE)(void *klass);
+typedef void* (__cdecl* MONO_CLASS_GET_NESTED_TYPES)(void* klass, void* iter);
 
 typedef int (__cdecl *MONO_RUNTIME_IS_SHUTTING_DOWN)(void);
 
+typedef char*	(__cdecl* MONO_EVENT_GET_NAME)			(void* monoevent);
+typedef void*	(__cdecl* MONO_EVENT_GET_ADD_METHOD)	(void* monoevent);
+typedef void*	(__cdecl* MONO_EVENT_GET_REMOVE_METHOD)	(void* monoevent);
+typedef void*	(__cdecl* MONO_EVENT_GET_RAISE_METHOD)	(void* monoevent);
+typedef void*	(__cdecl* MONO_EVENT_GET_PARENT)		(void* monoevent);
+typedef uint32_t(__cdecl* MONO_EVENT_GET_FLAGS)			(void* monoevent);
+typedef void*	(__cdecl* MONO_EVENT_GET_OBJECT)		(void* domain, void* klass, void* monoevent);
 
+typedef uint32_t(__cdecl* MONO_GCHANDLE_NEW)		(void* monoobject, mono_bool pinned);
+typedef uint32_t(__cdecl* MONO_GCHANDLE_NEW_WEAKREF)(void* monoobject, mono_bool track_resurrection);
+typedef void*	(__cdecl* MONO_GCHANDLE_GET_TARGET)	(uint32_t gchandle);
+typedef void	(__cdecl* MONO_GCHANDLE_FREE)		(uint32_t gchandle);
 
 //il2cpp:
 typedef UINT_PTR* (__cdecl *IL2CPP_DOMAIN_GET_ASSEMBLIES)(void * domain, SIZE_T *size);
@@ -283,6 +350,8 @@ typedef void*(__cdecl *IL2CPP_METHOD_GET_PARAM)(void *method, int index);
 typedef void*(__cdecl *IL2CPP_METHOD_GET_RETURN_TYPE)(void *method);
 typedef void*(__cdecl *IL2CPP_CLASS_FROM_TYPE)(void *type);
 typedef wchar_t*(__cdecl *IL2CPP_STRING_CHARS)(void *stringobject);
+
+
 
 
 class CPipeServer : Pipe
@@ -314,6 +383,7 @@ private:
 	MONO_CLASS_IS_GENERIC mono_class_is_generic;
 	MONO_CLASS_IS_ENUM mono_class_is_enum;
 	MONO_CLASS_IS_VALUETYPE mono_class_is_valuetype;
+	MONO_CLASS_IS_BLITTABLE mono_class_is_blittable;
 	MONO_CLASS_IS_SUBCLASS_OF mono_class_is_subclass_of;
 	MONO_DOMAIN_FOREACH mono_domain_foreach;
 	MONO_DOMAIN_SET mono_domain_set;
@@ -355,6 +425,8 @@ private:
 	MONO_PROPERTY_GET_PARENT mono_property_get_parent;
 	MONO_PROPERTY_GET_FLAGS mono_property_get_flags;
 
+	MONO_CLASS_GET_EVENTS mono_class_get_events;
+
 	MONO_CLASS_GET_METHOD_FROM_NAME mono_class_get_method_from_name;
 	MONO_CLASS_GET_ELEMENT_CLASS mono_class_get_element_class;
 
@@ -378,6 +450,7 @@ private:
 	MONO_FIELD_GET_VALUE_OBJECT mono_field_get_value_object;
 	MONO_PTR_GET_CLASS mono_ptr_class_get;
 	MONO_TYPE_GET_PTR_TYPE mono_type_get_ptr_type;
+	MONO_TYPE_GET_ATTRS mono_type_get_attrs;
 
 	MONO_METHOD_GET_FLAGS mono_method_get_flags;
 	MONO_METHOD_GET_NAME mono_method_get_name;
@@ -386,6 +459,9 @@ private:
 	MONO_METHOD_GET_CLASS mono_method_get_class;
 	MONO_METHOD_SIG mono_method_signature;
 	MONO_METHOD_GET_PARAM_NAMES mono_method_get_param_names;
+	MONO_METHOD_IS_GENERIC mono_method_is_generic;
+	MONO_METHOD_IS_INFLATED mono_method_is_inflated;
+	MONO_METHOD_IS_INSTANCE mono_method_is_instance;
 
 	MONO_SIGNATURE_GET_DESC mono_signature_get_desc;
 	MONO_SIGNATURE_GET_PARAMS mono_signature_get_params;
@@ -417,6 +493,7 @@ private:
 	MONO_STRING_TO_UTF8 mono_string_to_utf8;
 	MONO_ARRAY_NEW mono_array_new;
 	IL2CPP_ARRAY_NEW il2cpp_array_new;
+	MONO_CLASS_GET_RANK mono_class_get_rank;
 	MONO_ARRAY_ELEMENT_SIZE mono_array_element_size;
 	MONO_OBJECT_TO_STRING mono_object_to_string;
 	MONO_OBJECT_NEW mono_object_new;
@@ -428,6 +505,7 @@ private:
 
 	MONO_CLASS_GET_TYPE mono_class_get_type;
 	MONO_CLASS_GET_NESTING_TYPE mono_class_get_nesting_type;
+	MONO_CLASS_GET_NESTED_TYPES mono_class_get_nested_types;
 
 
 	MONO_METHOD_DESC_SEARCH_IN_IMAGE mono_method_desc_search_in_image;
@@ -438,6 +516,19 @@ private:
 	MONO_FIELD_STATIC_SET_VALUE mono_field_static_set_value;
 
 	MONO_RUNTIME_IS_SHUTTING_DOWN mono_runtime_is_shutting_down;
+
+	MONO_GCHANDLE_NEW mono_gchandle_new;
+	MONO_GCHANDLE_NEW_WEAKREF mono_gchandle_new_weakref;
+	MONO_GCHANDLE_GET_TARGET mono_gchandle_get_target;
+	MONO_GCHANDLE_FREE mono_gchandle_free;
+
+	MONO_EVENT_GET_NAME mono_event_get_name;
+	MONO_EVENT_GET_ADD_METHOD mono_event_get_add_method;
+	MONO_EVENT_GET_REMOVE_METHOD mono_event_get_remove_method;
+	MONO_EVENT_GET_RAISE_METHOD mono_event_get_raise_method;
+	MONO_EVENT_GET_PARENT mono_event_get_parent;
+	MONO_EVENT_GET_FLAGS mono_event_get_flags;
+	MONO_EVENT_GET_OBJECT mono_event_get_object;
 
 
 	//il2cpp
@@ -495,6 +586,8 @@ private:
 	void GetMethodName();
 	void GetMethodFullName();
 	void GetMethodClass();
+	void GetMethodFlags();
+	void GetMethodInfo();
 	void GetKlassName();
 	void GetClassNamespace();
 	void FreeMethod();
@@ -504,6 +597,7 @@ private:
 	void GetMethodParameters();
 	void GetParentClass();
 	void GetClassNestingType();
+	void GetClassNestedTypes();
 	void GetClassImage();
 	void GetClassType();
 	void GetClassOfType();
@@ -548,6 +642,13 @@ private:
 	void GetPropertySetter();
 	void GetPropertyParent();
 	void GetPropertyFlags();
+	
+	void EnumEventsInClass();
+	void EventsGetInfo();
+
+	void GCActionsMethod();
+	void MonoClassActionsMethod();
+	void MonoTypeActionsMethod();
 
 public:
 	CPipeServer(void);
