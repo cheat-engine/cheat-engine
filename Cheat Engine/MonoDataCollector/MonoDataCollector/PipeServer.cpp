@@ -1769,6 +1769,7 @@ void CPipeServer::NewString()
 		domain = (void*)mono_get_root_domain();
 
 	char* s = ReadString();
+	domain = il2cpp ? s : domain;
 	void* string = mono_string_new ? mono_string_new(domain, s) : nullptr;
 	free(s);
 

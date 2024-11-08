@@ -788,6 +788,7 @@ function LaunchMonoDataCollector(internalReconnectDisconnectEachTime)
           t.interval=250        
           t.OnTimer=function()
             --print("Check progress")
+			if not monoSymbolList then t.enabled = false; return end
             pb.Position=math.ceil(monoSymbolList.IL2CPPSymbolEnumProgress)
     
             pbl.Caption=string.format("IL2CPP symbol enum: %.f%%",monoSymbolList.IL2CPPSymbolEnumProgress)
