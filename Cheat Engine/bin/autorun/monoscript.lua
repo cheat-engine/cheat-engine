@@ -3887,7 +3887,7 @@ function mono_array_element_size(arrayKlass)
   monopipe.lock()
   monopipe.writeByte(MONOCMD_ARRAYELEMENTSIZE)
   monopipe.writeQword(arrayKlass)
-  local retv = monopipe.readQword()
+  local retv = monopipe.readDword()
   if monopipe then
     monopipe.unlock()
   else
