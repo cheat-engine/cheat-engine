@@ -12,7 +12,7 @@
 #endif // CUSTOM_DEBUG
 
                                 //yyyymmdd
-#define MONO_DATACOLLECTORVERSION 20241014
+#define MONO_DATACOLLECTORVERSION 20241108
 
 #define MONO_TYPE_NAME_FORMAT_IL  0
 #define MONO_TYPE_NAME_FORMAT_REFLECTION  1
@@ -105,6 +105,7 @@
 #define MONOCMD_CLASSEVENTSACTIONS 82
 #define MONOCMD_MONOCLASSACTIONS 83
 #define MONOCMD_MONOTYPEACTIONS 84
+#define MONOCMD_MONOCLASSSTATICFIELDDATA 85
 
 typedef enum
 {
@@ -210,6 +211,7 @@ typedef bool (__cdecl *MONO_CLASS_IS_ENUM)(void *klass);
 typedef bool (__cdecl *MONO_CLASS_IS_VALUETYPE)(void *klass);
 typedef bool (__cdecl *MONO_CLASS_IS_BLITTABLE)(void *klass);
 typedef bool (__cdecl *MONO_CLASS_IS_SUBCLASS_OF)(void *klass, void* parentKlass, bool check_interface);
+typedef void* (__cdecl *MONO_CLASS_GET_STATIC_FIELD_DATA)(void *klass);
 
 typedef int (__cdecl *MONO_CLASS_NUM_FIELDS)(void *klass);
 typedef int (__cdecl *MONO_CLASS_NUM_METHODS)(void *klass);
@@ -385,6 +387,7 @@ private:
 	MONO_CLASS_IS_VALUETYPE mono_class_is_valuetype;
 	MONO_CLASS_IS_BLITTABLE mono_class_is_blittable;
 	MONO_CLASS_IS_SUBCLASS_OF mono_class_is_subclass_of;
+	MONO_CLASS_GET_STATIC_FIELD_DATA mono_class_get_static_field_data;
 	MONO_DOMAIN_FOREACH mono_domain_foreach;
 	MONO_DOMAIN_SET mono_domain_set;
 	MONO_DOMAIN_GET mono_domain_get;
@@ -601,6 +604,7 @@ private:
 	void GetClassImage();
 	void GetClassType();
 	void GetClassOfType();
+	void GetClassStaticFieldData();
 	void GetTypeOfMonoType();
 	void GetReflectionTypeOfClassType();
 	void GetReflectionMethodOfMethod();

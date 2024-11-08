@@ -504,6 +504,7 @@ void CPipeServer::InitMono()
 				mono_class_is_valuetype = (MONO_CLASS_IS_VALUETYPE)GetProcAddress(hMono, "il2cpp_class_is_valuetype");
 				mono_class_is_blittable = (MONO_CLASS_IS_BLITTABLE)GetProcAddress(hMono, "il2cpp_class_is_blittable");
 				mono_class_is_subclass_of = (MONO_CLASS_IS_SUBCLASS_OF)GetProcAddress(hMono, "il2cpp_class_is_subclass_of");
+				mono_class_get_static_field_data = (MONO_CLASS_GET_STATIC_FIELD_DATA)GetProcAddress(hMono, "il2cpp_class_get_static_field_data");
 				mono_class_vtable = (MONO_CLASS_VTABLE)GetProcAddress(hMono, "il2cpp_class_vtable");
 				mono_class_from_mono_type = (MONO_CLASS_FROM_MONO_TYPE)GetProcAddress(hMono, "il2cpp_class_from_mono_type");
 				mono_class_from_mono_type = mono_class_from_mono_type ? mono_class_from_mono_type : (MONO_CLASS_FROM_MONO_TYPE)GetProcAddress(hMono, "il2cpp_class_from_il2cpp_type");
@@ -709,6 +710,8 @@ void CPipeServer::InitMono()
 				mono_class_is_valuetype = (MONO_CLASS_IS_VALUETYPE)GetProcAddress(hMono, "mono_class_is_valuetype");
 				mono_class_is_blittable = (MONO_CLASS_IS_BLITTABLE)GetProcAddress(hMono, "mono_class_is_blittable");
 				mono_class_is_subclass_of = (MONO_CLASS_IS_SUBCLASS_OF)GetProcAddress(hMono, "mono_class_is_subclass_of");
+				mono_class_get_static_field_data = (MONO_CLASS_GET_STATIC_FIELD_DATA)GetProcAddress(hMono, "mono_vtable_get_static_field_data");
+				mono_class_get_static_field_data = mono_class_get_static_field_data ? mono_class_get_static_field_data : (MONO_CLASS_GET_STATIC_FIELD_DATA)GetProcAddress(hMono, "mono_unity_vtable_get_static_field_data");
 
 				mono_class_get_properties = (MONO_CLASS_GET_PROPERTIES)GetProcAddress(hMono, "mono_class_get_properties");
 				mono_class_get_property_from_name = (MONO_CLASS_GET_PROPERTY_FROM_NAME)GetProcAddress(hMono, "mono_class_get_property_from_name");
@@ -2376,6 +2379,25 @@ void CPipeServer::GetClassOfType()
 	WriteQword((UINT64)mono_type_get_class(type));
 }
 
+void CPipeServer::GetClassStaticFieldData()
+{
+	void* klass = (void*)ReadQword();
+	if (!!klass && !!mono_class_get_static_field_data)
+	{
+		if (il2cpp)
+			WriteQword((UINT64)mono_class_get_static_field_data(klass));
+		else
+		{
+			//In mono it is: mono_vtable_get_static_field_data(MonoVTable*)
+			void* domain = mono_get_root_domain();
+			void* vtable = mono_class_vtable(domain, klass);
+			WriteQword((UINT64)mono_class_get_static_field_data(vtable));
+		}
+	}
+	else
+		WriteQword(0);
+}
+
 void CPipeServer::GetTypeOfMonoType()
 {
 	void* type = (void*)ReadQword();
@@ -2458,7 +2480,10 @@ void CPipeServer::GetStaticFieldAddressFromClass(void)
 
 	if (il2cpp)
 	{
-		WriteQword(0);
+		if (mono_class_get_static_field_data)
+			WriteQword((UINT_PTR)mono_class_get_static_field_data(klass)); //base address for static fields
+		else
+			WriteQword(0);
 	}
 	else
 	{
@@ -3763,6 +3788,10 @@ void CPipeServer::Start(void)
 
 				case MONOCMD_MONOTYPEACTIONS:
 					MonoTypeActionsMethod();
+					break;
+
+				case MONOCMD_MONOCLASSSTATICFIELDDATA:
+					GetClassStaticFieldData();
 					break;
 
 				case MONOCMD_COLLECTGARBAGE:

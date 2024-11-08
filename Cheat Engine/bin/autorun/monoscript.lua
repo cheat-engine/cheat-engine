@@ -21,7 +21,7 @@ local dpiscale=getScreenDPI()/96
 
 mono_timeout=3000 --change to 0 to never timeout (meaning: 0 will freeze your face off if it breaks on a breakpoint, just saying ...)
 
-MONO_DATACOLLECTORVERSION=20241014
+MONO_DATACOLLECTORVERSION=20241108
 
 MONOCMD_INITMONO=0
 MONOCMD_OBJECT_GETCLASS=1
@@ -108,6 +108,7 @@ MONOCMD_ENUMEVENTSINCLASS = 81
 MONOCMD_CLASSEVENTSACTIONS = 82
 MONOCMD_MONOCLASSACTIONS = 83
 MONOCMD_MONOTYPEACTIONS = 84
+MONOCMD_MONOCLASSSTATICFIELDDATA = 85
 
 MonoTypeInfo = {
   GetAttrs = 0
@@ -2250,6 +2251,17 @@ function mono_class_getStaticFieldAddress(domain, class)
     monopipe.unlock()
   end
   return result;
+end
+
+function mono_class_get_static_field_data(klass)
+  assert(readPointer(klass), 'Error: Invalid class')
+  if not monopipe then return nil end
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_MONOCLASSSTATICFIELDDATA)
+  monopipe.writeQword(klass)
+  local retv = monopipe.readQword()
+  monopipe.unlock()
+  return retv
 end
 
 function mono_object_enumValues(object)
