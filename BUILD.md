@@ -17,11 +17,9 @@ This guide will help you build Cheat Engine using Lazarus, the open-source Delph
 
 3. **Download Cheat Engine Source Code**  
    Clone the Cheat Engine repository or download the latest zip release from GitHub:
-   - [Cheat Engine GitHub Repository](https://github.com/cheat-engine/cheat-engine)
-
-or
-  Download or clone latest source code of this repo:
+  
   https://github.com/moxiu6/cheat-engine
+
 5. **Set up the environment**  
    Make sure you have set up the required libraries in Lazarus:
    - Open Lazarus IDE.
