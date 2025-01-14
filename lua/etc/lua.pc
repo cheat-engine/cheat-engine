@@ -3,9 +3,9 @@
 # vars from install Makefile
 
 # grep '^V=' ../Makefile
-V= 5.1
+V= 5.4
 # grep '^R=' ../Makefile
-R= 5.1.4
+R= 5.4.7
 
 # grep '^INSTALL_.*=' ../Makefile | sed 's/INSTALL_TOP/prefix/'
 prefix= /usr/local
