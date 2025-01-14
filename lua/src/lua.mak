@@ -1,4 +1,4 @@
-SFX = 5.1
+SFX = 5.4
 APPNAME = lua$(SFX)
 
 SRC = lua.c

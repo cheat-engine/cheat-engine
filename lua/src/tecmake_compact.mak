@@ -5,7 +5,7 @@
 #-------------------------------------------------------------------------#
 
 # Tecmake Version
-VERSION = 3.17
+VERSION = 4.20
 
 # First target 
 .PHONY: build

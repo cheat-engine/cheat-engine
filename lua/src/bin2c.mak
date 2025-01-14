@@ -1,4 +1,4 @@
-SFX = 5.1
+SFX = 5.4
 PROJNAME = lua$(SFX)
 APPNAME = bin2c$(SFX)
 APPTYPE = console

@@ -1,4 +1,4 @@
-SFX = 5.1
+SFX = 5.4
 APPNAME = luac$(SFX)
 
 SRC = luac.c print.c 

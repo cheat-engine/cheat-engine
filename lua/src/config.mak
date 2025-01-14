@@ -1,4 +1,4 @@
-SFX = 5.1
+SFX = 5.4
 LIBNAME = lua$(SFX)
 
 SRC = lapi.c lcode.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c \

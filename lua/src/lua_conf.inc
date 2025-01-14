@@ -1,6 +1,6 @@
-# Common Tecmake definitions for Lua 5.1
+# Common Tecmake definitions for Lua 5.4
 
-SFX = 5.1
+SFX = 5.4
 PROJNAME = lua$(SFX)
 OPT = Yes           # Turn optimization on
 USE_NODEPEND = Yes  # Disable dependencies
