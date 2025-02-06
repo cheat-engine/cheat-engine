@@ -122,7 +122,7 @@ object frmBreakpointCondition: TfrmBreakpointCondition
           '--Changing them has no effect though'
           '--Note: Keep in mind hexadecimal values start with 0x'
           ''
-          'return (conditon) --return a non-zero value if you want to break'
+          'return (conditon) --return true if you want to break, false to not break'
         )
         ScrollBars = ssBoth
         TabOrder = 0
