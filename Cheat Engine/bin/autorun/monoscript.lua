@@ -320,42 +320,71 @@ function monoTypeToVarType(monoType)
 
   return result
 end
+local function GetFuncRetOpcodeAddress(funcadr)
+  if not readPointer(funcadr) then return end
+  --todo: add a check for any jmp opc leading to outside or ret/int opcodes
+  local dd = createDisassembler()
+  local tt = setmetatable({}, {__gc=function() dd.destroy() end})
+  dd.disassemble(funcadr)
+  local opc = dd.getLastDisassembleData()
+  local ticks = 0x2500
+  local limit = funcadr+ticks
+  while opc and opc.address < limit and ticks > 0 do
+    --print(fu(opc.address),getInstructionSize(opc.address))
+    if opc.opcode == 'ret' or opc.opcode=='int 3' then return opc.address end
+    local adrn = opc.address + getInstructionSize(opc.address)
+    --print( dd.disassemble(adrn) )
+    dd.disassemble(adrn)
+    opc = dd.LastDisassembleData
+    ticks = ticks-1
+  end
+  local rval = dd.getLastDisassembleData()
+  tt = nil
+  return rval.address
+end
+function parseClass(klass, classname, namespace, bMaxSize)
+  assert(readPointer(klass), 'Error: <parseClass> - Invalid klass')
+  classname=classname or mono_class_getName(klass)
+  namespace=namespace or mono_class_getNamespace(klass)
+  local methods=mono_class_enumMethods(klass)
 
+  if methods then
+    local j
+    for j=1,#methods do
+      local address=readPointer(methods[j].method) --first pointer is a pointer to the code
+      if address and address~=0 then
+        local sname=classname..'.'..methods[j].name
+
+        if namespace and namespace~='' then
+          sname=namespace..'.'..sname
+        end
+		local maxadr;
+		if bMaxSize then
+			maxadr = GetFuncRetOpcodeAddress(address)
+		end
+		local count  = (tonumber(maxadr) and maxadr-address > 0) and maxadr-address or 1
+        monoSymbolList.addSymbol('',sname,address,count)
+      end
+    end
+  end
+end
 function parseImage(t, image)
   if image.parsed then return end
-  
- 
+
+
   local classes=mono_image_enumClasses(image.handle)
   if t.Terminated then return end
-  
+
   if classes then
     --monoSymbolList.addSymbol('','Pen15',address,1)
     local i
     for i=1,#classes do
-      local classname=classes[i].classname
-      local namespace=classes[i].namespace
-      local methods=mono_class_enumMethods(classes[i].class)
-      
-      if methods then
-        local j
-        for j=1,#methods do
-          local address=readPointer(methods[j].method) --first pointer is a pointer to the code
-          if address and address~=0 then
-            local sname=classname..'.'..methods[j].name
-            
-            if namespace and namespace~='' then
-              sname=namespace..'.'..sname
-            end
+      parseClass(classes[i].class, classes[i].classname, classes[i].namespace)
 
-            monoSymbolList.addSymbol('',sname,address,1)
-          end
-        end      
-      end
-      
       if t.Terminated then return end
-    end  
-  end 
-  
+    end
+  end
+
 end
 
 function monoIL2CPPSymbolEnum(t)
