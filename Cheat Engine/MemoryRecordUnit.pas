@@ -228,6 +228,8 @@ type
 
     procedure processingDone; //called by the processingThread when finished
     procedure setDescription(d: string);
+    function EvaluateBitShifting(expression: string): string;
+    function EvaluateBitwiseExpression(expression: string): string;
 
   public
 
@@ -3387,7 +3389,7 @@ begin
 
 
 
-  currentValue:={utf8toansi}(v);
+  currentValue:=EvaluateBitwiseExpression({utf8toansi}(v));
 
   if fShowAsHex and (not (vartype in [vtSingle, vtDouble, vtByteArray, vtString] )) then
   begin
@@ -3746,6 +3748,63 @@ begin
     if mr_slow=mr_fast then exit(true);
   end;
 end;
+
+function TMemoryRecord.EvaluateBitShifting(expression: string): string;
+var
+  parts: TStringList;
+  baseValue, shiftAmount: integer;
+begin
+  Result := expression; // Default to the original expression
+  parts := TStringList.Create;
+  try
+    // Split the expression by the '<<' operator
+    parts.StrictDelimiter := true;
+    parts.Delimiter := '<';
+    parts.DelimitedText := StringReplace(expression, '<<', '<', [rfReplaceAll]);
+
+    if parts.Count = 2 then
+    begin
+      // Parse the base value and shift amount
+      baseValue := StrToIntDef(parts[0], 0);
+      shiftAmount := StrToIntDef(parts[1], 0);
+
+      // Perform the bit-shifting
+      Result := IntToStr(baseValue shl shiftAmount);
+    end;
+  finally
+    parts.Free;
+  end;
+end;
+
+
+function TMemoryRecord.EvaluateBitwiseExpression(expression: string): string;
+var
+  i: Integer;
+  parts: TStringList;
+  subExpression: string;
+  tempResult: Integer;
+begin
+  Result := expression; // Default to the original expression
+  tempResult := 0;
+  parts := TStringList.Create;
+  try
+    parts.StrictDelimiter := true;
+    parts.Delimiter := '|';
+    parts.DelimitedText := StringReplace(expression, '|', '|', [rfReplaceAll]);
+
+    for i := 0 to parts.Count - 1 do
+    begin
+      subExpression := Trim(parts[i]);
+      subExpression := EvaluateBitShifting(subExpression);
+      tempResult := tempResult or StrToIntDef(subExpression, 0);
+    end;
+    
+    Result := IntToStr(tempResult);
+  finally
+    parts.Free;
+  end;
+end;
+
 
 function MemRecHotkeyActionToText(action: TMemrecHotkeyAction): string;
 begin
