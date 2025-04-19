@@ -163,6 +163,8 @@ type
     { public declarations }
 
     canceled: boolean;
+
+    procedure reAlignCheatList;
   end;
 
 procedure FillSoundList(list: Tstrings);
@@ -260,6 +262,35 @@ begin
   RefreshHotkeyItem(li);
 end;
 
+procedure TfrmTrainerGenerator.reAlignCheatList;
+var cheatpanel: TScrollBox;
+  i: integer;
+  currentcheat, lastcheat: TCheat;
+begin
+  cheatpanel:=TScrollBox(trainerform.FindComponent('CHEATPANEL'));
+  if cheatpanel<>nil then
+  begin
+    currentCheat:=nil;
+    for i:=0 to lvCheats.Items.Count-1 do
+    begin
+      lastCheat:=currentCheat;
+      currentcheat:=TCheat(trainerform.FindComponent('CHEAT'+inttostr(i)));
+      if lastcheat=nil then
+      begin
+        currentcheat.BorderSpacing.Left := scalex(10,96);
+        currentcheat.BorderSpacing.Right := scalex(25,96); //scroll.width = 20
+      end;
+      // 110 = descriptionlabel.BorderSpacing.Left
+      currentcheat.descriptionleft:=scalex(110,96);
+      currentcheat.BorderSpacing.Top := scaley(10,96);
+      currentcheat.height:=scaley(28,96);
+      currentcheat.anchors:=[akTop, akLeft, akRight];
+
+    end;
+  end;
+
+end;
+
 procedure TfrmTrainerGenerator.buildcheatlist;
 var cheatpanel: TScrollBox;
   i: integer;
@@ -289,26 +320,41 @@ begin
       currentcheat.name:='CHEAT'+inttostr(i);
       currentcheat.cheatnr:=i;
       currentcheat.tag:=i+1;
-      currentcheat.AutoSize:=true;
+      currentcheat.AutoSize:=False;
+
+      //height  & left
+      currentcheat.height:=scaley(28,96);
+      currentcheat.Left := scalex(10,96);
 
       if lastcheat=nil then
       begin
         //top
-        currentcheat.left:=scalex(10,96);
-        currentcheat.top:=scaley(40,96);
+        currentcheat.Top := scaley(10,96);
+        currentcheat.AnchorSideTop.Control:=hotkeylabel;
+        currentcheat.AnchorSideLeft.Control:=cheatpanel;
+        currentcheat.AnchorSideRight.Control:=cheatpanel;
+        currentcheat.AnchorSideRight.Side:=asrBottom;
+        currentcheat.BorderSpacing.Left := scalex(10,96);
+        currentcheat.BorderSpacing.Right := scalex(25,96); //scroll.width = 20
       end
       else
       begin
         //next one
-        currentcheat.top:=lastcheat.Top+lastcheat.height+scaley(10,96);
-        currentcheat.left:=lastcheat.left;
+        currentcheat.AnchorSideLeft.Control := lastcheat;
+        currentcheat.AnchorSideTop.Control := lastcheat;
+        currentcheat.AnchorSideRight.Control := lastcheat  ;
+        currentcheat.AnchorSideRight.Side := asrBottom;
       end;
 
+      // top Border
+      currentcheat.AnchorSideTop.Side := asrBottom ;
+      currentcheat.BorderSpacing.Top := scaley(10,96);
+
       currentcheat.hotkeyleft:=hotkeylabel.left-currentcheat.left;
-      currentcheat.descriptionleft:=descriptionlabel.left-currentcheat.left;
+      currentcheat.descriptionleft:=descriptionlabel.BorderSpacing.Left;
 
       currentcheat.width:=cheatpanel.clientwidth-currentcheat.Left-scalex(2,96);
-      currentcheat.anchors:=currentcheat.anchors+[akRight];
+      currentcheat.anchors:=[akTop, akLeft, akRight];
 
       currentcheat.Hotkey:=lvCheats.Items[i].Caption;
       currentcheat.Description:=lvCheats.Items[i].SubItems[0];
@@ -501,13 +547,25 @@ begin
     hotkeylabel.top:=scaley(10,96);
     hotkeylabel.parent:=cheatpanel;
 
+    hotkeylabel.AnchorSideTop.Control:=cheatpanel;
+    hotkeylabel.AnchorSideLeft.Control:=cheatpanel;
+    hotkeylabel.BorderSpacing.Top  := scaley(10,96);
+    hotkeylabel.BorderSpacing.Left := scalex(10,96);
+    hotkeylabel.AnchorSideTop.Side := asrTop;
+    hotkeylabel.anchors:=[akTop, akLeft];
+
     descriptionlabel:=Tcelabel.create(trainerform);
     descriptionlabel.name:='DESCRIPTIONLABEL';
     descriptionlabel.caption:=rsEffect;
-    descriptionlabel.left:=100; //gets adjusted automatically
+    descriptionlabel.left:=scalex(120,96); //gets adjusted automatically
     descriptionlabel.top:=hotkeylabel.top;
     descriptionlabel.parent:=cheatpanel;
 
+    descriptionlabel.AnchorSideLeft.Control := hotkeylabel;
+    descriptionlabel.AnchorSideLeft.Side := asrTop; //align to hotkeylabel left
+    descriptionlabel.AnchorSideTop.Control := hotkeylabel;
+    descriptionlabel.BorderSpacing.Left := scalex(110,96);
+    descriptionlabel.anchors:=[akTop, akLeft];
 
     closebutton:=TCECustomButton.create(trainerform);
     closebutton.name:='CLOSEBUTTON';
