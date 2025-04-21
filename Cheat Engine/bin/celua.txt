@@ -254,7 +254,7 @@ unregisterLuaFunctionHighlight(functionname): Removes the given name from showin
 
 
 registerSymbolLookupCallback(function(string):integer, location): ID  6.4+
-  Registers a function to be called when a a symbol is parsed
+  Registers a function to be called when a symbol is parsed
   Location determines at what part of the symbol lookup the function is called
     slStart: The very start of a symbol lookup. Before tokenization
     slNotInt: Called when it has been determined it's not a hexadecimal only string. Before tokenization
