@@ -1,0 +1,21 @@
+name: Build CheatEngine server for linux
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Build ceserver
+      working-directory: Cheat Engine/ceserver/gcc
+      run: make
+
+    - name: Upload ceserver
+      uses: actions/upload-artifact@v3.1.2
+
+      with:
+        name: linux-ceserver
+        path: 'Cheat Engine/ceserver/gcc/ceserver'
