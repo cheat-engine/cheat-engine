@@ -43,14 +43,14 @@ uses Unit4, Unit5, frmHelpUnit, cetranslator;
 resourcestring
   rsStep3UnknownInitialValuePW = 'Step 3: Unknown initial value (PW=';
   rsDead = 'Seems you''ve done it again! Let me get a replacement! (And restart your scan!)';
-  rsTryAgain3 = 'Step 3 isn''t really that hard. Just do a new scan, unkown initial value and then decreased value till you find it. Almost everyone gets past'
+  rsTryAgain3 = 'Step 3 isn''t really that hard. Just do a new scan, unknown initial value and then decreased value till you find it. Almost everyone gets past'
     +' this one. Sure you want to quit?';
   rsLOSER = 'BOO';
 
   rsTutorialStep3=
     'Ok, seeing that you''ve figured out how to find a value using exact value let''s move on to the next step.'+#13#10+
           ''+#13#10+
-          'First things first though. Since you are doing a new scan, you have to click on New Scan first, to start a new scan. (You may think this is straighforward, but you''d be surprised how many people get stuck on that step) I won''t be explaining this step again, so keep this in mind.'+#13#10+
+          'First things first though. Since you are doing a new scan, you have to click on New Scan first, to start a new scan. (You may think this is straightforward, but you''d be surprised how many people get stuck on that step) I won''t be explaining this step again, so keep this in mind.'+#13#10+
           'Now that you''ve started a new scan, let''s continue.'+#13#10+
           ''+#13#10+
           'In the previous test we knew the initial value so we could do an exact value search, but now we have a status bar where '+
@@ -60,7 +60,7 @@ resourcestring
           ''+#13#10+
           'Again there are several different ways to find the value. (like doing a decreased value by... scan), but I''ll only '+
           'explain the easiest. "Unknown initial value", and decreased value.'+#13#10+
-          'Because you don''t know the value it is right now, exact value wont do any good, so choose as scantype '+
+          'Because you don''t know the value it is right now, exact value wont do any good, so choose as scan type '+
           '''Unknown initial value'', again, the value type is 4-bytes. (Most windows apps use 4-bytes.) '+
           'Click First scan and wait till it''s done.'+#13#10+
           ''+#13#10+
