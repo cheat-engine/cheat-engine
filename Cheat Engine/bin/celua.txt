@@ -2086,6 +2086,7 @@ DataString: The internal string
 TableFile class (Inheritance: Object)
 findTableFile(filename): Returns the TableFile class object for the saved file
 createTableFile(filename, filepath OPTIONAL): TableFile - Add a new file to your table. If no filepath is specified, it will create a blank file. Otherwise, it will read the contents from disk.
+getTableFileList(internal:boolean OPTIONAL default=false): Returns an indexed table with the names of the TableFile's of the cheat table, if internal is true then it returns the internal tables
 
 properties
   Name: string

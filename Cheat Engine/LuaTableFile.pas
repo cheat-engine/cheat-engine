@@ -137,6 +137,37 @@ begin
     lua_pop(L, lua_gettop(L));
 end;
 
+function getTableFileList(L: Plua_State): integer; cdecl;
+var
+  parameters: integer;
+  internal: boolean;
+  i: integer;
+  filesList: TLuaFileList;
+begin
+  internal:=false;
+  parameters:=lua_gettop(L);
+
+  if parameters>0 then
+     internal:=lua_toboolean(L,1);
+
+  if internal then
+     filesList:=mainform.InternalLuaFiles
+  else
+     filesList:=mainform.LuaFiles;
+
+  lua_pop(L, parameters);
+
+  lua_createtable(L, filesList.count, 0);
+  result:=1;
+
+  for i:=0 to filesList.count-1 do
+  begin
+    lua_pushinteger(L, i+1);
+    lua_pushstring(L, filesList[i].name);
+    lua_settable(L, 1);
+  end;
+end;
+
 
 function tablefile_delete(L: Plua_State): integer; cdecl;
 var
@@ -190,6 +221,7 @@ begin
   Lua_register(LuaVM, 'tablefile_delete', tablefile_delete);
   Lua_register(LuaVM, 'tablefile_saveToFile', tablefile_saveToFile);
   Lua_register(LuaVM, 'tablefile_getData', tablefile_getData);
+  Lua_register(LuaVM, 'getTableFileList', getTableFileList);
 end;
 
 initialization
