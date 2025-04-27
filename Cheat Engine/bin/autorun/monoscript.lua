@@ -4603,6 +4603,96 @@ function monoAA_FINDMONOMETHOD(parameters, syntaxcheckonly)
   return result
 end
 
+
+function monoAA_FINDMONOMETHODWITHPARAMS(parameters, syntaxcheckonly)
+  --called whenever an auto assembler script encounters the FINDMONOMETHODWITHPARAMS() line
+
+  --parameters: name, fullmethodnamestring, (OPTIONAL)method param types
+  --turns into a define that sets up name as an address to this method
+  --example for Underminer - no namespace, class Inventory method TryRemoveItem
+  --has three instances, we want one with 'ItemType' and 'int' parameters:
+  --NOTE: cannot be any spaces inside parameters with comma (ItemType,int)!
+  --FINDMONOMETHODWITHPARAMS(tryremoveitem, Inventory:TryRemoveItem, ItemType,int)
+
+  local trim = function(s)
+    return s:match"^%s*(.*)":match"(.-)%s*$"
+  end
+
+  local take = function(s, sep)
+    sep = sep or ","
+    local position = string.find(s, sep)
+    if position then
+      local first = string.sub(s, 1, position - 1)
+      local remainder = string.sub(s, position + 1, #s)
+      return first, remainder
+    end
+    return s, nil
+  end
+
+  local take_and_trim = function(s, sep)
+    local a, b = take(s, sep)
+    return trim(a), b
+  end
+
+  local name, r = take_and_trim(parameters)
+  local full_method_name, r = take_and_trim(r)
+  local signature = nil
+  if r then signature = trim(r) end
+
+  --parse the parameters
+  local namespace, r1 = take_and_trim(full_method_name, ":")
+  local class_name, r2 = take_and_trim(r1, ":")
+  local method_name = nil
+  if r2 == nil then
+    -- just Class:Method if no namespace
+    method_name = class_name
+    class_name = namespace
+    namespace = ""
+  else
+    method_name, r3 = take_and_trim(r2, ":")
+  end
+
+  if syntaxcheckonly then
+    return "define("..name..",00000000)"
+  end
+
+  if (monopipe==nil) or (monopipe.Connected==false) then
+    LaunchMonoDataCollector()
+  end
+
+  if (monopipe==nil) or (monopipe.Connected==false) then
+    return nil,translate("The mono handler failed to initialize")
+  end
+
+  local class_id = mono_findClass(namespace, class_name)
+  local foundMethods = mono_class_enumMethods(class_id)
+  local methods = {}
+  local exact = {}
+  for k,v in pairs(foundMethods) do
+    if v.name == method_name then
+      v.parameters = mono_method_get_parameters(v.method)
+      v.signature = mono_method_getSignature(v.method)
+      if signature ~= nil and v.signature == signature then exact = v end
+      table.insert(methods, v)
+    end
+  end
+  if #methods == 1 then exact = methods[1] end -- no need for params if only 1
+  if not exact then
+     if #methods > 1 then
+        return nil, full_method_name..translate(" has overrides, specify parameters")
+     end
+     return nil, full_method_name..translate(" not found")
+  end
+
+  local method_address = mono_compile_method(exact.method)
+  if (method_address == 0) then
+    return nil, full_method_name..translate(" could not be jitted")
+  end
+
+  local result="define("..name..","..string.format("%x", method_address)..")"
+  return result
+end
+
 function monoform_getStructMap()
   -- TODO: bug check for getStructureCount which does not return value correctly in older CE
   local structmap={}
@@ -5515,6 +5605,7 @@ function mono_initialize()
     registerAutoAssemblerCommand("USEMONO", monoAA_USEMONO)
     registerAutoAssemblerCommand("FINDMONOMETHOD", monoAA_FINDMONOMETHOD)
     registerAutoAssemblerCommand("GETMONOSTRUCT", monoAA_GETMONOSTRUCT)
+    registerAutoAssemblerCommand("FINDMONOMETHODWITHPARAMS", monoAA_FINDMONOMETHODWITHPARAMS)
 
     registerEXETrainerFeature('Mono', function()
       local r={}
