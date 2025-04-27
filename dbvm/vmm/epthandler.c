@@ -717,23 +717,12 @@ int ept_cloak_deactivate(QWORD physicalAddress)
     pcpuinfo currentcpuinfo=firstcpuinfo;
     while (currentcpuinfo)
     {
-    	if (isAMD)
-    	{
-    		_PTE_PAE temp=*((PPTE_PAE)&cloakdata->PhysicalAddressExecutable);
-    		temp.P=1;
-    		temp.RW=1;
-    		temp.US=1;
-    		temp.EXB=0;
-    		*(cloakdata->npentry[currentcpuinfo->cpunr])=temp;
-    	}
-    	else
-    	{
-    		EPT_PTE temp=*(cloakdata->eptentry[currentcpuinfo->cpunr]);
-    		temp.RA=1;
-    		temp.WA=1;
-    		temp.XA=1;
-    		*(cloakdata->eptentry[currentcpuinfo->cpunr])=temp;
-    	}
+      *(QWORD*)(cloakdata->eptentry[currentcpuinfo->cpunr])=0;
+      if (isAMD)
+        NPMapPhysicalMemory(currentcpuinfo, physicalAddress, 1);
+      else
+        EPTMapPhysicalMemory(currentcpuinfo, physicalAddress, 1);
+
       _wbinvd();
       currentcpuinfo->eptUpdated=1;
 
