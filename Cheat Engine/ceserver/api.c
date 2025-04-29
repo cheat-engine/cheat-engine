@@ -160,14 +160,24 @@ unsigned char SPECIFIED_ARCH = 9;
 
 #ifdef SYS_process_vm_readv
 //BEcause of comment: "Please implement this version of process_vm_readv as the original is detected"  I doubt this would work better, but whatever, here it is
-ssize_t process_vm_readv2(pid_t process_id, struct iovec *io_local, struct iovec *io_remote, int len, int flags) {
-    if (process_id < 0) return FALSE;
-    return syscall(SYS_process_vm_readv, process_id, io_local, len, io_remote, len, 0);
+ssize_t process_vm_readv2(pid_t process_id,
+                          const struct iovec *io_local,
+                          unsigned long io_local_cnt,
+                          const struct iovec *io_remote,
+                          unsigned long io_remote_cnt,
+                          unsigned long flags) {
+     if (process_id < 0) return FALSE;
+     return syscall(SYS_process_vm_readv, process_id, io_local, io_local_cnt, io_remote, io_remote_cnt, 0);
 }
 
-ssize_t process_vm_writev2(pid_t process_id, struct iovec *io_local, struct iovec *io_remote, int len, int flags) {
-    if (process_id < 0) return FALSE;
-    return syscall(SYS_process_vm_writev, process_id, io_local, len, io_remote, len, 0);
+ssize_t process_vm_writev2(pid_t process_id,
+                           const struct iovec *io_local,
+                           unsigned long io_local_cnt,
+                           const struct iovec *io_remote,
+                           unsigned long io_remote_cnt,
+                           unsigned long flags) {
+     if (process_id < 0) return FALSE;
+     return syscall(SYS_process_vm_writev, process_id, io_local, io_local_cnt, io_remote, io_remote_cnt, 0);
 }
 #endif
 
