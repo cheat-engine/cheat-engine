@@ -18,6 +18,7 @@
 #ifndef __ANDROID__
 #include <sys/ptrace.h>
 #endif
+#include <symbols.h>
 #include <asm/ptrace.h>
 #include <linux/types.h>
 
@@ -476,7 +477,7 @@ void *CESERVERTEST_DEBUGGERTHREAD(void *arg)
       {
         debug_log("going to set breakpoint\n");
 
-        i=cenet_setBreakpoint(fd, pHandle, -1, 0x00ce0000, 3, 4,0);
+        i=cenet_setBreakpoint(fd, pHandle, -1, (void*)(uintptr_t)0x00ce0000, 3, 4,0);
         //cenet_setBreakpoint(fd, pHandle, -1, 0x85e4, 0, 1,2);
         //cenet_setBreakpoint(fd, pHandle, -1, 0x85e4, 0, 1,3);
        // cenet_setBreakpoint(fd, pHandle, -1, 0x85e4, 0, 1,4);
@@ -563,7 +564,9 @@ int hp;
 
 void *CESERVERTEST(int pid )
 {
-  CONTEXT c;
+  // Does this really need to be compiled along with the binary?
+
+  /*CONTEXT c;
   int fd;
   int arch;
   int dest;
@@ -630,7 +633,7 @@ void *CESERVERTEST(int pid )
 
       CloseHandle(pipehandle);
     }
-  }
+  }*/
 
 
 
