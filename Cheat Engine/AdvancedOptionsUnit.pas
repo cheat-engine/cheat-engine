@@ -641,7 +641,7 @@ begin
   if colordialog1.execute then
   begin
     for i:=0 to count-1 do
-      entries[i].color:=colordialog1.Color;
+      if selected[i] then entries[i].color:=colordialog1.Color;
   end;
 
 
