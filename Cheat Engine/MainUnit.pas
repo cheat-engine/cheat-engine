@@ -2177,30 +2177,33 @@ var fn: string;
   s: string;
   path: string;
 begin
+  nosaveerror:=false;
 
-  try
-    nosaveerror:=false;
-    fn:=ExtractFileName(SaveDialog1.filename);
-    if fn='' then
-    begin
-      fn:='noname.ct';
-      path:=opendialog1.InitialDir;
-    end
-    else
-    begin
-      if lowercase(ExtractFileExt(fn))<>'.ct' then
-        fn:=fn+'.ct';
+  if not istrainer then
+  begin
+    try
+      fn:=ExtractFileName(SaveDialog1.filename);
+      if fn='' then
+      begin
+        fn:='noname.ct';
+        path:=opendialog1.InitialDir;
+      end
+      else
+      begin
+        if lowercase(ExtractFileExt(fn))<>'.ct' then
+          fn:=fn+'.ct';
 
-      path:=ExtractFilePath(SaveDialog1.filename);
+        path:=ExtractFilePath(SaveDialog1.filename);
+      end;
+
+
+
+      fn:='ExceptionAutoSave_'+fn;
+      fn:=path+fn;
+      SaveTable(fn);
+      nosaveerror:=true;
+    except
     end;
-
-
-
-    fn:='ExceptionAutoSave_'+fn;
-    fn:=path+fn;
-    SaveTable(fn);
-    nosaveerror:=true;
-  except
   end;
 
   if nosaveerror then
